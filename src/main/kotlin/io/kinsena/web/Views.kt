@@ -28,18 +28,21 @@ object Views {
                     button { background: #0369a1; border: 0; color: #fff; cursor: pointer; }
                     article { background: #1e293b; border-radius: 12px; padding: 16px; margin: 16px 0; }
                     form { margin: 0; } .grid { display: grid; gap: 8px; margin-bottom: 8px; }
+                    .login-form { display: grid; gap: 16px; }
+                    .login-form label { display: grid; gap: 8px; }
+                    .login-form input, .login-form button { width: 100%; min-height: 44px; }
                     .inline-form { display: flex; gap: 6px; align-items: center; }
                     .bill-row button { min-width: 44px; min-height: 44px; }
                     :focus-visible { outline: 2px solid #38bdf8; outline-offset: 2px; }
                     .notice { border: 1px solid #fbbf24; border-radius: 8px; padding: 10px; color: #fde68a; }
                     .error { color: #fda4af; }
-                    @media (max-width: 480px) { .bill-row { flex-wrap: wrap; gap: 8px; } .bill-left { flex-basis: 100%; } .bill-amount-input { width: 120px !important; } .add-box { flex-wrap: wrap; } .stat-val { font-size: 1rem !important; } }
+                    @media (max-width: 600px) { body { max-width: 390px; margin-left: 0; } .header-bar .nav-links { width: 100%; } .bill-row { flex-wrap: wrap; gap: 8px; } .bill-left { flex-basis: 100%; } .bill-row > .inline-form { width: 100%; } .bill-amount-input { width: 120px !important; } .add-box { flex-wrap: wrap; } .stat-val { font-size: 1rem !important; } }
                     .header-bar { display: flex; flex-wrap: wrap; gap: 8px; justify-content: space-between; align-items: center; border-bottom: 1px solid #334155; padding-bottom: 12px; margin-bottom: 16px; }
                     .brand { font-size: 1.4rem; font-weight: 800; letter-spacing: -0.05em; color: #38bdf8; margin: 0; }
                     .tagline { font-size: 0.75rem; color: #94a3b8; margin: 0; }
                     .stat-card { background: #1e293b; border-radius: 12px; padding: 16px; margin-bottom: 20px; border: 1px solid #334155; }
-                    .stat-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; text-align: center; }
-                    .stat-val { font-size: 1.25rem; font-weight: 700; color: #f1f5f9; display: block; }
+                    .stat-grid { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 8px; text-align: center; }
+                    .stat-val { font-size: 1.25rem; font-weight: 700; color: #f1f5f9; display: block; overflow-wrap: anywhere; }
                     .stat-label { font-size: 0.7rem; text-transform: uppercase; letter-spacing: 0.05em; color: #94a3b8; }
                     .remaining-val { color: #f43f5e; }
                     .paid-val { color: #10b981; }
@@ -87,7 +90,7 @@ object Views {
         article {
             h2 { +"Sign in" }
             if (invalid) p("error") { attributes["role"] = "alert"; +"Could not sign in. Check your passphrase or try again shortly." }
-            form(action = "/login", method = FormMethod.post) {
+            form(action = "/login", method = FormMethod.post, classes = "login-form") {
                 label {
                     +"Passphrase"
                     input(type = InputType.password, name = "password") {

@@ -2,6 +2,14 @@
 
 A small, self-hosted checklist for things you handle each payday. This is not a bank integration or an expense tracker. Add saved items once, start a cycle, enter amounts when known, and mark items done.
 
+## Screenshots
+
+Mobile login and checklist with example items (no personal records):
+
+![Kinsena login](docs/screenshots/login.png)
+
+![Kinsena payday checklist](docs/screenshots/checklist.png)
+
 ## Run
 
 Requires JDK 21. Kinsena requires one passphrase (at least 16 characters) in a private text file, outside this repo and outside synced notes. Create the file using your password manager or a private editor, keep it readable only by the server user, and never commit it. From the repo root:
