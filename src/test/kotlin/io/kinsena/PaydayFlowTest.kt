@@ -23,7 +23,7 @@ class PaydayFlowTest {
         listOf("/", "/history", "/templates").forEach { path ->
             assertTrue(client.get(path).bodyAsText().contains("Sign in"))
         }
-        listOf("/cycles/new", "/cycles/1/close", "/cycles/1/add-item", "/items/1/toggle", "/items/1/amount", "/items/1/delete", "/templates/new", "/templates/1/archive").forEach { path ->
+        listOf("/cycles/new", "/cycles/1/close", "/cycles/1/reopen", "/cycles/1/add-item", "/items/1/toggle", "/items/1/amount", "/items/1/delete", "/templates/new", "/templates/1/amount", "/templates/1/archive").forEach { path ->
             assertEquals(HttpStatusCode.Unauthorized, client.post(path).status, path)
         }
         assertEquals(HttpStatusCode.Unauthorized, client.post("/login") {
@@ -54,7 +54,7 @@ class PaydayFlowTest {
         val cycle = db.getActiveCycle()!!
         assertEquals(1, cycle.missingCount)
         assertEquals("0.29", cycle.totalAmount.toPlainString())
-        assertTrue(get("/").bodyAsText().contains("1 amount(s) missing"))
+        assertTrue(get("/").bodyAsText().contains("1 amount(s) unknown"))
         val item = cycle.items.single { it.name == "Variable" }.id
         assertEquals(HttpStatusCode.BadRequest, post("/items/$item/amount", "amountExpr" to "1000 + typo").status)
         assertEquals(1, db.getActiveCycle()!!.missingCount)
@@ -69,13 +69,23 @@ class PaydayFlowTest {
         assertEquals(HttpStatusCode.BadRequest, post("/items/$item/delete").status)
         assertEquals(HttpStatusCode.BadRequest, post("/items/$item/amount", "amountExpr" to "99").status)
         assertEquals(HttpStatusCode.BadRequest, post("/cycles/${cycle.cycle.id}/add-item", "name" to "Late").status)
-        assertTrue(get("/history").bodyAsText().contains("Payday"))
+        assertTrue(get("/history").bodyAsText().contains("Reopen this cycle"))
         assertEquals("0.3", db.getHistory().single().paidAmount.toPlainString())
+        assertEquals(HttpStatusCode.Found, post("/cycles/${cycle.cycle.id}/reopen").status)
+        assertEquals("0.3", db.getActiveCycle()!!.paidAmount.toPlainString())
+        assertEquals(HttpStatusCode.Found, post("/cycles/${cycle.cycle.id}/close").status)
+        val fixedId = db.getTemplates().single { it.name == "Internet" }.id
+        assertEquals(HttpStatusCode.BadRequest, post("/templates/$fixedId/amount", "defaultAmount" to "2 + nope").status)
+        assertEquals(0.29, db.getTemplates().single { it.id == fixedId }.defaultAmount)
+        assertEquals(HttpStatusCode.Found, post("/templates/$fixedId/amount", "defaultAmount" to "2.55").status)
         val savedId = db.getTemplates().single { it.name == "Variable" }.id
         assertEquals(HttpStatusCode.Found, post("/templates/$savedId/archive").status)
         assertEquals(HttpStatusCode.Found, post("/cycles/new", "title" to "Next", "cadence" to "ANY").status)
         assertFalse(db.getActiveCycle()!!.items.any { it.isDone })
         assertFalse(db.getActiveCycle()!!.items.any { it.name == "Variable" })
+        assertEquals(HttpStatusCode.BadRequest, post("/cycles/${cycle.cycle.id}/reopen").status)
+        assertEquals(2.55, db.getActiveCycle()!!.items.single().amount)
+        assertEquals(0.29, db.getHistory().first { it.cycle.isClosed }.items.single { it.name == "Internet" }.amount)
         assertTrue(db.getHistory().first { it.cycle.isClosed }.items.any { it.name == "Variable" })
         assertEquals(HttpStatusCode.Found, post("/logout").status)
         assertTrue(client.get("/history").bodyAsText().contains("Sign in"))

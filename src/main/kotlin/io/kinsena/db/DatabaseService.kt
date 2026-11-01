@@ -46,6 +46,13 @@ class DatabaseService(dbPath: String = "data/kinsena.db") {
         }
     }
 
+    fun updateTemplateAmount(id: Long, amount: Double?) = transaction {
+        require(amount == null || (amount.isFinite() && amount >= 0 && amount <= 999999999999.99)) { "Invalid default amount" }
+        require(TemplateItemsTable.update({ (TemplateItemsTable.id eq id) and (TemplateItemsTable.isArchived eq false) }) {
+            it[TemplateItemsTable.defaultAmount] = amount
+        } == 1) { "Unknown saved item" }
+    }
+
     fun archiveTemplate(id: Long) = transaction {
         require(TemplateItemsTable.update({ TemplateItemsTable.id eq id }) { it[isArchived] = true } == 1) { "Unknown saved item" }
     }
@@ -174,6 +181,15 @@ class DatabaseService(dbPath: String = "data/kinsena.db") {
         CyclesTable.update({ CyclesTable.id eq cycleId }) {
             it[isClosed] = true
         }
+    }
+
+    fun reopenCycle(cycleId: Long) = transaction {
+        require(CyclesTable.selectAll().where { CyclesTable.isClosed eq false }.empty()) { "Finish the current cycle first" }
+        val latest = CyclesTable.selectAll().orderBy(CyclesTable.id to SortOrder.DESC).limit(1).singleOrNull()
+        require(latest != null && latest[CyclesTable.id] == cycleId && latest[CyclesTable.isClosed]) {
+            "Only the most recent finished cycle can be reopened"
+        }
+        CyclesTable.update({ CyclesTable.id eq cycleId }) { it[isClosed] = false }
     }
 
     fun getHistory(): List<CycleSummary> = transaction {

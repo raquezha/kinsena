@@ -2,6 +2,7 @@
 .gradle
 build
 data
+backups
 credentials
 .idea
 *.db

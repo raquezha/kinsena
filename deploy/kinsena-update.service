@@ -5,4 +5,4 @@ Description=Pull and run the latest Kinsena image
 Type=oneshot
 WorkingDirectory=%h/kinsena-deploy
 ExecStartPre=/usr/bin/docker compose pull --quiet
-ExecStart=/usr/bin/docker compose up -d --remove-orphans
+ExecStart=/usr/bin/docker compose up -d --remove-orphans --wait --wait-timeout 120

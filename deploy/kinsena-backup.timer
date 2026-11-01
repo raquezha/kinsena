@@ -1,0 +1,10 @@
+[Unit]
+Description=Back up Kinsena once a day
+
+[Timer]
+OnCalendar=daily
+Persistent=true
+Unit=kinsena-backup.service
+
+[Install]
+WantedBy=timers.target

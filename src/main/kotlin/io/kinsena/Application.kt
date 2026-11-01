@@ -19,6 +19,7 @@ import io.ktor.server.plugins.statuspages.*
 import io.ktor.server.request.*
 import io.ktor.server.response.*
 import io.ktor.server.routing.*
+import kotlinx.html.*
 import java.net.URI
 
 private fun ApplicationCall.secureCookie(): Boolean =
@@ -50,7 +51,16 @@ fun Application.module(
 ) {
     install(StatusPages) {
         exception<IllegalArgumentException> { call, cause ->
-            call.respondText(cause.message ?: "Invalid input", status = HttpStatusCode.BadRequest)
+            call.respondHtml(HttpStatusCode.BadRequest) {
+                layout("kinsena · error", false) {
+                    article {
+                        h2 { +"Could not save" }
+                        p { +(cause.message ?: "Invalid input") }
+                        a(href = "/") { +"Back to checklist" }
+                        p { a(href = "/templates") { +"Saved items" } }
+                    }
+                }
+            }
         }
     }
     routing {
@@ -99,6 +109,12 @@ fun Application.module(
             db.closeCycle(call.parameters["id"]?.toLongOrNull() ?: throw IllegalArgumentException("Invalid cycle"))
             call.respondRedirect("/")
         }
+        post("/cycles/{id}/reopen") {
+            if (!call.authorized(login)) return@post
+            call.requireSameOrigin()
+            db.reopenCycle(call.parameters["id"]?.toLongOrNull() ?: throw IllegalArgumentException("Invalid cycle"))
+            call.respondRedirect("/")
+        }
         post("/cycles/{id}/add-item") {
             if (!call.authorized(login)) return@post
             call.requireSameOrigin()
@@ -129,7 +145,9 @@ fun Application.module(
         get("/history") {
             if (!call.authorized(login)) return@get
             call.respondHtml {
-                layout("kinsena · history") { renderHistory(db.getHistory().filter { it.cycle.isClosed }) }
+                layout("kinsena · history") {
+                    renderHistory(db.getHistory().filter { it.cycle.isClosed }, db.getActiveCycle() == null)
+                }
             }
         }
         get("/templates") {
@@ -142,6 +160,14 @@ fun Application.module(
             val params = call.receiveParameters()
             val amount = params["defaultAmount"]?.takeIf { it.isNotBlank() }?.let { AmountParser.parse(it).first }
             db.addTemplate(params["name"] ?: "", amount, CadenceType.valueOf(params["cadence"] ?: "ANY"))
+            call.respondRedirect("/templates")
+        }
+        post("/templates/{id}/amount") {
+            if (!call.authorized(login)) return@post
+            call.requireSameOrigin()
+            val id = call.parameters["id"]?.toLongOrNull() ?: throw IllegalArgumentException("Invalid saved item")
+            val raw = call.receiveParameters()["defaultAmount"]?.takeIf { it.isNotBlank() }
+            db.updateTemplateAmount(id, raw?.let { AmountParser.parse(it).first })
             call.respondRedirect("/templates")
         }
         post("/templates/{id}/archive") {

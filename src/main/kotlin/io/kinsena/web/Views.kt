@@ -29,7 +29,10 @@ object Views {
                     article { background: #1e293b; border-radius: 12px; padding: 16px; margin: 16px 0; }
                     form { margin: 0; } .grid { display: grid; gap: 8px; margin-bottom: 8px; }
                     .inline-form { display: flex; gap: 6px; align-items: center; }
-                    .bill-row button { min-width: 36px; min-height: 36px; }
+                    .bill-row button { min-width: 44px; min-height: 44px; }
+                    :focus-visible { outline: 2px solid #38bdf8; outline-offset: 2px; }
+                    .notice { border: 1px solid #fbbf24; border-radius: 8px; padding: 10px; color: #fde68a; }
+                    .error { color: #fda4af; }
                     @media (max-width: 480px) { .bill-row { flex-wrap: wrap; gap: 8px; } .bill-left { flex-basis: 100%; } .bill-amount-input { width: 120px !important; } .add-box { flex-wrap: wrap; } .stat-val { font-size: 1rem !important; } }
                     .header-bar { display: flex; flex-wrap: wrap; gap: 8px; justify-content: space-between; align-items: center; border-bottom: 1px solid #334155; padding-bottom: 12px; margin-bottom: 16px; }
                     .brand { font-size: 1.4rem; font-weight: 800; letter-spacing: -0.05em; color: #38bdf8; margin: 0; }
@@ -41,12 +44,12 @@ object Views {
                     .remaining-val { color: #f43f5e; }
                     .paid-val { color: #10b981; }
                     .bill-row { display: flex; align-items: center; justify-content: space-between; background: #1e293b; padding: 12px 14px; margin-bottom: 8px; border-radius: 10px; border: 1px solid #334155; transition: all 0.15s ease; }
-                    .bill-row.done { opacity: 0.45; background: #0f172a; border-color: #1e293b; }
+                    .bill-row.done { opacity: 0.8; background: #0f172a; border-color: #1e293b; }
                     .bill-left { display: flex; align-items: center; gap: 12px; flex: 1; }
                     .bill-title { font-weight: 600; font-size: 1rem; color: #f8fafc; }
                     .bill-row.done .bill-title { text-decoration: line-through; color: #94a3b8; }
                     .bill-amount-input { width: 130px; text-align: right; background: #0f172a; border: 1px solid #475569; color: #38bdf8; font-weight: 600; padding: 6px 8px; border-radius: 6px; font-size: 0.95rem; margin: 0; }
-                    .check-btn { width: 36px; height: 36px; border-radius: 8px; border: 2px solid #64748b; background: transparent; cursor: pointer; display: flex; align-items: center; justify-content: center; font-size: 1.1rem; color: #10b981; padding: 0; }
+                    .check-btn { width: 44px; height: 44px; border-radius: 8px; border: 2px solid #64748b; background: transparent; cursor: pointer; display: flex; align-items: center; justify-content: center; font-size: 1.1rem; color: #10b981; padding: 0; }
                     .check-btn.checked { border-color: #10b981; background: #064e3b; }
                     .nav-links { display: flex; flex-wrap: wrap; align-items: center; gap: 12px; font-size: 0.85rem; }
                     .nav-links a { color: #94a3b8; text-decoration: none; }
@@ -83,13 +86,14 @@ object Views {
     fun MAIN.renderLogin(invalid: Boolean = false) {
         article {
             h2 { +"Sign in" }
-            if (invalid) p { +"Could not sign in. Check your passphrase or try again shortly." }
+            if (invalid) p("error") { attributes["role"] = "alert"; +"Could not sign in. Check your passphrase or try again shortly." }
             form(action = "/login", method = FormMethod.post) {
                 label {
                     +"Passphrase"
                     input(type = InputType.password, name = "password") {
                         required = true
                         attributes["autocomplete"] = "current-password"
+                        attributes["autofocus"] = "autofocus"
                     }
                 }
                 button(type = ButtonType.submit) { +"Sign in" }
@@ -101,7 +105,8 @@ object Views {
         if (summary == null) {
             article {
                 h3 { +"No active payday cycle" }
-                p { +"Start a new cycle to load your default obligations and track payments." }
+                p { +"Save recurring names in Defaults, then start a cycle. You can also start with an empty list." }
+                p { a(href = "/templates") { +"Set up saved items" } }
                 form(action = "/cycles/new", method = FormMethod.post) {
                     div(classes = "grid") {
                         input(type = InputType.text, name = "title") {
@@ -137,7 +142,7 @@ object Views {
                     span("stat-label") { +"${summary.pendingCount} Unpaid (known)" }
                 }
             }
-            if (summary.missingCount > 0) p { +"${summary.missingCount} amount(s) missing. Totals exclude them." }
+            if (summary.missingCount > 0) p("notice") { attributes["role"] = "status"; +"${summary.missingCount} amount(s) unknown. Totals include known amounts only." }
         }
 
         // Active Cycle Header
@@ -208,6 +213,7 @@ object Views {
                         placeholder = "Unknown"
                         attributes["aria-label"] = "Amount for ${item.name}"
                         attributes["inputmode"] = "decimal"
+                        attributes["maxlength"] = "256"
                     }
                     button(type = ButtonType.submit) { attributes["aria-label"] = "Save amount for ${item.name}"; +"Save" }
                 }
@@ -219,14 +225,14 @@ object Views {
         }
     }
 
-    fun MAIN.renderHistory(history: List<CycleSummary>) {
+    fun MAIN.renderHistory(history: List<CycleSummary>, canReopen: Boolean) {
         h2 { +"Settled Cycles" }
         if (history.isEmpty()) {
             p { +"No past cycles saved yet." }
             return
         }
 
-        history.forEach { summary ->
+        history.forEachIndexed { index, summary ->
             article {
                 div {
                     style = "display: flex; justify-content: space-between; align-items: center;"
@@ -239,6 +245,11 @@ object Views {
                 p {
                     style = "font-size: 0.8rem; color: #94a3b8; margin: 0 0 12px 0;"
                     +"Recorded: ${summary.cycle.date} · ${summary.doneCount} of ${summary.items.size} cleared"
+                }
+                if (index == 0 && canReopen) {
+                    form(action = "/cycles/${summary.cycle.id}/reopen", method = FormMethod.post) {
+                        button(type = ButtonType.submit) { +"Reopen this cycle" }
+                    }
                 }
                 details {
                     summary { +"View details" }
@@ -283,27 +294,25 @@ object Views {
             }
         }
 
-        table {
-            thead {
-                tr {
-                    th { +"Payee" }
-                    th { +"Default Amount" }
-                    th { +"Cadence" }
-                    th { +"" }
+        templates.forEach { tmpl ->
+            div("bill-row") {
+                div {
+                    strong { +tmpl.name }
+                    small { +" · ${tmpl.cadence.name.replace('_', ' ').lowercase()}" }
                 }
-            }
-            tbody {
-                templates.forEach { tmpl ->
-                    tr {
-                        td { +tmpl.name }
-                        td { +(tmpl.defaultAmount?.let { "₱${moneyFmt.format(it)}" } ?: "Variable") }
-                        td { +tmpl.cadence.name }
-                        td {
-                            form(action = "/templates/${tmpl.id}/archive", method = FormMethod.post) {
-                                attributes["onsubmit"] = "return confirm('Remove this saved item from future cycles?')"
-                                button(type = ButtonType.submit) { +"Remove" }
-                            }
+                div("inline-form") {
+                    form(action = "/templates/${tmpl.id}/amount", method = FormMethod.post, classes = "inline-form") {
+                        input(type = InputType.text, name = "defaultAmount", classes = "bill-amount-input") {
+                            value = tmpl.defaultAmount?.toString() ?: ""
+                            placeholder = "Varies"
+                            attributes["aria-label"] = "Default amount for ${tmpl.name}"
+                            attributes["inputmode"] = "decimal"
                         }
+                        button(type = ButtonType.submit) { +"Save" }
+                    }
+                    form(action = "/templates/${tmpl.id}/archive", method = FormMethod.post) {
+                        attributes["onsubmit"] = "return confirm('Remove this saved item from future cycles?')"
+                        button(type = ButtonType.submit) { attributes["aria-label"] = "Remove ${tmpl.name}"; +"×" }
                     }
                 }
             }

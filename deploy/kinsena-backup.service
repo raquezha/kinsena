@@ -1,0 +1,6 @@
+[Unit]
+Description=Back up the Kinsena database
+
+[Service]
+Type=oneshot
+ExecStart=/bin/sh %h/kinsena-deploy/backup.sh

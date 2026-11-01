@@ -17,6 +17,7 @@ out/
 
 ### Data ###
 data/
+backups/
 credentials/
 *.db
 *.db-journal
