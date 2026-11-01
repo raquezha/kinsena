@@ -55,7 +55,7 @@ To roll back a bad release, temporarily change the Compose image from `:main` to
 
 1. Add recurring item names under **Defaults**. Leave the amount blank for items that vary.
 2. Start a cycle from **Active**. One cycle can be open at a time.
-3. Enter an amount and tap **Save**, or tap the circle to mark an item paid. `10,538.91 + 3403` also works.
+3. Tap the circle to mark an item paid. Tap its amount to edit or remove the item, then tap **Save**. `10,538.91 + 3403` also works.
 4. **Known total** and **remaining** exclude blank amounts; a warning counts them. Zero entered explicitly is different from blank.
 5. Finish the cycle to keep a read-only record in **History**. If you finish it by mistake, reopen the most recent cycle before starting a new one. Update saved default amounts under **Defaults** without changing past cycles.
 
@@ -63,7 +63,7 @@ Values with more than two decimal places round half-up to cents. The app records
 
 ## Install on a phone
 
-Kinsena has a web manifest and icons for an installable home-screen app. Use Safari's **Add to Home Screen** on iPhone, or the browser install action on other platforms. Remote installs need HTTPS. **Online only:** there is no offline cache; the app will not show an old payment state when disconnected.
+Kinsena has an original vector icon, a web manifest, and home-screen icons for installation. Use Safari's **Add to Home Screen** on iPhone, or the browser install action on other platforms. Remote installs need HTTPS. **Online only:** there is no offline cache; the app will not show an old payment state when disconnected.
 
 ## Private access and backups
 

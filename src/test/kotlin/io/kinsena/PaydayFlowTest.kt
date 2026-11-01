@@ -47,6 +47,10 @@ class PaydayFlowTest {
         assertTrue(db.getTemplates().isEmpty())
         assertTrue(client.get("/manifest.webmanifest").bodyAsText().contains("standalone"))
         assertEquals(HttpStatusCode.OK, client.get("/icon-192.png").status)
+        assertEquals(HttpStatusCode.OK, client.get("/icon.svg").status)
+        assertEquals(HttpStatusCode.OK, client.get("/icons/check.svg").status)
+        assertEquals(HttpStatusCode.OK, client.get("/icons/edit.svg").status)
+        assertEquals(HttpStatusCode.OK, client.get("/icons/plus.svg").status)
         assertEquals(HttpStatusCode.Found, post("/templates/new", "name" to "Internet", "defaultAmount" to "0.29", "cadence" to "ANY").status)
         assertEquals(0.29, db.getTemplates().single().defaultAmount)
         assertEquals(HttpStatusCode.Found, post("/templates/new", "name" to "Variable", "cadence" to "ANY").status)
@@ -54,7 +58,10 @@ class PaydayFlowTest {
         val cycle = db.getActiveCycle()!!
         assertEquals(1, cycle.missingCount)
         assertEquals("0.29", cycle.totalAmount.toPlainString())
-        assertTrue(get("/").bodyAsText().contains("1 amount(s) unknown"))
+        val home = get("/").bodyAsText()
+        assertTrue(home.contains("1 amount(s) unknown"))
+        assertTrue(home.contains("bill-details"))
+        assertTrue(home.contains("Set amount"))
         val item = cycle.items.single { it.name == "Variable" }.id
         assertEquals(HttpStatusCode.BadRequest, post("/items/$item/amount", "amountExpr" to "1000 + typo").status)
         assertEquals(1, db.getActiveCycle()!!.missingCount)
