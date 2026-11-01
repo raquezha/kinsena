@@ -17,46 +17,54 @@ object Views {
             title { +pageTitle }
             link(rel = "manifest", href = "/manifest.webmanifest")
             link(rel = "apple-touch-icon", href = "/icon-192.png")
-            meta(name = "theme-color", content = "#0f172a")
+            meta(name = "theme-color", content = "#0b0d0e")
             style {
                 unsafe {
                     +"""
                     * { box-sizing: border-box; }
-                    body { max-width: 650px; margin: 0 auto; padding: 12px 16px; background-color: #0f172a; color: #f8fafc; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; }
-                    a { color: #38bdf8; } input, select, button { font: inherit; border-radius: 8px; padding: 8px; }
-                    input, select { background: #0f172a; color: #f8fafc; border: 1px solid #475569; min-width: 0; }
-                    button { background: #0369a1; border: 0; color: #fff; cursor: pointer; }
-                    article { background: #1e293b; border-radius: 12px; padding: 16px; margin: 16px 0; }
+                    body { max-width: 650px; margin: 0 auto; padding: 20px 16px; background: #0b0d0e; color: #f2f3f1; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; }
+                    a { color: #b5d8c1; } input, select, button { font: inherit; border-radius: 10px; padding: 8px; }
+                    input, select { background: #111416; color: #f2f3f1; border: 1px solid #414749; min-width: 0; }
+                    button { background: #b5d8c1; border: 0; color: #101512; font-weight: 600; cursor: pointer; }
+                    article { background: #191c1e; border: 1px solid #303638; border-radius: 18px; padding: 20px; margin: 16px 0; }
                     form { margin: 0; } .grid { display: grid; gap: 8px; margin-bottom: 8px; }
                     .login-form { display: grid; gap: 16px; }
                     .login-form label { display: grid; gap: 8px; }
                     .login-form input, .login-form button { width: 100%; min-height: 44px; }
                     .inline-form { display: flex; gap: 6px; align-items: center; }
                     .bill-row button { min-width: 44px; min-height: 44px; }
-                    :focus-visible { outline: 2px solid #38bdf8; outline-offset: 2px; }
-                    .notice { border: 1px solid #fbbf24; border-radius: 8px; padding: 10px; color: #fde68a; }
-                    .error { color: #fda4af; }
+                    :focus-visible { outline: 2px solid #b5d8c1; outline-offset: 2px; }
+                    .notice { border: 1px solid #866f42; border-radius: 10px; padding: 10px; color: #f1d59a; font-size: 0.85rem; margin: 16px 0 0; }
+                    .error { color: #f3aaa4; }
                     @media (max-width: 600px) { body { max-width: 390px; margin-left: 0; } .header-bar .nav-links { width: 100%; } .bill-row { flex-wrap: wrap; gap: 8px; } .bill-left { flex-basis: 100%; } .bill-row > .inline-form { width: 100%; } .bill-amount-input { width: 120px !important; } .add-box { flex-wrap: wrap; } .stat-val { font-size: 1rem !important; } }
-                    .header-bar { display: flex; flex-wrap: wrap; gap: 8px; justify-content: space-between; align-items: center; border-bottom: 1px solid #334155; padding-bottom: 12px; margin-bottom: 16px; }
-                    .brand { font-size: 1.4rem; font-weight: 800; letter-spacing: -0.05em; color: #38bdf8; margin: 0; }
-                    .tagline { font-size: 0.75rem; color: #94a3b8; margin: 0; }
-                    .stat-card { background: #1e293b; border-radius: 12px; padding: 16px; margin-bottom: 20px; border: 1px solid #334155; }
-                    .stat-grid { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 8px; text-align: center; }
-                    .stat-val { font-size: 1.25rem; font-weight: 700; color: #f1f5f9; display: block; overflow-wrap: anywhere; }
-                    .stat-label { font-size: 0.7rem; text-transform: uppercase; letter-spacing: 0.05em; color: #94a3b8; }
-                    .remaining-val { color: #f43f5e; }
-                    .paid-val { color: #10b981; }
-                    .bill-row { display: flex; align-items: center; justify-content: space-between; background: #1e293b; padding: 12px 14px; margin-bottom: 8px; border-radius: 10px; border: 1px solid #334155; transition: all 0.15s ease; }
-                    .bill-row.done { opacity: 0.8; background: #0f172a; border-color: #1e293b; }
+                    .header-bar { display: flex; flex-wrap: wrap; gap: 10px; justify-content: space-between; align-items: center; padding-bottom: 18px; margin-bottom: 20px; }
+                    .brand { font-size: 1.45rem; font-weight: 800; letter-spacing: -0.05em; color: #f2f3f1; margin: 0; }
+                    .tagline { font-size: 0.75rem; color: #9da5a2; margin: 0; }
+                    .wallet-card { background: linear-gradient(145deg, #303634, #1b201e 65%, #151918); border: 1px solid #4b5952; border-radius: 22px; padding: 24px; margin-bottom: 28px; box-shadow: 0 16px 35px #0006; }
+                    .wallet-top, .wallet-footer, .section-heading { display: flex; align-items: center; justify-content: space-between; gap: 12px; }
+                    .wallet-top { color: #c4cec7; font-size: 0.8rem; letter-spacing: 0.08em; text-transform: uppercase; }
+                    .wallet-top strong { color: #f2f3f1; letter-spacing: 0; text-transform: none; font-size: 0.9rem; }
+                    .wallet-balance { margin: 30px 0 24px; }
+                    .wallet-balance span, .wallet-footer span { display: block; color: #c4cec7; font-size: 0.75rem; text-transform: uppercase; letter-spacing: 0.06em; }
+                    .wallet-balance strong { display: block; font-size: clamp(2rem, 8vw, 2.75rem); letter-spacing: -0.05em; font-weight: 700; overflow-wrap: anywhere; }
+                    .wallet-footer { border-top: 1px solid #5b686055; padding-top: 16px; }
+                    .wallet-footer strong { display: block; font-size: 1rem; margin-top: 3px; }
+                    .wallet-footer div:last-child { text-align: right; }
+                    .section-heading { margin-bottom: 14px; }
+                    .section-heading h2 { margin: 0; font-size: 1.2rem; }
+                    .section-heading button { background: transparent; border: 1px solid #48504d; color: #ced5d0; font-size: 0.8rem; }
+                    .bill-row { display: flex; align-items: center; justify-content: space-between; background: #191c1e; padding: 12px 14px; margin-bottom: 8px; border-radius: 14px; border: 1px solid #303638; }
+                    .bill-row.done { background: #111416; border-color: #272d2a; }
                     .bill-left { display: flex; align-items: center; gap: 12px; flex: 1; }
-                    .bill-title { font-weight: 600; font-size: 1rem; color: #f8fafc; }
-                    .bill-row.done .bill-title { text-decoration: line-through; color: #94a3b8; }
-                    .bill-amount-input { width: 130px; text-align: right; background: #0f172a; border: 1px solid #475569; color: #38bdf8; font-weight: 600; padding: 6px 8px; border-radius: 6px; font-size: 0.95rem; margin: 0; }
-                    .check-btn { width: 44px; height: 44px; border-radius: 8px; border: 2px solid #64748b; background: transparent; cursor: pointer; display: flex; align-items: center; justify-content: center; font-size: 1.1rem; color: #10b981; padding: 0; }
-                    .check-btn.checked { border-color: #10b981; background: #064e3b; }
+                    .bill-title { font-weight: 600; font-size: 1rem; color: #f2f3f1; }
+                    .bill-row.done .bill-title { text-decoration: line-through; color: #a5afaa; }
+                    .bill-amount-input { width: 130px; text-align: right; background: #111416; border: 1px solid #414749; color: #f2f3f1; font-weight: 600; padding: 6px 8px; border-radius: 8px; font-size: 0.95rem; margin: 0; }
+                    .check-btn { width: 44px; height: 44px; border-radius: 12px; border: 1px solid #626c66; background: transparent; display: flex; align-items: center; justify-content: center; font-size: 1.1rem; color: #b5d8c1; padding: 0; }
+                    .check-btn.checked { border-color: #668772; background: #263d30; }
                     .nav-links { display: flex; flex-wrap: wrap; align-items: center; gap: 12px; font-size: 0.85rem; }
-                    .nav-links a { color: #94a3b8; text-decoration: none; }
-                    .nav-links a.active { color: #38bdf8; font-weight: 600; }
+                    .nav-links a { color: #c4cec7; text-decoration: none; }
+                    .nav-links a:hover { color: #f2f3f1; }
+                    .nav-links button { background: transparent; color: #c4cec7; padding: 6px; font-weight: 400; }
                     .add-box { display: flex; gap: 8px; margin-top: 16px; margin-bottom: 24px; }
                     .add-box input { margin: 0; }
                     """
@@ -129,38 +137,32 @@ object Views {
             return
         }
 
-        // Summary Card
-        div("stat-card") {
-            div("stat-grid") {
+        div("wallet-card") {
+            div("wallet-top") {
+                span { +"Kinsena" }
+                strong { +summary.cycle.title }
+            }
+            div("wallet-balance") {
+                span { +"Known remaining" }
+                strong { +"₱${moneyFmt.format(summary.remainingAmount)}" }
+            }
+            div("wallet-footer") {
                 div {
-                    span("stat-val") { +"₱${moneyFmt.format(summary.totalAmount)}" }
-                    span("stat-label") { +"Known Total" }
+                    span { +"Known total" }
+                    strong { +"₱${moneyFmt.format(summary.totalAmount)}" }
                 }
                 div {
-                    span("stat-val paid-val") { +"₱${moneyFmt.format(summary.paidAmount)}" }
-                    span("stat-label") { +"${summary.doneCount} Paid" }
-                }
-                div {
-                    span("stat-val remaining-val") { +"₱${moneyFmt.format(summary.remainingAmount)}" }
-                    span("stat-label") { +"${summary.pendingCount} Unpaid (known)" }
+                    span { +"Paid" }
+                    strong { +"${summary.doneCount} of ${summary.items.size}" }
                 }
             }
             if (summary.missingCount > 0) p("notice") { attributes["role"] = "status"; +"${summary.missingCount} amount(s) unknown. Totals include known amounts only." }
         }
 
-        // Active Cycle Header
-        div {
-            style = "display: flex; justify-content: space-between; align-items: baseline; margin-bottom: 12px;"
-            h2 {
-                style = "margin: 0; font-size: 1.25rem;"
-                +summary.cycle.title
-            }
+        div("section-heading") {
+            h2 { +"To pay" }
             form(action = "/cycles/${summary.cycle.id}/close", method = FormMethod.post) {
-                style = "margin: 0;"
-                button(type = ButtonType.submit) {
-                    style = "padding: 4px 10px; font-size: 0.75rem; background: #334155; border: none;"
-                    +"Finish Cycle"
-                }
+                button(type = ButtonType.submit) { +"Finish cycle" }
             }
         }
 
@@ -241,12 +243,12 @@ object Views {
                     style = "display: flex; justify-content: space-between; align-items: center;"
                     h4 { +summary.cycle.title }
                     span {
-                        style = "font-weight: 700; color: #38bdf8;"
+                        style = "font-weight: 700; color: #b5d8c1;"
                         +"₱${moneyFmt.format(summary.totalAmount)}"
                     }
                 }
                 p {
-                    style = "font-size: 0.8rem; color: #94a3b8; margin: 0 0 12px 0;"
+                    style = "font-size: 0.8rem; color: #a5afaa; margin: 0 0 12px 0;"
                     +"Recorded: ${summary.cycle.date} · ${summary.doneCount} of ${summary.items.size} cleared"
                 }
                 if (index == 0 && canReopen) {

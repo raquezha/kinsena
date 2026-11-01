@@ -61,7 +61,7 @@ class PaydayFlowTest {
         assertEquals(HttpStatusCode.Found, post("/items/$item/amount", "amountExpr" to "0.10 + 0.20").status)
         assertEquals("0.59", db.getActiveCycle()!!.totalAmount.toPlainString())
         assertEquals(HttpStatusCode.Found, post("/items/$item/toggle").status)
-        assertTrue(get("/").bodyAsText().contains("1 Paid"))
+        assertTrue(get("/").bodyAsText().contains("1 of 2"))
         assertEquals("0.3", db.getActiveCycle()!!.paidAmount.toPlainString())
         assertEquals(HttpStatusCode.BadRequest, post("/cycles/new", "title" to "Second", "cadence" to "ANY").status)
         assertEquals(HttpStatusCode.Found, post("/cycles/${cycle.cycle.id}/close").status)
