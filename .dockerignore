@@ -2,6 +2,7 @@
 .gradle
 build
 data
+credentials
 .idea
 *.db
 *.db-journal

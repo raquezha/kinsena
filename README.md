@@ -4,10 +4,10 @@ A small, self-hosted checklist for things you handle each payday. This is not a 
 
 ## Run
 
-Requires JDK 21. From the repo root:
+Requires JDK 21. Kinsena requires one passphrase (at least 16 characters) in a private text file, outside this repo and outside synced notes. Create the file using your password manager or a private editor, keep it readable only by the server user, and never commit it. From the repo root:
 
 ```bash
-./gradlew run
+KINSENA_PASSWORD_FILE="$HOME/kinsena-deploy/credentials/password" ./gradlew run
 ```
 
 Open http://127.0.0.1:8080. The server listens on loopback by default; it is not reachable from other devices without a protected gateway.
@@ -16,7 +16,7 @@ For Docker:
 
 ```bash
 docker build -t kinsena .
-docker run -d -p 127.0.0.1:8080:8080 -v "$(pwd)/data:/app/data" kinsena
+docker run -d -p 127.0.0.1:8080:8080 -v "$(pwd)/data:/app/data" -v "$HOME/kinsena-deploy/credentials/password:/run/secrets/kinsena_password:ro" -e KINSENA_PASSWORD_FILE=/run/secrets/kinsena_password kinsena
 ```
 
 All records are stored in `data/kinsena.db`. Docker needs the volume shown above to preserve them. Existing database files remain compatible; no migration or personal payees are added automatically to a new installation.
@@ -27,7 +27,7 @@ A push to `main` runs [the publish workflow](.github/workflows/publish.yml). Git
 
 Before setup, make the GHCR package **public** in GitHub's package settings so the server can pull it without registry credentials. Install Docker with the Compose plugin on the server. The user running the update timer must be able to run Docker. Docker access has host-level privileges; keep that user and its account secure.
 
-On the server, run `mkdir -p ~/kinsena-deploy ~/.config/systemd/user`. From your local clone, copy `deploy/compose.yaml` to `~/kinsena-deploy/compose.yaml` on the server. Copy `deploy/kinsena-update.service` and `deploy/kinsena-update.timer` to `~/.config/systemd/user/` on the server. If you already have Kinsena records on that server, **stop the old container and move its database into `~/kinsena-deploy/data/kinsena.db` before the first start**. Do not overwrite an existing database. Then run on the server:
+On the server, run `mkdir -p ~/kinsena-deploy/credentials ~/.config/systemd/user`. Put a private passphrase file at `~/kinsena-deploy/credentials/password` **before** enabling automatic updates. Do not add that file to Git. From your local clone, copy `deploy/compose.yaml` to `~/kinsena-deploy/compose.yaml` on the server. Copy `deploy/kinsena-update.service` and `deploy/kinsena-update.timer` to `~/.config/systemd/user/` on the server. If you already have Kinsena records on that server, **stop the old container and move its database into `~/kinsena-deploy/data/kinsena.db` before the first start**. Do not overwrite an existing database. Then run on the server:
 
 ```bash
 systemctl --user daemon-reload
@@ -58,7 +58,9 @@ Kinsena has a web manifest and icons for an installable home-screen app. Use Saf
 
 ## Private access and backups
 
-There is **no built-in login**. Do not expose port 8080 to the internet or a shared LAN. To reach it from a phone, use an authenticated HTTPS gateway that proxies to loopback (or a private tunnel whose access you control). Set `HOST=0.0.0.0` inside a container only when the published host port is restricted as shown above. Protect the gateway against cross-site requests.
+There is one built-in login, not public registration or multiple accounts. The passphrase never goes in the database or Git. Session cookies contain random tokens, are HTTP-only, SameSite Strict, and Secure for non-local hosts. They expire after seven days. Logout revokes that session; restarting Kinsena signs out all devices. Changing the passphrase requires a restart. Ten failed attempts within a minute temporarily block further login attempts until that minute passes.
+
+Do not expose port 8080 to the internet or a shared LAN. To reach it from a phone, use an authenticated HTTPS gateway that proxies to loopback (or a private tunnel whose access you control). Set `HOST=0.0.0.0` inside a container only when the published host port is restricted as shown above. Protect the gateway against cross-site requests.
 
 From the app's data directory (`~/kinsena-deploy/` on the home server), make a consistent backup while the app is running with SQLite's backup command:
 
@@ -70,7 +72,7 @@ Keep backups on another device and periodically test a restore using a *copy* of
 
 ## Development
 
-`./gradlew test` checks amounts, missing amounts, the HTTP payment flow, history protection, and install assets. The backend is Kotlin/Ktor, the database is SQLite/Exposed, and pages use server-rendered HTML and plain forms; there is no JavaScript build or third-party CDN.
+`./gradlew test` checks login, session revocation, amount edge cases, the HTTP payment flow, history protection, and install assets. The backend is Kotlin/Ktor, the database is SQLite/Exposed, and pages use server-rendered HTML and plain forms; there is no JavaScript build or third-party CDN.
 
 ## License
 

@@ -8,7 +8,7 @@ import java.text.DecimalFormat
 object Views {
     private val moneyFmt get() = DecimalFormat("#,##0.00")
 
-    fun HTML.layout(pageTitle: String, block: MAIN.() -> Unit) {
+    fun HTML.layout(pageTitle: String, signedIn: Boolean = true, block: MAIN.() -> Unit) {
         head {
             meta(charset = "utf-8")
             meta(name = "viewport", content = "width=device-width, initial-scale=1")
@@ -31,7 +31,7 @@ object Views {
                     .inline-form { display: flex; gap: 6px; align-items: center; }
                     .bill-row button { min-width: 36px; min-height: 36px; }
                     @media (max-width: 480px) { .bill-row { flex-wrap: wrap; gap: 8px; } .bill-left { flex-basis: 100%; } .bill-amount-input { width: 120px !important; } .add-box { flex-wrap: wrap; } .stat-val { font-size: 1rem !important; } }
-                    .header-bar { display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid #334155; padding-bottom: 12px; margin-bottom: 16px; }
+                    .header-bar { display: flex; flex-wrap: wrap; gap: 8px; justify-content: space-between; align-items: center; border-bottom: 1px solid #334155; padding-bottom: 12px; margin-bottom: 16px; }
                     .brand { font-size: 1.4rem; font-weight: 800; letter-spacing: -0.05em; color: #38bdf8; margin: 0; }
                     .tagline { font-size: 0.75rem; color: #94a3b8; margin: 0; }
                     .stat-card { background: #1e293b; border-radius: 12px; padding: 16px; margin-bottom: 20px; border: 1px solid #334155; }
@@ -48,7 +48,7 @@ object Views {
                     .bill-amount-input { width: 130px; text-align: right; background: #0f172a; border: 1px solid #475569; color: #38bdf8; font-weight: 600; padding: 6px 8px; border-radius: 6px; font-size: 0.95rem; margin: 0; }
                     .check-btn { width: 36px; height: 36px; border-radius: 8px; border: 2px solid #64748b; background: transparent; cursor: pointer; display: flex; align-items: center; justify-content: center; font-size: 1.1rem; color: #10b981; padding: 0; }
                     .check-btn.checked { border-color: #10b981; background: #064e3b; }
-                    .nav-links { display: flex; gap: 12px; font-size: 0.85rem; }
+                    .nav-links { display: flex; flex-wrap: wrap; align-items: center; gap: 12px; font-size: 0.85rem; }
                     .nav-links a { color: #94a3b8; text-decoration: none; }
                     .nav-links a.active { color: #38bdf8; font-weight: 600; }
                     .add-box { display: flex; gap: 8px; margin-top: 16px; margin-bottom: 24px; }
@@ -64,15 +64,35 @@ object Views {
                         h1("brand") { +"kinsena" }
                         p("tagline") { +"payday rhythm · obligations · zero fluff" }
                     }
-                    div("nav-links") {
+                    if (signedIn) div("nav-links") {
                         a(href = "/") { +"Active" }
                         a(href = "/history") { +"History" }
                         a(href = "/templates") { +"Defaults" }
+                        form(action = "/logout", method = FormMethod.post) {
+                            button(type = ButtonType.submit) { +"Log out" }
+                        }
                     }
                 }
             }
             main {
                 block()
+            }
+        }
+    }
+
+    fun MAIN.renderLogin(invalid: Boolean = false) {
+        article {
+            h2 { +"Sign in" }
+            if (invalid) p { +"Could not sign in. Check your passphrase or try again shortly." }
+            form(action = "/login", method = FormMethod.post) {
+                label {
+                    +"Passphrase"
+                    input(type = InputType.password, name = "password") {
+                        required = true
+                        attributes["autocomplete"] = "current-password"
+                    }
+                }
+                button(type = ButtonType.submit) { +"Sign in" }
             }
         }
     }

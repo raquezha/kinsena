@@ -4,7 +4,15 @@ services:
   app:
     image: ghcr.io/raquezha/kinsena:main
     restart: unless-stopped
+    environment:
+      KINSENA_PASSWORD_FILE: /run/secrets/kinsena_password
+    secrets:
+      - kinsena_password
     ports:
       - "127.0.0.1:8080:8080"
     volumes:
       - ./data:/app/data
+
+secrets:
+  kinsena_password:
+    file: ./credentials/password
