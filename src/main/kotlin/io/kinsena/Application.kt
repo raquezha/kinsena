@@ -1,159 +1,103 @@
 package io.kinsena
 
 import io.kinsena.db.DatabaseService
+import io.kinsena.domain.AmountParser
 import io.kinsena.domain.CadenceType
-import io.kinsena.web.Views
 import io.kinsena.web.Views.layout
 import io.kinsena.web.Views.renderActive
-import io.kinsena.web.Views.renderBillItem
 import io.kinsena.web.Views.renderHistory
 import io.kinsena.web.Views.renderTemplates
 import io.ktor.http.*
 import io.ktor.server.application.*
 import io.ktor.server.engine.*
 import io.ktor.server.html.*
+import io.ktor.server.http.content.*
 import io.ktor.server.netty.*
+import io.ktor.server.plugins.statuspages.*
 import io.ktor.server.request.*
 import io.ktor.server.response.*
 import io.ktor.server.routing.*
-import kotlinx.html.div
-import kotlinx.html.stream.createHTML
+import java.net.URI
+
+private fun ApplicationCall.requireSameOrigin() {
+    val origin = request.header(HttpHeaders.Origin) ?: return
+    val authority = runCatching { URI(origin).rawAuthority }.getOrNull()
+    require(authority != null && authority.equals(request.header(HttpHeaders.Host), ignoreCase = true)) {
+        "Cross-site changes are not allowed"
+    }
+}
 
 fun main() {
     val port = System.getenv("PORT")?.toIntOrNull() ?: 8080
-    println("Starting kinsena on http://0.0.0.0:$port ...")
-
-    embeddedServer(Netty, port = port, host = "0.0.0.0", module = Application::module)
-        .start(wait = true)
+    val host = System.getenv("HOST") ?: "127.0.0.1"
+    embeddedServer(Netty, port = port, host = host, module = { module() }).start(wait = true)
 }
 
-fun Application.module() {
-    val db = DatabaseService(System.getenv("DB_PATH") ?: "data/kinsena.db")
-
+fun Application.module(db: DatabaseService = DatabaseService(System.getenv("DB_PATH") ?: "data/kinsena.db")) {
+    install(StatusPages) {
+        exception<IllegalArgumentException> { call, cause ->
+            call.respondText(cause.message ?: "Invalid input", status = HttpStatusCode.BadRequest)
+        }
+    }
     routing {
-        // Home: Active Cycle
         get("/") {
-            val active = db.getActiveCycle()
-            call.respondHtml {
-                layout("kinsena · active cycle") {
-                    renderActive(active)
-                }
-            }
+            call.respondHtml { layout("kinsena · active cycle") { renderActive(db.getActiveCycle()) } }
         }
-
-        // Create new cycle
         post("/cycles/new") {
+            call.requireSameOrigin()
             val params = call.receiveParameters()
-            val title = params["title"] ?: "Payday"
-            val cadenceStr = params["cadence"] ?: "ANY"
-            val cadence = try { CadenceType.valueOf(cadenceStr) } catch (e: Exception) { CadenceType.ANY }
-
-            db.createCycle(title, cadence)
+            val cadence = CadenceType.valueOf(params["cadence"] ?: "ANY")
+            db.createCycle(params["title"] ?: "", cadence)
             call.respondRedirect("/")
         }
-
-        // Finish/Close active cycle
         post("/cycles/{id}/close") {
-            val id = call.parameters["id"]?.toLongOrNull()
-            if (id != null) {
-                db.closeCycle(id)
-            }
+            call.requireSameOrigin()
+            db.closeCycle(call.parameters["id"]?.toLongOrNull() ?: throw IllegalArgumentException("Invalid cycle"))
             call.respondRedirect("/")
         }
-
-        // Add payee to active cycle
         post("/cycles/{id}/add-item") {
-            val cycleId = call.parameters["id"]?.toLongOrNull()
+            call.requireSameOrigin()
+            val cycleId = call.parameters["id"]?.toLongOrNull() ?: throw IllegalArgumentException("Invalid cycle")
             val params = call.receiveParameters()
-            val name = params["name"]
-            val amountExpr = params["amountExpr"] ?: ""
-
-            if (cycleId != null && !name.isNullOrBlank()) {
-                db.addItemToCycle(cycleId, name, amountExpr)
-            }
+            db.addItemToCycle(cycleId, params["name"] ?: "", params["amountExpr"] ?: "")
             call.respondRedirect("/")
         }
-
-        // HTMX: Toggle done/pending
         post("/items/{id}/toggle") {
-            val id = call.parameters["id"]?.toLongOrNull()
-            if (id != null) {
-                db.toggleItemDone(id)
-            }
-            // Return updated items list fragment for HTMX swap
-            val active = db.getActiveCycle()
-            val html = createHTML().div {
-                active?.items?.forEach { item ->
-                    renderBillItem(item)
-                }
-            }
-            call.respondText(html, ContentType.Text.Html)
+            call.requireSameOrigin()
+            db.toggleItemDone(call.parameters["id"]?.toLongOrNull() ?: throw IllegalArgumentException("Invalid item"))
+            call.respondRedirect("/")
         }
-
-        // HTMX: Update item amount expression
         post("/items/{id}/amount") {
-            val id = call.parameters["id"]?.toLongOrNull()
-            val params = call.receiveParameters()
-            val amountExpr = params["amountExpr"] ?: ""
-
-            if (id != null) {
-                db.updateItemAmount(id, amountExpr)
-            }
-            val active = db.getActiveCycle()
-            val html = createHTML().div {
-                active?.items?.forEach { item ->
-                    renderBillItem(item)
-                }
-            }
-            call.respondText(html, ContentType.Text.Html)
+            call.requireSameOrigin()
+            val id = call.parameters["id"]?.toLongOrNull() ?: throw IllegalArgumentException("Invalid item")
+            db.updateItemAmount(id, call.receiveParameters()["amountExpr"] ?: "")
+            call.respondRedirect("/")
         }
-
-        // HTMX: Delete item from cycle
-        delete("/items/{id}") {
-            val id = call.parameters["id"]?.toLongOrNull()
-            if (id != null) {
-                db.deleteItem(id)
-            }
-            val active = db.getActiveCycle()
-            val html = createHTML().div {
-                active?.items?.forEach { item ->
-                    renderBillItem(item)
-                }
-            }
-            call.respondText(html, ContentType.Text.Html)
+        post("/items/{id}/delete") {
+            call.requireSameOrigin()
+            db.deleteItem(call.parameters["id"]?.toLongOrNull() ?: throw IllegalArgumentException("Invalid item"))
+            call.respondRedirect("/")
         }
-
-        // History page
         get("/history") {
-            val history = db.getHistory().filter { it.cycle.isClosed }
             call.respondHtml {
-                layout("kinsena · history") {
-                    renderHistory(history)
-                }
+                layout("kinsena · history") { renderHistory(db.getHistory().filter { it.cycle.isClosed }) }
             }
         }
-
-        // Templates/Defaults page
         get("/templates") {
-            val templates = db.getTemplates()
-            call.respondHtml {
-                layout("kinsena · defaults") {
-                    renderTemplates(templates)
-                }
-            }
+            call.respondHtml { layout("kinsena · defaults") { renderTemplates(db.getTemplates()) } }
         }
-
         post("/templates/new") {
+            call.requireSameOrigin()
             val params = call.receiveParameters()
-            val name = params["name"]
-            val defAmt = params["defaultAmount"]?.toDoubleOrNull()
-            val cadenceStr = params["cadence"] ?: "ANY"
-            val cadence = try { CadenceType.valueOf(cadenceStr) } catch (e: Exception) { CadenceType.ANY }
-
-            if (!name.isNullOrBlank()) {
-                db.addTemplate(name, defAmt, cadence)
-            }
+            val amount = params["defaultAmount"]?.takeIf { it.isNotBlank() }?.let { AmountParser.parse(it).first }
+            db.addTemplate(params["name"] ?: "", amount, CadenceType.valueOf(params["cadence"] ?: "ANY"))
             call.respondRedirect("/templates")
         }
+        post("/templates/{id}/archive") {
+            call.requireSameOrigin()
+            db.archiveTemplate(call.parameters["id"]?.toLongOrNull() ?: throw IllegalArgumentException("Invalid saved item"))
+            call.respondRedirect("/templates")
+        }
+        staticResources("/", "static")
     }
 }

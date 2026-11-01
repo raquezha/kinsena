@@ -16,37 +16,6 @@ class DatabaseService(dbPath: String = "data/kinsena.db") {
 
         transaction {
             SchemaUtils.create(TemplateItemsTable, CyclesTable, CycleItemsTable)
-            seedDefaultsIfEmpty()
-        }
-    }
-
-    private fun seedDefaultsIfEmpty() {
-        if (TemplateItemsTable.selectAll().count() == 0L) {
-            val now = System.currentTimeMillis()
-            val defaults = listOf(
-                Triple("PAG-IBIG", 4820.0, CadenceType.ANY),
-                Triple("DCTV", 1100.0, CadenceType.ANY),
-                Triple("Beta Waters", 150.0, CadenceType.MONTH_END),
-                Triple("Casureco", 1000.0, CadenceType.MONTH_END),
-                Triple("Kyle", 1000.0, CadenceType.ANY),
-                Triple("HOA", 300.0, CadenceType.MID_MONTH),
-                Triple("BDO", null, CadenceType.ANY),
-                Triple("BDO CC", null, CadenceType.ANY),
-                Triple("Maya", null, CadenceType.ANY),
-                Triple("Maya Landers", null, CadenceType.ANY),
-                Triple("Maya Black", null, CadenceType.ANY),
-                Triple("PNB", null, CadenceType.MID_MONTH),
-                Triple("Lazada", null, CadenceType.ANY)
-            )
-
-            for ((name, amt, cad) in defaults) {
-                TemplateItemsTable.insert {
-                    it[TemplateItemsTable.name] = name
-                    it[TemplateItemsTable.defaultAmount] = amt
-                    it[TemplateItemsTable.cadence] = cad
-                    it[TemplateItemsTable.createdAt] = now
-                }
-            }
         }
     }
 
@@ -66,6 +35,8 @@ class DatabaseService(dbPath: String = "data/kinsena.db") {
     }
 
     fun addTemplate(name: String, defaultAmount: Double?, cadence: CadenceType) = transaction {
+        require(name.isNotBlank() && name.trim().length <= 128) { "Enter a name up to 128 characters" }
+        require(defaultAmount == null || (defaultAmount.isFinite() && defaultAmount >= 0 && defaultAmount <= 999999999999.99)) { "Invalid default amount" }
         val now = System.currentTimeMillis()
         TemplateItemsTable.insert {
             it[TemplateItemsTable.name] = name.trim()
@@ -73,6 +44,10 @@ class DatabaseService(dbPath: String = "data/kinsena.db") {
             it[TemplateItemsTable.cadence] = cadence
             it[TemplateItemsTable.createdAt] = now
         }
+    }
+
+    fun archiveTemplate(id: Long) = transaction {
+        require(TemplateItemsTable.update({ TemplateItemsTable.id eq id }) { it[isArchived] = true } == 1) { "Unknown saved item" }
     }
 
     fun getActiveCycle(): CycleSummary? = transaction {
@@ -111,6 +86,8 @@ class DatabaseService(dbPath: String = "data/kinsena.db") {
     }
 
     fun createCycle(title: String, cadence: CadenceType): Long = transaction {
+        require(title.length <= 128) { "Title is too long" }
+        require(CyclesTable.selectAll().where { CyclesTable.isClosed eq false }.empty()) { "Finish the current cycle first" }
         val today = LocalDate.now().toString()
         val now = System.currentTimeMillis()
 
@@ -135,7 +112,7 @@ class DatabaseService(dbPath: String = "data/kinsena.db") {
                 it[CycleItemsTable.cycleId] = cycleId
                 it[CycleItemsTable.name] = tmpl[TemplateItemsTable.name]
                 it[CycleItemsTable.amount] = defAmt
-                it[CycleItemsTable.amountExpr] = if (defAmt > 0) String.format("%.2f", defAmt) else ""
+                it[CycleItemsTable.amountExpr] = tmpl[TemplateItemsTable.defaultAmount]?.toString() ?: ""
                 it[CycleItemsTable.isDone] = false
                 it[CycleItemsTable.sortOrder] = order++
             }
@@ -144,19 +121,24 @@ class DatabaseService(dbPath: String = "data/kinsena.db") {
         cycleId
     }
 
-    fun toggleItemDone(itemId: Long): Boolean = transaction {
-        val current = CycleItemsTable.selectAll()
-            .where { CycleItemsTable.id eq itemId }
-            .singleOrNull()?.get(CycleItemsTable.isDone) ?: false
-
-        val next = !current
-        CycleItemsTable.update({ CycleItemsTable.id eq itemId }) {
-            it[isDone] = next
+    private fun requireActiveItem(itemId: Long) {
+        val cycleId = CycleItemsTable.selectAll().where { CycleItemsTable.id eq itemId }
+            .singleOrNull()?.get(CycleItemsTable.cycleId)
+        require(cycleId != null && CyclesTable.selectAll()
+            .where { (CyclesTable.id eq cycleId) and (CyclesTable.isClosed eq false) }.count() == 1L) {
+            "Item is not in the active cycle"
         }
-        next
+    }
+
+    fun toggleItemDone(itemId: Long) = transaction {
+        requireActiveItem(itemId)
+        val current = CycleItemsTable.selectAll().where { CycleItemsTable.id eq itemId }
+            .single()[CycleItemsTable.isDone]
+        CycleItemsTable.update({ CycleItemsTable.id eq itemId }) { it[isDone] = !current }
     }
 
     fun updateItemAmount(itemId: Long, rawExpr: String) = transaction {
+        requireActiveItem(itemId)
         val (parsedAmount, cleanedExpr) = AmountParser.parse(rawExpr)
         CycleItemsTable.update({ CycleItemsTable.id eq itemId }) {
             it[amount] = parsedAmount
@@ -165,6 +147,8 @@ class DatabaseService(dbPath: String = "data/kinsena.db") {
     }
 
     fun addItemToCycle(cycleId: Long, name: String, rawExpr: String) = transaction {
+        require(name.isNotBlank() && name.trim().length <= 128) { "Enter a name up to 128 characters" }
+        require(CyclesTable.selectAll().where { (CyclesTable.id eq cycleId) and (CyclesTable.isClosed eq false) }.count() == 1L) { "Cycle is closed" }
         val (parsedAmount, cleanedExpr) = AmountParser.parse(rawExpr)
         val maxOrder = CycleItemsTable.selectAll()
             .where { CycleItemsTable.cycleId eq cycleId }
@@ -181,10 +165,12 @@ class DatabaseService(dbPath: String = "data/kinsena.db") {
     }
 
     fun deleteItem(itemId: Long) = transaction {
+        requireActiveItem(itemId)
         CycleItemsTable.deleteWhere { CycleItemsTable.id eq itemId }
     }
 
     fun closeCycle(cycleId: Long) = transaction {
+        require(CyclesTable.selectAll().where { (CyclesTable.id eq cycleId) and (CyclesTable.isClosed eq false) }.count() == 1L) { "Cycle is already closed" }
         CyclesTable.update({ CyclesTable.id eq cycleId }) {
             it[isClosed] = true
         }

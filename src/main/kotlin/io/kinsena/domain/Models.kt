@@ -1,15 +1,13 @@
 package io.kinsena.domain
 
-import kotlinx.serialization.Serializable
+import java.math.BigDecimal
 
-@Serializable
 enum class CadenceType {
     MID_MONTH,   // ~15th
     MONTH_END,   // ~30th / 31st
     ANY
 }
 
-@Serializable
 data class TemplateItem(
     val id: Long = 0,
     val name: String,
@@ -18,7 +16,6 @@ data class TemplateItem(
     val isArchived: Boolean = false
 )
 
-@Serializable
 data class Cycle(
     val id: Long = 0,
     val title: String, // e.g. "October 15", "October 30"
@@ -27,7 +24,6 @@ data class Cycle(
     val isClosed: Boolean = false
 )
 
-@Serializable
 data class CycleItem(
     val id: Long = 0,
     val cycleId: Long,
@@ -42,9 +38,10 @@ data class CycleSummary(
     val cycle: Cycle,
     val items: List<CycleItem>
 ) {
-    val totalAmount: Double get() = items.sumOf { it.amount }
-    val paidAmount: Double get() = items.filter { it.isDone }.sumOf { it.amount }
-    val remainingAmount: Double get() = totalAmount - paidAmount
+    val totalAmount: BigDecimal get() = items.fold(BigDecimal.ZERO) { sum, item -> sum + BigDecimal.valueOf(item.amount) }
+    val paidAmount: BigDecimal get() = items.filter { it.isDone }.fold(BigDecimal.ZERO) { sum, item -> sum + BigDecimal.valueOf(item.amount) }
+    val remainingAmount: BigDecimal get() = totalAmount - paidAmount
+    val missingCount: Int get() = items.count { it.amountExpr.isNullOrBlank() }
     val doneCount: Int get() = items.count { it.isDone }
     val pendingCount: Int get() = items.count { !it.isDone }
 }

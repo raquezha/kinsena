@@ -6,24 +6,31 @@ import kotlinx.html.*
 import java.text.DecimalFormat
 
 object Views {
-    private val moneyFmt = DecimalFormat("#,##0.00")
+    private val moneyFmt get() = DecimalFormat("#,##0.00")
 
     fun HTML.layout(pageTitle: String, block: MAIN.() -> Unit) {
         head {
             meta(charset = "utf-8")
-            meta(name = "viewport", content = "width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no")
+            meta(name = "viewport", content = "width=device-width, initial-scale=1")
             meta(name = "apple-mobile-web-app-capable", content = "yes")
             meta(name = "apple-mobile-web-app-status-bar-style", content = "black-translucent")
             title { +pageTitle }
-            // Lightweight clean CSS (modern dark/light responsive)
-            link(rel = "stylesheet", href = "https://cdn.jsdelivr.net/npm/@picocss/pico@2/css/pico.min.css")
-            // HTMX for zero-refresh swaps
-            script(src = "https://unpkg.com/htmx.org@2.0.3") {}
+            link(rel = "manifest", href = "/manifest.webmanifest")
+            link(rel = "apple-touch-icon", href = "/icon-192.png")
+            meta(name = "theme-color", content = "#0f172a")
             style {
                 unsafe {
                     +"""
-                    :root { --pico-font-size: 16px; }
+                    * { box-sizing: border-box; }
                     body { max-width: 650px; margin: 0 auto; padding: 12px 16px; background-color: #0f172a; color: #f8fafc; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; }
+                    a { color: #38bdf8; } input, select, button { font: inherit; border-radius: 8px; padding: 8px; }
+                    input, select { background: #0f172a; color: #f8fafc; border: 1px solid #475569; min-width: 0; }
+                    button { background: #0369a1; border: 0; color: #fff; cursor: pointer; }
+                    article { background: #1e293b; border-radius: 12px; padding: 16px; margin: 16px 0; }
+                    form { margin: 0; } .grid { display: grid; gap: 8px; margin-bottom: 8px; }
+                    .inline-form { display: flex; gap: 6px; align-items: center; }
+                    .bill-row button { min-width: 36px; min-height: 36px; }
+                    @media (max-width: 480px) { .bill-row { flex-wrap: wrap; gap: 8px; } .bill-left { flex-basis: 100%; } .bill-amount-input { width: 120px !important; } .add-box { flex-wrap: wrap; } .stat-val { font-size: 1rem !important; } }
                     .header-bar { display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid #334155; padding-bottom: 12px; margin-bottom: 16px; }
                     .brand { font-size: 1.4rem; font-weight: 800; letter-spacing: -0.05em; color: #38bdf8; margin: 0; }
                     .tagline { font-size: 0.75rem; color: #94a3b8; margin: 0; }
@@ -99,7 +106,7 @@ object Views {
             div("stat-grid") {
                 div {
                     span("stat-val") { +"₱${moneyFmt.format(summary.totalAmount)}" }
-                    span("stat-label") { +"Total Obligation" }
+                    span("stat-label") { +"Known Total" }
                 }
                 div {
                     span("stat-val paid-val") { +"₱${moneyFmt.format(summary.paidAmount)}" }
@@ -107,9 +114,10 @@ object Views {
                 }
                 div {
                     span("stat-val remaining-val") { +"₱${moneyFmt.format(summary.remainingAmount)}" }
-                    span("stat-label") { +"${summary.pendingCount} Remaining" }
+                    span("stat-label") { +"${summary.pendingCount} Unpaid (known)" }
                 }
             }
+            if (summary.missingCount > 0) p { +"${summary.missingCount} amount(s) missing. Totals exclude them." }
         }
 
         // Active Cycle Header
@@ -121,14 +129,14 @@ object Views {
             }
             form(action = "/cycles/${summary.cycle.id}/close", method = FormMethod.post) {
                 style = "margin: 0;"
-                button {
+                button(type = ButtonType.submit) {
                     style = "padding: 4px 10px; font-size: 0.75rem; background: #334155; border: none;"
                     +"Finish Cycle"
                 }
             }
         }
 
-        // Bill Checklist items container (swapped via HTMX)
+        // Bill Checklist
         div {
             id = "items-list"
             summary.items.forEach { item ->
@@ -139,7 +147,7 @@ object Views {
         // Quick add an extra payee
         form(action = "/cycles/${summary.cycle.id}/add-item", method = FormMethod.post, classes = "add-box") {
             input(type = InputType.text, name = "name") {
-                placeholder = "Add payee (e.g. Lazada or Kyle)"
+                placeholder = "Add item"
                 required = true
                 style = "flex: 2;"
             }
@@ -162,33 +170,30 @@ object Views {
             id = "bill-item-${item.id}"
 
             div("bill-left") {
-                button(classes = checkClass) {
-                    attributes["hx-post"] = "/items/${item.id}/toggle"
-                    attributes["hx-target"] = "#items-list"
-                    attributes["hx-swap"] = "innerHTML"
-                    if (item.isDone) +"✓" else +""
+                form(action = "/items/${item.id}/toggle", method = FormMethod.post) {
+                    button(type = ButtonType.submit, classes = checkClass) {
+                        attributes["aria-label"] = if (item.isDone) "Mark ${item.name} unpaid" else "Mark ${item.name} paid"
+                        if (item.isDone) +"✓" else +"○"
+                    }
                 }
                 div {
                     span("bill-title") { +item.name }
                 }
             }
 
-            div {
-                style = "display: flex; align-items: center; gap: 8px;"
-                input(type = InputType.text, classes = "bill-amount-input") {
-                    value = item.amountExpr?.ifBlank { moneyFmt.format(item.amount) } ?: moneyFmt.format(item.amount)
-                    attributes["hx-post"] = "/items/${item.id}/amount"
-                    attributes["hx-trigger"] = "change"
-                    attributes["hx-target"] = "#items-list"
-                    attributes["hx-swap"] = "innerHTML"
-                    attributes["name"] = "amountExpr"
+            div("inline-form") {
+                form(action = "/items/${item.id}/amount", method = FormMethod.post, classes = "inline-form") {
+                    input(type = InputType.text, classes = "bill-amount-input", name = "amountExpr") {
+                        value = item.amountExpr ?: ""
+                        placeholder = "Unknown"
+                        attributes["aria-label"] = "Amount for ${item.name}"
+                        attributes["inputmode"] = "decimal"
+                    }
+                    button(type = ButtonType.submit) { attributes["aria-label"] = "Save amount for ${item.name}"; +"Save" }
                 }
-                a(href = "#") {
-                    style = "color: #64748b; font-size: 0.9rem; text-decoration: none;"
-                    attributes["hx-delete"] = "/items/${item.id}"
-                    attributes["hx-target"] = "#items-list"
-                    attributes["hx-swap"] = "innerHTML"
-                    +"×"
+                form(action = "/items/${item.id}/delete", method = FormMethod.post) {
+                    attributes["onsubmit"] = "return confirm('Remove this item from this cycle?')"
+                    button(type = ButtonType.submit) { attributes["aria-label"] = "Remove ${item.name}"; +"×" }
                 }
             }
         }
@@ -231,12 +236,12 @@ object Views {
     }
 
     fun MAIN.renderTemplates(templates: List<io.kinsena.domain.TemplateItem>) {
-        h2 { +"Default Obligations" }
-        p { +"These automatically populate whenever you create a new cycle." }
+        h2 { +"Saved items" }
+        p { +"Add the names you want to reuse. New cycles start with these items; amounts can stay blank." }
 
         form(action = "/templates/new", method = FormMethod.post, classes = "add-box") {
             input(type = InputType.text, name = "name") {
-                placeholder = "Payee Name (e.g. DCTV)"
+                placeholder = "Item name"
                 required = true
                 style = "flex: 2;"
             }
@@ -264,6 +269,7 @@ object Views {
                     th { +"Payee" }
                     th { +"Default Amount" }
                     th { +"Cadence" }
+                    th { +"" }
                 }
             }
             tbody {
@@ -272,6 +278,12 @@ object Views {
                         td { +tmpl.name }
                         td { +(tmpl.defaultAmount?.let { "₱${moneyFmt.format(it)}" } ?: "Variable") }
                         td { +tmpl.cadence.name }
+                        td {
+                            form(action = "/templates/${tmpl.id}/archive", method = FormMethod.post) {
+                                attributes["onsubmit"] = "return confirm('Remove this saved item from future cycles?')"
+                                button(type = ButtonType.submit) { +"Remove" }
+                            }
+                        }
                     }
                 }
             }
