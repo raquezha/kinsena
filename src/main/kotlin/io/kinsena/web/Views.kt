@@ -46,12 +46,12 @@ object Views {
                     .wallet-card::after { content: ""; position: absolute; bottom: 0; left: 0; right: 0; height: 1px; background: linear-gradient(90deg, transparent, rgba(181, 216, 193, 0.25), transparent); pointer-events: none; }
                     .wallet-top { display: flex; align-items: center; justify-content: space-between; gap: 8px; }
                     .card-chip { display: flex; align-items: center; gap: 10px; }
-                    .emv-chip { width: 34px; height: 26px; border-radius: 5px; background: linear-gradient(135deg, #dfc699 0%, #9e7f47 100%); position: relative; border: 1px solid #ebd8b3; box-shadow: inset 0 1px 2px rgba(255,255,255,0.6), 0 2px 6px rgba(0,0,0,0.4); display: grid; grid-template-columns: 1fr 1fr; grid-template-rows: 1fr 1fr; gap: 1.5px; padding: 2px; box-sizing: border-box; }
-                    .emv-chip span { border: 1px solid rgba(80, 50, 10, 0.45); background: rgba(255, 255, 255, 0.15); }
+                    .emv-chip { width: 26px; height: 26px; display: grid; grid-template-columns: 1fr 1fr; grid-template-rows: 1fr 1fr; gap: 2.5px; }
+                    .emv-chip span { background: linear-gradient(135deg, #fff2db 0%, #d8b370 45%, #9b7636 100%); box-shadow: 0 1px 3px rgba(0,0,0,0.4); }
                     .emv-chip span:nth-child(1) { border-radius: 0; }
-                    .emv-chip span:nth-child(2) { border-radius: 4px 0 4px 4px; }
+                    .emv-chip span:nth-child(2) { border-radius: 6px 0 6px 6px; }
                     .emv-chip span:nth-child(3) { border-radius: 0; }
-                    .emv-chip span:nth-child(4) { border-radius: 4px 4px 0 4px; }
+                    .emv-chip span:nth-child(4) { border-radius: 6px 6px 0 6px; }
                     .card-network { font-size: 1.25rem; font-weight: 800; letter-spacing: -0.05em; color: #f2f3f1; text-transform: lowercase; line-height: 1; }
                     .card-digits { font-family: ui-monospace, SFMono-Regular, "Roboto Mono", Menlo, monospace; font-size: 0.8125rem; letter-spacing: 0.22em; color: #627267; font-weight: 500; }
                     .wallet-balance { margin: 16px 0 14px; }

@@ -1,78 +1,68 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" width="512" height="512">
   <defs>
-    <radialGradient id="canvasGlow" cx="50%" cy="30%" r="70%">
-      <stop offset="0%" stop-color="#1b221e"/>
-      <stop offset="60%" stop-color="#0a0d0c"/>
-      <stop offset="100%" stop-color="#040505"/>
+    <!-- Dark obsidian canvas glow -->
+    <radialGradient id="canvasGlow" cx="50%" cy="35%" r="70%">
+      <stop offset="0%" stop-color="#191610"/>
+      <stop offset="60%" stop-color="#0a0907"/>
+      <stop offset="100%" stop-color="#040403"/>
     </radialGradient>
-    <linearGradient id="chipBevel" x1="0%" y1="0%" x2="100%" y2="100%">
-      <stop offset="0%" stop-color="#fdf4df"/>
-      <stop offset="35%" stop-color="#d5b57d"/>
-      <stop offset="70%" stop-color="#9a763c"/>
-      <stop offset="100%" stop-color="#735422"/>
+    
+    <!-- Premium Brushed Champagne / Titanium Gold Gradient -->
+    <linearGradient id="goldMonolith" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#fff6e2"/>
+      <stop offset="25%" stop-color="#ecd39d"/>
+      <stop offset="65%" stop-color="#cda863"/>
+      <stop offset="100%" stop-color="#9a7637"/>
     </linearGradient>
-    <linearGradient id="chipFace" x1="0%" y1="0%" x2="100%" y2="100%">
-      <stop offset="0%" stop-color="#e8cf9c"/>
-      <stop offset="50%" stop-color="#c19f63"/>
-      <stop offset="100%" stop-color="#8c6c32"/>
-    </linearGradient>
-    <linearGradient id="padFill" x1="0%" y1="0%" x2="100%" y2="100%">
-      <stop offset="0%" stop-color="#fff8ea"/>
-      <stop offset="40%" stop-color="#eed8af"/>
-      <stop offset="100%" stop-color="#c8a56a"/>
-    </linearGradient>
-    <filter id="chipShadow" x="-10%" y="-10%" width="125%" height="130%">
+    
+    <!-- Drop Shadow for architectural presence -->
+    <filter id="goldShadow" x="-20%" y="-20%" width="140%" height="140%">
       <feDropShadow dx="0" dy="16" stdDeviation="20" flood-color="#000000" flood-opacity="0.8"/>
-      <feDropShadow dx="0" dy="4" stdDeviation="8" flood-color="#000000" flood-opacity="0.5"/>
+      <feDropShadow dx="0" dy="4" stdDeviation="8" flood-color="#cda863" flood-opacity="0.25"/>
     </filter>
   </defs>
-  <!-- Background App Canvas -->
-  <rect width="512" height="512" rx="116" fill="#040505"/>
-  <rect x="18" y="18" width="476" height="476" rx="100" fill="url(#canvasGlow)" stroke="rgba(181, 216, 193, 0.16)" stroke-width="2"/>
   
-  <!-- Realistic EMV Hardware Chip Carrier -->
-  <g filter="url(#chipShadow)">
-    <rect x="86" y="112" width="340" height="288" rx="36" fill="url(#chipBevel)"/>
-    <rect x="88" y="114" width="336" height="284" rx="34" fill="url(#chipFace)"/>
-  </g>
+  <!-- Outer App Icon Base -->
+  <rect width="512" height="512" rx="116" fill="#040403"/>
+  <rect x="18" y="18" width="476" height="476" rx="100" fill="url(#canvasGlow)" stroke="rgba(205, 168, 99, 0.2)" stroke-width="2"/>
   
-  <!-- 4-Box Symmetrical K Contact Pads (Equal Widths) -->
-  <g stroke="rgba(70, 45, 10, 0.6)" stroke-width="3.5">
-    <path d="M 110,136
-    H 246
-    A 0,0 0 0 1 246,136
-    V 246
-    A 0,0 0 0 1 246,246
-    H 110
-    A 0,0 0 0 1 110,246
-    V 136
-    A 0,0 0 0 1 110,136 Z" fill="url(#padFill)"/>
-    <path d="M 294,136
-    H 402
-    A 0,0 0 0 1 402,136
-    V 218
-    A 28,28 0 0 1 374,246
-    H 294
-    A 28,28 0 0 1 266,218
-    V 164
-    A 28,28 0 0 1 294,136 Z" fill="url(#padFill)"/>
-    <path d="M 110,266
-    H 246
-    A 0,0 0 0 1 246,266
-    V 376
-    A 0,0 0 0 1 246,376
-    H 110
-    A 0,0 0 0 1 110,376
-    V 266
-    A 0,0 0 0 1 110,266 Z" fill="url(#padFill)"/>
-    <path d="M 294,266
-    H 374
-    A 28,28 0 0 1 402,294
-    V 376
-    A 0,0 0 0 1 402,376
-    H 294
-    A 28,28 0 0 1 266,348
-    V 294
-    A 28,28 0 0 1 294,266 Z" fill="url(#padFill)"/>
+  <!-- 4 Monolithic Gold Architectural Blocks -->
+  <g filter="url(#goldShadow)">
+    <path d="M 112,112
+    H 240
+    A 0,0 0 0 1 240,112
+    V 240
+    A 0,0 0 0 1 240,240
+    H 112
+    A 0,0 0 0 1 112,240
+    V 112
+    A 0,0 0 0 1 112,112 Z" fill="url(#goldMonolith)"/>
+    <path d="M 302,112
+    H 390
+    A 0,0 0 0 1 390,112
+    V 200
+    A 40,40 0 0 1 350,240
+    H 302
+    A 40,40 0 0 1 262,200
+    V 152
+    A 40,40 0 0 1 302,112 Z" fill="url(#goldMonolith)"/>
+    <path d="M 112,262
+    H 240
+    A 0,0 0 0 1 240,262
+    V 390
+    A 0,0 0 0 1 240,390
+    H 112
+    A 0,0 0 0 1 112,390
+    V 262
+    A 0,0 0 0 1 112,262 Z" fill="url(#goldMonolith)"/>
+    <path d="M 302,262
+    H 350
+    A 40,40 0 0 1 390,302
+    V 390
+    A 0,0 0 0 1 390,390
+    H 302
+    A 40,40 0 0 1 262,350
+    V 302
+    A 40,40 0 0 1 302,262 Z" fill="url(#goldMonolith)"/>
   </g>
 </svg>
