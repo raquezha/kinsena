@@ -45,10 +45,10 @@ object Views {
                     .wallet-card::before { content: ""; position: absolute; top: -50px; right: -50px; width: 160px; height: 160px; border-radius: 50%; background: radial-gradient(circle, rgba(181, 216, 193, 0.09), transparent 70%); pointer-events: none; }
                     .wallet-card::after { content: ""; position: absolute; bottom: 0; left: 0; right: 0; height: 1px; background: linear-gradient(90deg, transparent, rgba(181, 216, 193, 0.25), transparent); pointer-events: none; }
                     .wallet-top { display: flex; align-items: center; justify-content: space-between; gap: 8px; }
-                    .card-chip { display: flex; align-items: center; gap: 12px; }
+                    .card-chip { display: flex; align-items: center; gap: 10px; }
                     .emv-chip { width: 34px; height: 26px; border-radius: 5px; background: linear-gradient(135deg, #dfc699 0%, #9e7f47 100%); position: relative; border: 1px solid #ebd8b3; box-shadow: inset 0 1px 2px rgba(255,255,255,0.6), 0 2px 6px rgba(0,0,0,0.4); display: grid; grid-template-columns: 1fr 1fr; grid-template-rows: 1fr 1fr; gap: 1px; padding: 2px; box-sizing: border-box; }
                     .emv-chip span { border: 1px solid rgba(80, 50, 10, 0.45); border-radius: 1px; }
-                    .card-network { font-size: 0.7rem; font-weight: 800; letter-spacing: 0.2em; color: #8a9c91; text-transform: uppercase; }
+                    .card-network { font-size: 1.25rem; font-weight: 800; letter-spacing: -0.05em; color: #f2f3f1; text-transform: lowercase; line-height: 1; }
                     .card-digits { font-family: ui-monospace, SFMono-Regular, "Roboto Mono", Menlo, monospace; font-size: 0.8125rem; letter-spacing: 0.22em; color: #627267; font-weight: 500; }
                     .wallet-balance { margin: 16px 0 14px; }
                     .wallet-balance .balance-label-btn { background: transparent; border: 0; padding: 0; color: #7f8e84; font-size: 0.6875rem; text-transform: uppercase; letter-spacing: 0.12em; font-weight: 600; margin-bottom: 4px; display: inline-flex; align-items: center; gap: 6px; cursor: pointer; }
@@ -139,10 +139,12 @@ object Views {
             }
         }
         body {
-            header {
-                div("header-bar") {
-                    div("brand-wrap") {
-                        h1("brand") { +"kinsena" }
+            if (!signedIn || pageTitle != "kinsena · active cycle") {
+                header {
+                    div("header-bar") {
+                        div("brand-wrap") {
+                            h1("brand") { +"kinsena" }
+                        }
                     }
                 }
             }
@@ -286,7 +288,7 @@ object Views {
                         span { }
                         span { }
                     }
-                    span("card-network") { +"KINSENA" }
+                    span("card-network") { +"kinsena" }
                 }
                 span("card-digits") {
                     val cycleDigits = summary.cycle.title.filter { it.isDigit() }.takeLast(4).ifEmpty { "1530" }
