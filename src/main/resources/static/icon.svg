@@ -1,61 +1,78 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" width="512" height="512">
   <defs>
-    <linearGradient id="bg" x1="0%" y1="0%" x2="100%" y2="100%">
-      <stop offset="0%" stop-color="#141816"/>
-      <stop offset="100%" stop-color="#080a09"/>
+    <radialGradient id="canvasGlow" cx="50%" cy="30%" r="70%">
+      <stop offset="0%" stop-color="#1b221e"/>
+      <stop offset="60%" stop-color="#0a0d0c"/>
+      <stop offset="100%" stop-color="#040505"/>
+    </radialGradient>
+    <linearGradient id="chipBevel" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#fdf4df"/>
+      <stop offset="35%" stop-color="#d5b57d"/>
+      <stop offset="70%" stop-color="#9a763c"/>
+      <stop offset="100%" stop-color="#735422"/>
     </linearGradient>
-    <linearGradient id="goldPlate" x1="0%" y1="0%" x2="100%" y2="100%">
-      <stop offset="0%" stop-color="#e8d5ab"/>
-      <stop offset="50%" stop-color="#c5a66a"/>
-      <stop offset="100%" stop-color="#9b7a42"/>
+    <linearGradient id="chipFace" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#e8cf9c"/>
+      <stop offset="50%" stop-color="#c19f63"/>
+      <stop offset="100%" stop-color="#8c6c32"/>
     </linearGradient>
-    <linearGradient id="padGrad" x1="0%" y1="0%" x2="100%" y2="100%">
-      <stop offset="0%" stop-color="#fdf5e2"/>
-      <stop offset="100%" stop-color="#dbc08e"/>
+    <linearGradient id="padFill" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#fff8ea"/>
+      <stop offset="40%" stop-color="#eed8af"/>
+      <stop offset="100%" stop-color="#c8a56a"/>
     </linearGradient>
+    <filter id="chipShadow" x="-10%" y="-10%" width="125%" height="130%">
+      <feDropShadow dx="0" dy="16" stdDeviation="20" flood-color="#000000" flood-opacity="0.8"/>
+      <feDropShadow dx="0" dy="4" stdDeviation="8" flood-color="#000000" flood-opacity="0.5"/>
+    </filter>
   </defs>
-  <!-- Card Canvas -->
-  <rect width="512" height="512" rx="116" fill="#080a09"/>
-  <rect x="20" y="20" width="472" height="472" rx="100" fill="url(#bg)" stroke="rgba(181, 216, 193, 0.12)" stroke-width="2"/>
+  <!-- Background App Canvas -->
+  <rect width="512" height="512" rx="116" fill="#040505"/>
+  <rect x="18" y="18" width="476" height="476" rx="100" fill="url(#canvasGlow)" stroke="rgba(181, 216, 193, 0.16)" stroke-width="2"/>
   
-  <!-- Realistic EMV Smart Chip Base -->
-  <rect x="80" y="106" width="352" height="300" rx="44" fill="url(#goldPlate)" stroke="#f3e5c8" stroke-width="3"/>
+  <!-- Realistic EMV Hardware Chip Carrier -->
+  <g filter="url(#chipShadow)">
+    <rect x="86" y="112" width="340" height="288" rx="36" fill="url(#chipBevel)"/>
+    <rect x="88" y="114" width="336" height="284" rx="34" fill="url(#chipFace)"/>
+  </g>
   
-  <!-- 4-Box "K" Contact Pads (Box 2 & 4 width -10%) -->
-  <path d="M 106,134
-    H 256
-    A 0,0 0 0 1 256,134
-    V 248
-    A 0,0 0 0 1 256,248
-    H 106
-    A 0,0 0 0 1 106,248
-    V 134
-    A 0,0 0 0 1 106,134 Z" fill="url(#padGrad)" stroke="rgba(80, 50, 10, 0.45)" stroke-width="4"/>
-  <path d="M 304,134
-    H 406
-    A 0,0 0 0 1 406,134
-    V 216
-    A 32,32 0 0 1 374,248
-    H 304
-    A 32,32 0 0 1 272,216
-    V 166
-    A 32,32 0 0 1 304,134 Z" fill="url(#padGrad)" stroke="rgba(80, 50, 10, 0.45)" stroke-width="4"/>
-  <path d="M 106,264
-    H 256
-    A 0,0 0 0 1 256,264
-    V 378
-    A 0,0 0 0 1 256,378
-    H 106
-    A 0,0 0 0 1 106,378
-    V 264
-    A 0,0 0 0 1 106,264 Z" fill="url(#padGrad)" stroke="rgba(80, 50, 10, 0.45)" stroke-width="4"/>
-  <path d="M 304,264
+  <!-- 4-Box Symmetrical K Contact Pads (Equal Widths) -->
+  <g stroke="rgba(70, 45, 10, 0.6)" stroke-width="3.5">
+    <path d="M 110,136
+    H 246
+    A 0,0 0 0 1 246,136
+    V 246
+    A 0,0 0 0 1 246,246
+    H 110
+    A 0,0 0 0 1 110,246
+    V 136
+    A 0,0 0 0 1 110,136 Z" fill="url(#padFill)"/>
+    <path d="M 294,136
+    H 402
+    A 0,0 0 0 1 402,136
+    V 218
+    A 28,28 0 0 1 374,246
+    H 294
+    A 28,28 0 0 1 266,218
+    V 164
+    A 28,28 0 0 1 294,136 Z" fill="url(#padFill)"/>
+    <path d="M 110,266
+    H 246
+    A 0,0 0 0 1 246,266
+    V 376
+    A 0,0 0 0 1 246,376
+    H 110
+    A 0,0 0 0 1 110,376
+    V 266
+    A 0,0 0 0 1 110,266 Z" fill="url(#padFill)"/>
+    <path d="M 294,266
     H 374
-    A 32,32 0 0 1 406,296
-    V 378
-    A 0,0 0 0 1 406,378
-    H 304
-    A 32,32 0 0 1 272,346
-    V 296
-    A 32,32 0 0 1 304,264 Z" fill="url(#padGrad)" stroke="rgba(80, 50, 10, 0.45)" stroke-width="4"/>
+    A 28,28 0 0 1 402,294
+    V 376
+    A 0,0 0 0 1 402,376
+    H 294
+    A 28,28 0 0 1 266,348
+    V 294
+    A 28,28 0 0 1 294,266 Z" fill="url(#padFill)"/>
+  </g>
 </svg>

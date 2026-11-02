@@ -46,7 +46,7 @@ object Views {
                     .wallet-card::after { content: ""; position: absolute; bottom: 0; left: 0; right: 0; height: 1px; background: linear-gradient(90deg, transparent, rgba(181, 216, 193, 0.25), transparent); pointer-events: none; }
                     .wallet-top { display: flex; align-items: center; justify-content: space-between; gap: 8px; }
                     .card-chip { display: flex; align-items: center; gap: 10px; }
-                    .emv-chip { width: 34px; height: 26px; border-radius: 5px; background: linear-gradient(135deg, #dfc699 0%, #9e7f47 100%); position: relative; border: 1px solid #ebd8b3; box-shadow: inset 0 1px 2px rgba(255,255,255,0.6), 0 2px 6px rgba(0,0,0,0.4); display: grid; grid-template-columns: 1.1fr 0.9fr; grid-template-rows: 1fr 1fr; gap: 1.5px; padding: 2px; box-sizing: border-box; }
+                    .emv-chip { width: 34px; height: 26px; border-radius: 5px; background: linear-gradient(135deg, #dfc699 0%, #9e7f47 100%); position: relative; border: 1px solid #ebd8b3; box-shadow: inset 0 1px 2px rgba(255,255,255,0.6), 0 2px 6px rgba(0,0,0,0.4); display: grid; grid-template-columns: 1fr 1fr; grid-template-rows: 1fr 1fr; gap: 1.5px; padding: 2px; box-sizing: border-box; }
                     .emv-chip span { border: 1px solid rgba(80, 50, 10, 0.45); background: rgba(255, 255, 255, 0.15); }
                     .emv-chip span:nth-child(1) { border-radius: 0; }
                     .emv-chip span:nth-child(2) { border-radius: 4px 0 4px 4px; }
