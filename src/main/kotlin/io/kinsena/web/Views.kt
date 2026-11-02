@@ -46,8 +46,8 @@ object Views {
                     .wallet-card::after { content: ""; position: absolute; bottom: 0; left: 0; right: 0; height: 1px; background: linear-gradient(90deg, transparent, rgba(181, 216, 193, 0.25), transparent); pointer-events: none; }
                     .wallet-top { display: flex; align-items: center; justify-content: space-between; gap: 8px; }
                     .card-chip { display: flex; align-items: center; gap: 10px; }
-                    .emv-chip { width: 34px; height: 27px; border-radius: 6px; background: linear-gradient(135deg, #dfc699 0%, #a2834b 100%); position: relative; border: 1px solid #faeccb; box-shadow: inset 0 1px 2px rgba(255,255,255,0.7), 0 2px 6px rgba(0,0,0,0.5); display: grid; grid-template-columns: 1fr 1fr; grid-template-rows: 1fr 1fr; gap: 2px; padding: 2.5px; box-sizing: border-box; }
-                    .emv-chip span { background: linear-gradient(135deg, #fff7e6 0%, #ecc987 50%, #ab8542 100%); border: 1px solid rgba(90, 60, 20, 0.5); box-shadow: inset 0 0.5px 1px rgba(255,255,255,0.8); }
+                    .emv-chip { width: 34px; height: 27px; border-radius: 6px; background: linear-gradient(135deg, #1c221e 0%, #0c0f0d 100%); position: relative; border: 1px solid rgba(223, 198, 153, 0.35); box-shadow: inset 0 1px 1px rgba(255,255,255,0.1), 0 2px 6px rgba(0,0,0,0.6); display: grid; grid-template-columns: 1fr 1fr; grid-template-rows: 1fr 1fr; gap: 2px; padding: 2.5px; box-sizing: border-box; }
+                    .emv-chip span { background: linear-gradient(135deg, #fff2db 0%, #d8b370 45%, #9b7636 100%); box-shadow: 0 1px 2px rgba(0,0,0,0.4); }
                     .emv-chip span:nth-child(1) { border-radius: 0; }
                     .emv-chip span:nth-child(2) { border-radius: 4px 0 4px 4px; }
                     .emv-chip span:nth-child(3) { border-radius: 0; }
