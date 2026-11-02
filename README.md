@@ -27,11 +27,13 @@ docker build -t kinsena .
 docker run -d -p 127.0.0.1:8080:8080 -v "$(pwd)/data:/app/data" -v "$HOME/kinsena-deploy/credentials/password:/run/secrets/kinsena_password:ro" -e KINSENA_PASSWORD_FILE=/run/secrets/kinsena_password kinsena
 ```
 
-All records are stored in `data/kinsena.db`. Docker needs the volume shown above to preserve them. Existing database files remain compatible; no migration or personal payees are added automatically to a new installation.
+All records are stored in `data/kinsena.db`. Docker needs the volume shown above to preserve them. Amounts are stored as integer centavos. On startup, Kinsena upgrades older REAL/DOUBLE peso columns to BIGINT centavos automatically once; back up `kinsena.db` before the first upgrade. New installations create the centavos schema directly and do not seed personal payees.
 
 ## Automatic home-server updates (Linux + Docker Compose)
 
 A push to `main` runs [the publish workflow](.github/workflows/publish.yml). GitHub builds and tests the Docker image, then publishes `ghcr.io/raquezha/kinsena:main` and a commit-specific `sha-<commit>` tag. The home server checks for a new image every five minutes and on startup. No inbound SSH or self-hosted GitHub runner is needed. When the server was off during a push, it catches up on its next check.
+
+`gradle.properties` is the version source of truth. To publish a release, update its `version`, commit that change, then push the matching Git tag, such as `v0.2.0`. A matching release tag publishes `:0.2.0`, `:0.2`, `:stable`, and its commit-specific SHA tag. The workflow fails when the Git tag and Gradle version differ. The included Compose file stays on `:main`; switch it to `:stable` after you prefer release-only automatic updates. Avoid `:latest`: it does not identify a release or a rollback target.
 
 Before setup, confirm the GHCR package is **public** in GitHub's package settings so the server can pull it without registry credentials. Install Docker with the Compose plugin on the server. The user running the update timer must be able to run Docker. Install the `sqlite3` command on the server for scheduled backups. Docker access has host-level privileges; keep that user and its account secure.
 

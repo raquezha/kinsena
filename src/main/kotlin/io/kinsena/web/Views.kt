@@ -1,12 +1,12 @@
 package io.kinsena.web
 
+import io.kinsena.domain.Currency
 import io.kinsena.domain.CycleItem
 import io.kinsena.domain.CycleSummary
+import io.kinsena.domain.Money
 import kotlinx.html.*
-import java.text.DecimalFormat
 
 object Views {
-    private val moneyFmt get() = DecimalFormat("#,##0.00")
 
     fun HTML.layout(pageTitle: String, signedIn: Boolean = true, block: MAIN.() -> Unit) {
         head {
@@ -21,27 +21,31 @@ object Views {
             style {
                 unsafe {
                     +"""
+                    :root { color-scheme: dark; --font-ui: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; --font-mono: ui-monospace, SFMono-Regular, "Roboto Mono", Menlo, monospace; --canvas: #121517; --app: #000000; --surface: #191c1e; --surface-raised: #161a18; --surface-input: #111416; --surface-nav: #0a0d0c; --border-subtle: #1e2428; --border: #303638; --border-strong: #414749; --text: #f2f3f1; --text-muted: #aab4ad; --text-dim: #7f8e84; --accent: #b5d8c1; --accent-ink: #101512; --notice: #f1d59a; --danger: #f3aaa4; }
                     * { box-sizing: border-box; }
-                    html { background: #121517; min-height: 100%; display: flex; justify-content: center; }
-                    body { width: 100%; max-width: 414px; min-height: 100vh; margin: 0; padding: 20px 16px; background: #000000; color: #f2f3f1; font: 16px/1.5 -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; border-left: 1px solid #1e2428; border-right: 1px solid #1e2428; box-shadow: 0 0 50px rgba(0, 0, 0, 0.8); position: relative; }
+                    html { background: var(--canvas); min-height: 100%; display: flex; justify-content: center; }
+                    body { width: 100%; max-width: 414px; min-height: 100vh; margin: 0; padding: 20px 16px; background: var(--app); color: var(--text); font: 16px/1.5 var(--font-ui); border-left: 1px solid var(--border-subtle); border-right: 1px solid var(--border-subtle); box-shadow: 0 0 50px rgba(0, 0, 0, 0.8); position: relative; }
                     @media (max-width: 414px) { body { border-left: 0; border-right: 0; box-shadow: none; } }
-                    a { color: #b5d8c1; } input, select, button { font: inherit; border-radius: 12px; padding: 8px 16px; min-height: 48px; }
-                    input, select { background: #111416; color: #f2f3f1; border: 1px solid #414749; min-width: 0; }
-                    button { background: #b5d8c1; border: 0; color: #101512; font-weight: 600; cursor: pointer; }
+                    a { color: var(--accent); } input, select, button { font: inherit; border-radius: 12px; padding: 8px 16px; min-height: 48px; }
+                    input, select, textarea { background: var(--surface-input); color: var(--text); border: 1px solid var(--border-strong); min-width: 0; }
+                    textarea { width: 100%; min-height: 96px; resize: vertical; }
+                    button { background: var(--accent); border: 0; color: var(--accent-ink); font-weight: 600; cursor: pointer; }
                     button:hover { filter: brightness(1.09); }
                     button img, summary img { display: block; width: 20px; height: 20px; }
-                    article { background: #191c1e; border: 1px solid #303638; border-radius: 18px; padding: 20px; margin: 16px 0; }
+                    article { background: var(--surface); border: 1px solid var(--border); border-radius: 18px; padding: 20px; margin: 16px 0; }
                     form { margin: 0; } .grid { display: grid; gap: 12px; margin-bottom: 16px; }
                     .login-form { display: grid; gap: 16px; }
                     .login-form label { display: grid; gap: 8px; }
                     .login-form input, .login-form button { width: 100%; }
                     :focus-visible { outline: 2px solid #b5d8c1; outline-offset: 2px; }
-                    .notice { color: #f1d59a; font-size: 0.875rem; margin: -4px 0 12px; }
-                    .error { color: #f3aaa4; }
+                    .notice { color: var(--notice); font-size: 0.875rem; margin: -4px 0 12px; }
+                    .undo-notice { display: flex; align-items: center; justify-content: space-between; gap: 12px; color: var(--text); background: var(--surface); border: 1px solid var(--border); border-radius: 12px; padding: 8px 10px 8px 14px; margin: 0 0 12px; }
+                    .undo-notice button { min-height: 36px; padding: 4px 12px; }
+                    .error { color: var(--danger); }
                     .header-bar { display: flex; gap: 8px; justify-content: space-between; align-items: center; margin-bottom: 12px; }
-                    .brand { font-size: 1.45rem; font-weight: 800; letter-spacing: -0.05em; color: #f2f3f1; margin: 0; }
+                    .brand { font-size: 1.45rem; font-weight: 800; letter-spacing: -0.05em; color: var(--text); margin: 0; }
                     .brand-wrap { display: flex; align-items: center; justify-content: space-between; width: 100%; }
-                    .wallet-card { position: relative; overflow: hidden; background: linear-gradient(135deg, #1b211d 0%, #0f1311 50%, #0a0d0c 100%); border: 1px solid rgba(181, 216, 193, 0.16); border-radius: 24px; padding: 22px 22px 18px; margin-bottom: 16px; box-shadow: 0 20px 40px rgba(0, 0, 0, 0.6), inset 0 1px 0 rgba(255, 255, 255, 0.08); display: flex; flex-direction: column; justify-content: space-between; min-height: 215px; }
+                    .wallet-card { position: relative; overflow: hidden; background: linear-gradient(135deg, #1b211d 0%, #0f1311 50%, var(--surface-nav) 100%); color: var(--text); border: 1px solid rgba(181, 216, 193, 0.16); border-radius: 24px; padding: 22px 22px 18px; margin-bottom: 16px; box-shadow: 0 20px 40px rgba(0, 0, 0, 0.6), inset 0 1px 0 rgba(255, 255, 255, 0.08); display: flex; flex-direction: column; justify-content: space-between; min-height: 215px; }
                     .wallet-card::before { content: ""; position: absolute; top: -50px; right: -50px; width: 160px; height: 160px; border-radius: 50%; background: radial-gradient(circle, rgba(181, 216, 193, 0.09), transparent 70%); pointer-events: none; }
                     .wallet-card::after { content: ""; position: absolute; bottom: 0; left: 0; right: 0; height: 1px; background: linear-gradient(90deg, transparent, rgba(181, 216, 193, 0.25), transparent); pointer-events: none; }
                     .wallet-top { display: flex; align-items: center; justify-content: space-between; gap: 8px; }
@@ -53,7 +57,7 @@ object Views {
                     .emv-chip span:nth-child(3) { border-radius: 0; }
                     .emv-chip span:nth-child(4) { border-radius: 4px 4px 0 4px; }
                     .card-network { font-size: 1.25rem; font-weight: 800; letter-spacing: -0.05em; color: #f2f3f1; text-transform: lowercase; line-height: 1; }
-                    .card-digits { font-family: ui-monospace, SFMono-Regular, "Roboto Mono", Menlo, monospace; font-size: 0.8125rem; letter-spacing: 0.22em; color: #627267; font-weight: 500; }
+                    .card-digits { font-family: var(--font-mono); font-size: 0.8125rem; letter-spacing: 0.22em; color: #627267; font-weight: 500; }
                     .wallet-balance { margin: 16px 0 14px; }
                     .wallet-balance .balance-label-btn { background: transparent; border: 0; padding: 0; color: #7f8e84; font-size: 0.6875rem; text-transform: uppercase; letter-spacing: 0.12em; font-weight: 600; margin-bottom: 4px; display: inline-flex; align-items: center; gap: 6px; cursor: pointer; }
                     .wallet-balance .balance-label-btn span { text-decoration: underline dotted #7f8e84; }
@@ -63,6 +67,9 @@ object Views {
                     .wallet-balance .balance-minor { font-size: 1.25rem; font-weight: 600; color: #8a9c91; font-variant-numeric: tabular-nums; }
                     .wallet-salary-sub { font-size: 0.75rem; color: #7f8e84; margin-top: 4px; }
                     .wallet-salary-sub strong { color: #b5d8c1; font-weight: 600; }
+                    .wallet-note { align-self: flex-start; max-width: 100%; margin: 8px 0 0; padding: 0; min-height: 0; background: transparent; color: var(--text-muted); border: 0; font-size: 0.75rem; text-align: left; overflow-wrap: anywhere; }
+                    .wallet-note:hover { color: var(--text); }
+                    .wallet-note-empty { color: var(--text-dim); font-style: italic; }
                     .wallet-footer { display: flex; align-items: flex-end; justify-content: space-between; gap: 12px; border-top: 1px solid rgba(255, 255, 255, 0.05); padding-top: 12px; }
                     .wallet-footer .footer-label { display: block; color: #627267; font-size: 0.625rem; text-transform: uppercase; letter-spacing: 0.1em; font-weight: 700; }
                     .wallet-footer .footer-val { display: block; font-size: 0.875rem; font-weight: 600; color: #c4cec7; margin-top: 2px; font-variant-numeric: tabular-nums; }
@@ -75,8 +82,8 @@ object Views {
                     .section-heading-left { display: flex; align-items: baseline; gap: 8px; }
                     .section-heading h2 { margin: 0; font-size: 1.25rem; }
                     .section-heading span { color: #aab4ad; font-size: 0.875rem; }
-                    .bill-row { display: grid; grid-template-columns: 48px minmax(0, 1fr); gap: 8px; align-items: start; background: #191c1e; padding: 8px 10px; margin-bottom: 6px; border-radius: 12px; border: 1px solid #303638; }
-                    .bill-row.done { background: #111416; border-color: #272d2a; }
+                    .bill-row { display: grid; grid-template-columns: 48px minmax(0, 1fr); gap: 8px; align-items: start; background: var(--surface); color: var(--text); padding: 8px 10px; margin-bottom: 6px; border-radius: 12px; border: 1px solid var(--border); }
+                    .bill-row.done { background: var(--surface-input); border-color: #272d2a; }
                     .bill-details { min-width: 0; }
                     .bill-details summary { list-style: none; display: flex; align-items: center; gap: 8px; min-height: 48px; cursor: pointer; }
                     .bill-details summary::-webkit-details-marker { display: none; }
@@ -96,34 +103,35 @@ object Views {
                     .check-btn img { grid-area: 1 / 1; z-index: 1; width: 18px; height: 18px; }
 
                     .signed-in-main { padding-bottom: calc(96px + env(safe-area-inset-bottom)); }
-                    .bottom-nav { position: fixed; z-index: 6; left: 50%; bottom: 0; transform: translateX(-50%); width: 100%; max-width: 414px; display: grid; grid-template-columns: 1fr 1fr 64px 1fr 1fr; align-items: center; padding: 4px 8px calc(4px + env(safe-area-inset-bottom)); background: #0a0d0c; border-top: 1px solid #1e2428; border-left: 1px solid #1e2428; border-right: 1px solid #1e2428; }
+                    .bottom-nav { position: fixed; z-index: 6; left: 50%; bottom: 0; transform: translateX(-50%); width: 100%; max-width: 414px; display: grid; grid-template-columns: 1fr 1fr 64px 1fr 1fr; align-items: center; padding: 4px 8px calc(4px + env(safe-area-inset-bottom)); background: var(--surface-nav); border-top: 1px solid var(--border-subtle); border-left: 1px solid var(--border-subtle); border-right: 1px solid var(--border-subtle); }
                     @media (max-width: 414px) { .bottom-nav { border-left: 0; border-right: 0; } }
-                    .bottom-nav a { display: grid; justify-items: center; align-content: center; gap: 2px; min-height: 54px; border-radius: 12px; color: #aab4ad; font-size: 0.6875rem; text-decoration: none; }
+                    .bottom-nav a { display: grid; justify-items: center; align-content: center; gap: 2px; min-height: 54px; border-radius: 12px; color: var(--text-muted); font-size: 0.625rem; line-height: 1.1; text-decoration: none; white-space: nowrap; }
                     .bottom-nav img { width: 20px; height: 20px; opacity: .65; }
                     .bottom-nav a:hover, .bottom-nav a[aria-current="page"] { color: #b5d8c1; background: #b5d8c11a; }
                     .bottom-nav a[aria-current="page"] img { opacity: 1; }
                     .nav-fab-wrap { display: flex; justify-content: center; align-items: center; }
-                    .nav-fab-btn { width: 52px; height: 52px; border-radius: 18px; background: #b5d8c1; color: #101512; border: 0; padding: 0; display: grid; place-items: center; box-shadow: 0 -4px 16px rgba(181, 216, 193, 0.3), 0 4px 12px rgba(0,0,0,0.6); transform: translateY(-14px); cursor: pointer; transition: transform 150ms ease, box-shadow 150ms ease; }
+                    .nav-fab-btn { width: 52px; height: 52px; border-radius: 18px; background: var(--accent); color: var(--accent-ink); border: 0; padding: 0; display: grid; place-items: center; box-shadow: 0 -4px 16px rgba(181, 216, 193, 0.3), 0 4px 12px rgba(0,0,0,0.6); transform: translateY(-14px); cursor: pointer; transition: transform 150ms ease, box-shadow 150ms ease; }
                     .nav-fab-btn:active { transform: translateY(-11px) scale(0.94); }
                     .nav-fab-btn img { width: 24px; height: 24px; }
                     .bottom-nav a:hover, .bottom-nav a[aria-current="page"] { color: #b5d8c1; background: #b5d8c11a; }
                     .bottom-nav a[aria-current="page"] img { opacity: 1; }
-                    dialog.bottom-sheet { position: fixed; inset: 0; width: 100vw; height: 100dvh; max-width: none; max-height: none; margin: 0; padding: 0; background: transparent; border: 0; display: flex; flex-direction: column; justify-content: flex-end; align-items: center; z-index: 100; box-sizing: border-box; }
+                    dialog.bottom-sheet { position: fixed; inset: 0; width: 100vw; height: 100dvh; max-width: none; max-height: none; margin: 0; padding: 0; background: transparent; color: var(--text); border: 0; display: flex; flex-direction: column; justify-content: flex-end; align-items: center; z-index: 100; box-sizing: border-box; }
                     dialog.bottom-sheet:not([open]) { display: none; }
                     dialog.bottom-sheet::backdrop { background: rgba(0, 0, 0, 0.7); backdrop-filter: blur(4px); }
-                    .sheet-content { width: 100%; max-width: 414px; box-sizing: border-box; background: #161a18; border: 1px solid #2e3831; border-bottom: 0; border-radius: 28px 28px 0 0; padding: 12px 20px calc(24px + env(safe-area-inset-bottom)); box-shadow: 0 -12px 40px rgba(0, 0, 0, 0.7); display: flex; flex-direction: column; gap: 16px; animation: slideUp 200ms cubic-bezier(0.1, 0.9, 0.2, 1); }
+                    .sheet-content { width: 100%; max-width: 414px; max-height: calc(100dvh - env(safe-area-inset-top)); overflow-y: auto; box-sizing: border-box; background: var(--surface-raised); color: var(--text); border: 1px solid #2e3831; border-bottom: 0; border-radius: 28px 28px 0 0; padding: 12px 20px calc(24px + env(safe-area-inset-bottom)); box-shadow: 0 -12px 40px rgba(0, 0, 0, 0.7); display: flex; flex-direction: column; gap: 16px; animation: slideUp 200ms cubic-bezier(0.1, 0.9, 0.2, 1); }
                     @keyframes slideUp { from { transform: translateY(100%); } to { transform: translateY(0); } }
                     .sheet-handle { width: 36px; height: 4px; background: #5a6b61; border-radius: 2px; margin: 0 auto 4px; }
                     .sheet-header { display: flex; justify-content: space-between; align-items: center; }
-                    .sheet-header h2 { font-size: 1.15rem; font-weight: 700; margin: 0; color: #f2f3f1; }
+                    .sheet-header h2 { font-size: 1.15rem; font-weight: 700; margin: 0; color: var(--text); }
                     .sheet-close { background: #262f2a; border: 0; color: #a5afaa; width: 32px; height: 32px; min-height: 32px; border-radius: 50%; padding: 0; display: grid; place-items: center; font-size: 1.25rem; line-height: 1; cursor: pointer; }
                     .sheet-form { display: flex; flex-direction: column; gap: 14px; margin: 0; }
                     .sheet-input-group { display: flex; flex-direction: column; gap: 6px; }
-                    .sheet-input-group label { font-size: 0.8125rem; font-weight: 500; color: #a5afaa; text-transform: uppercase; letter-spacing: 0.05em; }
+                    .sheet-content p { color: var(--text-muted); margin: 0; }
+                    .sheet-input-group label { font-size: 0.8125rem; font-weight: 500; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.05em; }
                     .amount-input-wrapper { position: relative; display: flex; align-items: center; }
                     .amount-currency { position: absolute; left: 16px; font-size: 1.25rem; font-weight: 700; color: #b5d8c1; pointer-events: none; }
                     .amount-input-wrapper input { padding-left: 36px; font-size: 1.35rem; font-weight: 700; font-variant-numeric: tabular-nums; color: #b5d8c1; }
-                    .sheet-submit { margin-top: 6px; width: 100%; min-height: 52px; background: #b5d8c1; color: #101512; font-size: 1rem; font-weight: 700; border-radius: 16px; border: 0; box-shadow: 0 4px 16px rgba(181, 216, 193, 0.2); }
+                    .sheet-submit { margin-top: 6px; width: 100%; min-height: 52px; background: var(--accent); color: var(--accent-ink); font-size: 1rem; font-weight: 700; border-radius: 16px; border: 0; box-shadow: 0 4px 16px rgba(181, 216, 193, 0.2); }
                     .sheet-submit:active { transform: scale(0.98); }
                     .finish-submit-btn { background: #f3aaa4; color: #1c0e0d; box-shadow: 0 4px 16px rgba(243, 170, 164, 0.2); }
                     .saved-row { padding: 8px 12px; margin-bottom: 6px; background: #191c1e; border: 1px solid #303638; border-radius: 12px; }
@@ -137,7 +145,19 @@ object Views {
                     .add-saved .add-box input[name="name"], .add-saved .add-box button { grid-column: 1 / -1; width: 100%; }
                     .add-saved .add-box input, .add-saved .add-box select { width: 100%; }
                     .saved-row .bill-editor { margin-left: 0; }
-                    .settings-action { width: 100%; text-align: left; background: #191c1e; color: #f2f3f1; border: 1px solid #414749; }
+                    .settings-action { width: 100%; text-align: left; background: var(--surface); color: var(--text); border: 1px solid var(--border-strong); }
+                    .settings-row { display: grid; grid-template-columns: minmax(0, 1fr) auto; align-items: center; gap: 12px; }
+                    .settings-row span { color: var(--text-muted); font-weight: 500; }
+                    .settings-row > div { display: flex; align-items: center; gap: 8px; }
+                    .settings-row strong { color: var(--text); font-size: 0.875rem; }
+                    .settings-chevron { color: var(--text-dim); font-size: 1.25rem; }
+                    .currency-options { display: grid; gap: 6px; }
+                    .currency-option { width: 100%; min-height: 48px; display: flex; align-items: center; justify-content: space-between; gap: 12px; background: var(--surface); color: var(--text); border: 1px solid var(--border); padding: 8px 12px; text-align: left; }
+                    .currency-option > span { min-width: 0; }
+                    .currency-option[aria-pressed="true"] { border-color: var(--accent); background: #b5d8c11a; }
+                    .currency-option small { color: var(--text-muted); }
+                    .currency-option .currency-check { color: var(--accent); font-size: 1rem; }
+                    .app-version { color: var(--text-dim); font-size: 0.75rem; text-align: center; margin: 28px 0 0; font-variant-numeric: tabular-nums; }
                     """
                 }
             }
@@ -173,7 +193,6 @@ object Views {
                 div("nav-fab-wrap") {
                     button(type = ButtonType.button, classes = "nav-fab-btn") {
                         id = "main-nav-fab"
-                        attributes["onclick"] = "document.getElementById('add-payment-dialog')?.showModal() || (window.location.href='/')"
                         attributes["aria-label"] = "Add payment"
                         img(src = "/icons/plus.svg", alt = "")
                     }
@@ -200,10 +219,11 @@ object Views {
                         function start() {
                             isLongPress = false;
                             timer = setTimeout(function() {
+                                var actDialog = document.getElementById('cycle-actions-dialog');
+                                if (!actDialog) return;
                                 isLongPress = true;
                                 if (navigator.vibrate) navigator.vibrate(40);
-                                var actDialog = document.getElementById('cycle-actions-dialog');
-                                if (actDialog) actDialog.showModal();
+                                actDialog.showModal();
                             }, 500);
                         }
                         function cancel() {
@@ -224,7 +244,22 @@ object Views {
                         fab.addEventListener('contextmenu', function(e) {
                             e.preventDefault();
                             var actDialog = document.getElementById('cycle-actions-dialog');
-                            if (actDialog) actDialog.showModal();
+                            if (!actDialog) return;
+                            isLongPress = true;
+                            actDialog.showModal();
+                        });
+                        fab.addEventListener('click', function(e) {
+                            if (isLongPress) {
+                                e.preventDefault();
+                                isLongPress = false;
+                                return;
+                            }
+                            var addDialog = document.getElementById('add-payment-dialog');
+                            if (addDialog) {
+                                addDialog.showModal();
+                            } else {
+                                window.location.href = '/';
+                            }
                         });
                     })();
                     """
@@ -251,11 +286,16 @@ object Views {
         }
     }
 
-    fun MAIN.renderActive(summary: CycleSummary?) {
+    fun MAIN.renderActive(summary: CycleSummary?, currency: Currency, undoItemId: Long? = null) {
         if (summary == null) {
             article {
                 h3 { +"No active payday cycle" }
-                p { +"Save recurring names in Defaults, then start a cycle. You can also start with an empty list." }
+                p { +"Set up recurring bills once, then each payday is a short checklist." }
+                ol {
+                    li { +"Add recurring bills in Defaults." }
+                    li { +"Start a payday cycle with your incoming salary." }
+                    li { +"Mark each bill paid as you complete it." }
+                }
                 p { a(href = "/templates") { +"Set up saved items" } }
                 form(action = "/cycles/new", method = FormMethod.post) {
                     div(classes = "grid") {
@@ -264,7 +304,7 @@ object Views {
                             required = true
                         }
                         div("amount-input-wrapper") {
-                            span("amount-currency") { +"₱" }
+                            span("amount-currency") { +currency.symbol }
                             input(type = InputType.text, name = "salary") {
                                 placeholder = "Incoming Salary (optional)"
                                 attributes["inputmode"] = "decimal"
@@ -303,15 +343,15 @@ object Views {
                 button(type = ButtonType.button, classes = "balance-label-btn") {
                     attributes["onclick"] = "document.getElementById('salary-dialog').showModal()"
                     if (summary.salaryAmount != null) {
-                        span { +"Net Left · Salary ₱${moneyFmt.format(summary.salaryAmount)}" }
+                        span { +"After planned bills · Salary ${currency.symbol}${Money.formatDisplay(summary.salaryAmount!!)}" }
                     } else {
                         span { +"Remaining · ${summary.cycle.title} (tap to add salary)" }
                     }
                 }
                 div("balance-row") {
-                    span("balance-currency") { +"₱" }
+                    span("balance-currency") { +currency.symbol }
                     val displayAmount = summary.netRemaining ?: summary.remainingAmount
-                    val formatted = moneyFmt.format(displayAmount)
+                    val formatted = Money.formatDisplay(displayAmount)
                     val parts = formatted.split(".")
                     span("balance-major") { +parts[0] }
                     if (parts.size > 1) {
@@ -321,15 +361,19 @@ object Views {
                 if (summary.salaryAmount != null) {
                     div("wallet-salary-sub") {
                         +"Obligations: "
-                        strong { +"₱${moneyFmt.format(summary.remainingAmount)}" }
-                        +" of ₱${moneyFmt.format(summary.totalAmount)}"
+                        strong { +"${currency.symbol}${Money.formatDisplay(summary.remainingAmount)}" }
+                        +" of ${currency.symbol}${Money.formatDisplay(summary.totalAmount)}"
                     }
+                }
+                button(type = ButtonType.button, classes = if (summary.cycle.note.isNullOrBlank()) "wallet-note wallet-note-empty" else "wallet-note") {
+                    attributes["onclick"] = "document.getElementById('cycle-note-dialog').showModal()"
+                    +(summary.cycle.note ?: "Add a cycle note")
                 }
             }
             div("wallet-footer") {
                 div {
                     span("footer-label") { +"Cycle Target" }
-                    span("footer-val") { +"₱${moneyFmt.format(summary.totalAmount)}" }
+                    span("footer-val") { +"${currency.symbol}${Money.formatDisplay(summary.totalAmount)}" }
                 }
                 div {
                     span("footer-label") { +"Cleared" }
@@ -341,6 +385,15 @@ object Views {
                         div("c2") { }
                     }
                 }
+            }
+        }
+        val undoItem = summary.items.singleOrNull { it.id == undoItemId && it.isDone }
+        if (undoItem != null) {
+            form(action = "/items/${undoItem.id}/toggle", method = FormMethod.post, classes = "undo-notice") {
+                attributes["role"] = "status"
+                attributes["aria-live"] = "polite"
+                span { +"${undoItem.name} marked paid" }
+                button(type = ButtonType.submit) { +"Undo" }
             }
         }
         if (summary.missingCount > 0) p("notice") {
@@ -359,7 +412,7 @@ object Views {
         div {
             id = "items-list"
             summary.items.forEach { item ->
-                renderBillItem(item)
+                renderBillItem(item, currency)
             }
         }
 
@@ -385,11 +438,11 @@ object Views {
                             +"Salary for this 15th/30th cutoff"
                         }
                         div("amount-input-wrapper") {
-                            span("amount-currency") { +"₱" }
+                            span("amount-currency") { +currency.symbol }
                             input(type = InputType.text, name = "salary") {
                                 id = "sheet-salary-amount"
-                                value = summary.cycle.salary?.let { moneyFmt.format(it) } ?: ""
-                                placeholder = "50,000.00"
+                                value = summary.cycle.salary?.let { Money.formatEdit(it) } ?: ""
+                                placeholder = "50000.00"
                                 attributes["inputmode"] = "decimal"
                             }
                         }
@@ -401,7 +454,38 @@ object Views {
             }
         }
 
-        
+
+        dialog("bottom-sheet") {
+            id = "cycle-note-dialog"
+            attributes["aria-labelledby"] = "cycle-note-title"
+            attributes["onclick"] = "if (event.target === this) this.close()"
+            div("sheet-content") {
+                div("sheet-handle") { }
+                div("sheet-header") {
+                    h2 { id = "cycle-note-title"; +"Cycle note" }
+                    button(type = ButtonType.button, classes = "sheet-close") {
+                        attributes["onclick"] = "document.getElementById('cycle-note-dialog').close()"
+                        attributes["aria-label"] = "Close"
+                        +"×"
+                    }
+                }
+                form(action = "/cycles/${summary.cycle.id}/note", method = FormMethod.post, classes = "sheet-form") {
+                    label {
+                        attributes["for"] = "cycle-note"
+                        +"Optional context for this payday"
+                    }
+                    textArea {
+                        id = "cycle-note"
+                        name = "note"
+                        attributes["maxlength"] = "280"
+                        attributes["placeholder"] = "e.g. Travel month or bonus payout"
+                        +summary.cycle.note.orEmpty()
+                    }
+                    button(type = ButtonType.submit, classes = "sheet-submit") { +"Save note" }
+                }
+            }
+        }
+
         // Cycle Action / Finish Bottom Sheet triggered by long press on +
         dialog("bottom-sheet") {
             id = "cycle-actions-dialog"
@@ -463,7 +547,7 @@ object Views {
                             +"Amount (optional)"
                         }
                         div("amount-input-wrapper") {
-                            span("amount-currency") { +"₱" }
+                            span("amount-currency") { +currency.symbol }
                             input(type = InputType.text, name = "amountExpr") {
                                 id = "sheet-payment-amount"
                                 placeholder = "0.00"
@@ -479,7 +563,7 @@ object Views {
         }
     }
 
-    fun FlowContent.renderBillItem(item: CycleItem) {
+    fun FlowContent.renderBillItem(item: CycleItem, currency: Currency) {
         div(if (item.isDone) "bill-row done" else "bill-row") {
             id = "bill-item-${item.id}"
             form(action = "/items/${item.id}/toggle", method = FormMethod.post) {
@@ -492,7 +576,7 @@ object Views {
                 summary {
                     span("bill-title") { +item.name }
                     span(if (item.amountExpr.isNullOrBlank()) "bill-amount unknown" else "bill-amount") {
-                        +(if (item.amountExpr.isNullOrBlank()) "Set amount" else "₱${moneyFmt.format(item.amount)}")
+                        +(if (item.amountExpr.isNullOrBlank()) "Set amount" else "${currency.symbol}${Money.formatDisplay(item.amount)}")
                     }
                     img(src = "/icons/edit.svg", alt = "")
                 }
@@ -516,7 +600,7 @@ object Views {
         }
     }
 
-    fun MAIN.renderHistory(history: List<CycleSummary>, canReopen: Boolean) {
+    fun MAIN.renderHistory(history: List<CycleSummary>, canReopen: Boolean, currency: Currency) {
         h2 { +"Settled Cycles" }
         if (history.isEmpty()) {
             p { +"No past cycles saved yet." }
@@ -530,7 +614,7 @@ object Views {
                     h4 { +summary.cycle.title }
                     span {
                         style = "font-weight: 700; color: #b5d8c1;"
-                        +"₱${moneyFmt.format(summary.totalAmount)}"
+                        +"${currency.symbol}${Money.formatDisplay(summary.totalAmount)}"
                     }
                 }
                 p {
@@ -548,7 +632,7 @@ object Views {
                         summary.items.forEach { item ->
                             li {
                                 if (item.isDone) +"✓ " else +"○ "
-                                +"${item.name} — ₱${moneyFmt.format(item.amount)}"
+                                +"${item.name} — ${currency.symbol}${Money.formatDisplay(item.amount)}"
                             }
                         }
                     }
@@ -557,7 +641,7 @@ object Views {
         }
     }
 
-    fun MAIN.renderTemplates(templates: List<io.kinsena.domain.TemplateItem>) {
+    fun MAIN.renderTemplates(templates: List<io.kinsena.domain.TemplateItem>, currency: Currency) {
         h2 { +"Saved items" }
         p { +"Reuse names and default amounts each payday." }
 
@@ -594,15 +678,15 @@ object Views {
                         small { +tmpl.cadence.name.replace('_', ' ').lowercase() }
                     }
                     span(if (tmpl.defaultAmount == null) "bill-amount unknown" else "bill-amount") {
-                        +(tmpl.defaultAmount?.let { "₱${moneyFmt.format(it)}" } ?: "Varies")
+                        +(tmpl.defaultAmount?.let { "${currency.symbol}${Money.formatDisplay(it)}" } ?: "Varies")
                     }
                     img(src = "/icons/edit.svg", alt = "")
                 }
                 div("bill-editor") {
                     form(action = "/templates/${tmpl.id}/amount", method = FormMethod.post, classes = "amount-form") {
                         input(type = InputType.text, name = "defaultAmount") {
-                            value = tmpl.defaultAmount?.toString() ?: ""
-                            placeholder = "Default amount"
+                            value = tmpl.defaultAmount?.let { Money.formatEdit(it) } ?: ""
+                            placeholder = "18500.50"
                             attributes["aria-label"] = "Default amount for ${tmpl.name}"
                             attributes["inputmode"] = "decimal"
                         }
@@ -617,11 +701,54 @@ object Views {
         }
     }
 
-    fun MAIN.renderSettings() {
+    fun MAIN.renderSettings(currency: Currency, version: String) {
         h2 { +"Settings" }
+        h3 { +"Currency" }
+        button(type = ButtonType.button, classes = "settings-action settings-row") {
+            attributes["onclick"] = "document.getElementById('currency-dialog').showModal()"
+            span { +"Currency" }
+            div {
+                strong { +"${currency.label} (${currency.symbol})" }
+                span("settings-chevron") { +"›" }
+            }
+        }
+        dialog("bottom-sheet") {
+            id = "currency-dialog"
+            attributes["aria-labelledby"] = "currency-title"
+            attributes["onclick"] = "if (event.target === this) this.close()"
+            div("sheet-content") {
+                div("sheet-handle") { }
+                div("sheet-header") {
+                    h2 { id = "currency-title"; +"Display currency" }
+                    button(type = ButtonType.button, classes = "sheet-close") {
+                        attributes["onclick"] = "document.getElementById('currency-dialog').close()"
+                        attributes["aria-label"] = "Close"
+                        +"×"
+                    }
+                }
+                p { +"This changes how amounts display. It does not convert existing amounts." }
+                div("currency-options") {
+                    Currency.entries.forEach { optionCurrency ->
+                        form(action = "/settings/currency", method = FormMethod.post) {
+                            button(type = ButtonType.submit, classes = "currency-option") {
+                                name = "currency"
+                                value = optionCurrency.name
+                                attributes["aria-pressed"] = (optionCurrency == currency).toString()
+                                span {
+                                    +"${optionCurrency.label}"
+                                    small { +" ${optionCurrency.symbol}" }
+                                }
+                                if (optionCurrency == currency) span("currency-check") { +"✓" }
+                            }
+                        }
+                    }
+                }
+            }
+        }
         h3 { +"Account" }
         form(action = "/logout", method = FormMethod.post) {
             button(type = ButtonType.submit, classes = "settings-action") { +"Log out" }
         }
+        p("app-version") { +"Kinsena $version" }
     }
 }

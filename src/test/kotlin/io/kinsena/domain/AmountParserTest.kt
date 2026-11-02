@@ -6,13 +6,13 @@ import kotlin.test.assertFailsWith
 
 class AmountParserTest {
     @Test fun amountsAndExpressions() {
-        assertEquals(0.29, AmountParser.parse("0.29").first)
-        assertEquals(1.15, AmountParser.parse("1.15").first)
-        assertEquals(13941.91, AmountParser.parse("10,538.91 + 3403").first)
-        assertEquals(0.30, AmountParser.parse("0.10 + 0.20").first)
-        assertEquals(4814.63, AmountParser.parse("4814.625").first)
-        assertEquals(0.0 to "", AmountParser.parse(" "))
-        assertEquals(0.0 to "0", AmountParser.parse("0"))
+        assertEquals(29L, AmountParser.parse("0.29").first)
+        assertEquals(115L, AmountParser.parse("1.15").first)
+        assertEquals(1_394_191L, AmountParser.parse("10,538.91 + 3403").first)
+        assertEquals(30L, AmountParser.parse("0.10 + 0.20").first)
+        assertEquals(481_463L, AmountParser.parse("4814.625").first)
+        assertEquals(0L to "", AmountParser.parse(" "))
+        assertEquals(0L to "0", AmountParser.parse("0"))
     }
 
     @Test fun invalidAmountsNeverPartiallySave() {

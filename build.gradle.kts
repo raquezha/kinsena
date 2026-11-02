@@ -5,7 +5,23 @@ plugins {
 }
 
 group = "io.kinsena"
-version = "0.1.0"
+version = providers.gradleProperty("version").getOrElse("0.1.0")
+
+val generateAppVersion by tasks.registering {
+    val output = layout.buildDirectory.file("generated/resources/app-version.txt")
+    outputs.file(output)
+    doLast {
+        output.get().asFile.apply {
+            parentFile.mkdirs()
+            writeText(project.version.toString())
+        }
+    }
+}
+
+tasks.processResources {
+    dependsOn(generateAppVersion)
+    from(generateAppVersion)
+}
 
 application {
     mainClass.set("io.kinsena.ApplicationKt")

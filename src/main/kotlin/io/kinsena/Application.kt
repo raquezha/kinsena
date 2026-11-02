@@ -3,6 +3,7 @@ package io.kinsena
 import io.kinsena.db.DatabaseService
 import io.kinsena.domain.AmountParser
 import io.kinsena.domain.CadenceType
+import io.kinsena.domain.Currency
 import io.kinsena.web.Views.layout
 import io.kinsena.web.Views.renderActive
 import io.kinsena.web.Views.renderHistory
@@ -94,7 +95,8 @@ fun Application.module(
         }
         get("/") {
             if (!call.authorized(login)) return@get
-            call.respondHtml { layout("kinsena · active cycle") { renderActive(db.getActiveCycle()) } }
+            val undoItemId = call.request.queryParameters["undoItem"]?.toLongOrNull()
+            call.respondHtml { layout("kinsena · active cycle") { renderActive(db.getActiveCycle(), db.getCurrency(), undoItemId) } }
         }
         post("/cycles/new") {
             if (!call.authorized(login)) return@post
@@ -112,6 +114,13 @@ fun Application.module(
             val params = call.receiveParameters()
             val salary = params["salary"]?.takeIf { it.isNotBlank() }?.let { AmountParser.parse(it).first }
             db.updateCycleSalary(cycleId, salary)
+            call.respondRedirect("/")
+        }
+        post("/cycles/{id}/note") {
+            if (!call.authorized(login)) return@post
+            call.requireSameOrigin()
+            val cycleId = call.parameters["id"]?.toLongOrNull() ?: throw IllegalArgumentException("Invalid cycle")
+            db.updateCycleNote(cycleId, call.receiveParameters()["note"])
             call.respondRedirect("/")
         }
         post("/cycles/{id}/close") {
@@ -137,8 +146,9 @@ fun Application.module(
         post("/items/{id}/toggle") {
             if (!call.authorized(login)) return@post
             call.requireSameOrigin()
-            db.toggleItemDone(call.parameters["id"]?.toLongOrNull() ?: throw IllegalArgumentException("Invalid item"))
-            call.respondRedirect("/")
+            val itemId = call.parameters["id"]?.toLongOrNull() ?: throw IllegalArgumentException("Invalid item")
+            val markedPaid = db.toggleItemDone(itemId)
+            call.respondRedirect(if (markedPaid) "/?undoItem=$itemId" else "/")
         }
         post("/items/{id}/amount") {
             if (!call.authorized(login)) return@post
@@ -157,17 +167,25 @@ fun Application.module(
             if (!call.authorized(login)) return@get
             call.respondHtml {
                 layout("kinsena · history") {
-                    renderHistory(db.getHistory().filter { it.cycle.isClosed }, db.getActiveCycle() == null)
+                    renderHistory(db.getHistory().filter { it.cycle.isClosed }, db.getActiveCycle() == null, db.getCurrency())
                 }
             }
         }
         get("/templates") {
             if (!call.authorized(login)) return@get
-            call.respondHtml { layout("kinsena · defaults") { renderTemplates(db.getTemplates()) } }
+            call.respondHtml { layout("kinsena · defaults") { renderTemplates(db.getTemplates(), db.getCurrency()) } }
         }
         get("/settings") {
             if (!call.authorized(login)) return@get
-            call.respondHtml { layout("kinsena · settings") { renderSettings() } }
+            call.respondHtml { layout("kinsena · settings") { renderSettings(db.getCurrency(), BuildInfo.version) } }
+        }
+        post("/settings/currency") {
+            if (!call.authorized(login)) return@post
+            call.requireSameOrigin()
+            val currency = call.receiveParameters()["currency"]?.let { runCatching { Currency.valueOf(it) }.getOrNull() }
+                ?: throw IllegalArgumentException("Choose a supported currency")
+            db.updateCurrency(currency)
+            call.respondRedirect("/settings")
         }
         post("/templates/new") {
             if (!call.authorized(login)) return@post

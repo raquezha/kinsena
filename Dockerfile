@@ -4,6 +4,8 @@ COPY . .
 RUN gradle build --no-daemon
 
 FROM eclipse-temurin:21-jre
+ARG APP_VERSION=development
+LABEL org.opencontainers.image.version=$APP_VERSION
 WORKDIR /app
 COPY --from=build /app/build/libs/*-all.jar app.jar
 EXPOSE 8080

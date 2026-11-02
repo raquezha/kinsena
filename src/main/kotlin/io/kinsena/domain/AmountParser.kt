@@ -4,8 +4,9 @@ import java.math.BigDecimal
 import java.math.RoundingMode
 
 object AmountParser {
-    fun parse(raw: String?): Pair<Double, String> {
-        if (raw.isNullOrBlank()) return 0.0 to ""
+    /** Parses a peso amount or `a + b` expression into integer centavos. */
+    fun parse(raw: String?): Pair<Long, String> {
+        if (raw.isNullOrBlank()) return 0L to ""
         require(raw.length <= 256) { "Amount is too long" }
         val cleaned = raw.trim()
         val parts = cleaned.split('+')
@@ -16,6 +17,6 @@ object AmountParser {
             .fold(BigDecimal.ZERO, BigDecimal::add)
             .setScale(2, RoundingMode.HALF_UP)
         require(total <= BigDecimal("999999999999.99")) { "Amount is too large" }
-        return total.toDouble() to cleaned
+        return Money.fromMajor(total) to cleaned
     }
 }
