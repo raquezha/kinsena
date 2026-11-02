@@ -20,7 +20,7 @@ class PaydayFlowTest {
         val db = database()
         val passphrase = UUID.randomUUID().toString()
         application { module(db, Login(passphrase)) }
-        listOf("/", "/history", "/templates").forEach { path ->
+        listOf("/", "/history", "/templates", "/settings").forEach { path ->
             assertTrue(client.get(path).bodyAsText().contains("Sign in"))
         }
         listOf("/cycles/new", "/cycles/1/close", "/cycles/1/reopen", "/cycles/1/add-item", "/items/1/toggle", "/items/1/amount", "/items/1/delete", "/templates/new", "/templates/1/amount", "/templates/1/archive").forEach { path ->
@@ -45,22 +45,35 @@ class PaydayFlowTest {
         }
 
         assertTrue(db.getTemplates().isEmpty())
+        assertTrue(get("/settings").bodyAsText().contains("Log out"))
+        assertFalse(get("/").bodyAsText().contains("Log out"))
         assertTrue(client.get("/manifest.webmanifest").bodyAsText().contains("standalone"))
         assertEquals(HttpStatusCode.OK, client.get("/icon-192.png").status)
         assertEquals(HttpStatusCode.OK, client.get("/icon.svg").status)
         assertEquals(HttpStatusCode.OK, client.get("/icons/check.svg").status)
         assertEquals(HttpStatusCode.OK, client.get("/icons/edit.svg").status)
         assertEquals(HttpStatusCode.OK, client.get("/icons/plus.svg").status)
+        listOf("active", "history", "defaults", "settings").forEach { icon ->
+            assertEquals(HttpStatusCode.OK, client.get("/icons/nav-$icon.svg").status)
+        }
         assertEquals(HttpStatusCode.Found, post("/templates/new", "name" to "Internet", "defaultAmount" to "0.29", "cadence" to "ANY").status)
         assertEquals(0.29, db.getTemplates().single().defaultAmount)
         assertEquals(HttpStatusCode.Found, post("/templates/new", "name" to "Variable", "cadence" to "ANY").status)
+        assertTrue(get("/templates").bodyAsText().contains("class=\"saved-row\""))
         assertEquals(HttpStatusCode.Found, post("/cycles/new", "title" to "Payday", "cadence" to "ANY").status)
         val cycle = db.getActiveCycle()!!
         assertEquals(1, cycle.missingCount)
         assertEquals("0.29", cycle.totalAmount.toPlainString())
         val home = get("/").bodyAsText()
-        assertTrue(home.contains("1 amount(s) unknown"))
+        assertTrue(home.contains("1 amount missing; totals exclude it."))
         assertTrue(home.contains("bill-details"))
+        assertTrue(home.contains("class=\"nav-fab-btn\""))
+        assertTrue(home.contains("class=\"bottom-nav\""))
+        assertTrue(home.contains("aria-current=\"page\""))
+        assertTrue(home.contains("id=\"cycle-actions-dialog\""))
+        assertTrue(home.contains("Finish Payday Cycle"))
+        assertFalse(home.contains("Log out"))
+        assertTrue(get("/settings").bodyAsText().contains("/logout"))
         assertTrue(home.contains("Set amount"))
         val item = cycle.items.single { it.name == "Variable" }.id
         assertEquals(HttpStatusCode.BadRequest, post("/items/$item/amount", "amountExpr" to "1000 + typo").status)
@@ -125,6 +138,11 @@ class PaydayFlowTest {
         assertEquals(0, db.getActiveCycle()!!.missingCount)
         post("/items/$item/amount", "amountExpr" to "")
         assertEquals(1, db.getActiveCycle()!!.missingCount)
+        val home = client.get("/") { header(HttpHeaders.Cookie, cookie) }.bodyAsText()
+        assertTrue(home.contains("id=\"add-payment-dialog\""))
+        assertTrue(home.contains("aria-labelledby=\"add-payment-title\""))
+        assertEquals(HttpStatusCode.Found, post("/cycles/${db.getActiveCycle()!!.cycle.id}/add-item", "name" to "One-off", "amountExpr" to "25").status)
+        assertTrue(db.getActiveCycle()!!.items.any { it.name == "One-off" && it.amount == 25.0 })
         assertEquals(HttpStatusCode.BadRequest, post("/cycles/9999/close").status)
     }
 }

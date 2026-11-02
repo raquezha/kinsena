@@ -7,6 +7,7 @@ import io.kinsena.web.Views.layout
 import io.kinsena.web.Views.renderActive
 import io.kinsena.web.Views.renderHistory
 import io.kinsena.web.Views.renderLogin
+import io.kinsena.web.Views.renderSettings
 import io.kinsena.web.Views.renderTemplates
 import io.ktor.http.*
 import io.ktor.http.Cookie
@@ -100,7 +101,17 @@ fun Application.module(
             call.requireSameOrigin()
             val params = call.receiveParameters()
             val cadence = CadenceType.valueOf(params["cadence"] ?: "ANY")
-            db.createCycle(params["title"] ?: "", cadence)
+            val salary = params["salary"]?.takeIf { it.isNotBlank() }?.let { AmountParser.parse(it).first }
+            db.createCycle(params["title"] ?: "", cadence, salary)
+            call.respondRedirect("/")
+        }
+        post("/cycles/{id}/salary") {
+            if (!call.authorized(login)) return@post
+            call.requireSameOrigin()
+            val cycleId = call.parameters["id"]?.toLongOrNull() ?: throw IllegalArgumentException("Invalid cycle")
+            val params = call.receiveParameters()
+            val salary = params["salary"]?.takeIf { it.isNotBlank() }?.let { AmountParser.parse(it).first }
+            db.updateCycleSalary(cycleId, salary)
             call.respondRedirect("/")
         }
         post("/cycles/{id}/close") {
@@ -153,6 +164,10 @@ fun Application.module(
         get("/templates") {
             if (!call.authorized(login)) return@get
             call.respondHtml { layout("kinsena · defaults") { renderTemplates(db.getTemplates()) } }
+        }
+        get("/settings") {
+            if (!call.authorized(login)) return@get
+            call.respondHtml { layout("kinsena · settings") { renderSettings() } }
         }
         post("/templates/new") {
             if (!call.authorized(login)) return@post

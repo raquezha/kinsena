@@ -18,6 +18,7 @@ object CyclesTable : Table("cycles") {
     val id = long("id").autoIncrement()
     val title = varchar("title", 128)
     val date = varchar("date", 32)
+    val salary = double("salary").nullable()
     val note = text("note").nullable()
     val isClosed = bool("is_closed").default(false)
     val createdAt = long("created_at")

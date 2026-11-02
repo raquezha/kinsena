@@ -68,6 +68,7 @@ class DatabaseService(dbPath: String = "data/kinsena.db") {
             id = cycleRow[CyclesTable.id],
             title = cycleRow[CyclesTable.title],
             date = cycleRow[CyclesTable.date],
+            salary = cycleRow[CyclesTable.salary],
             note = cycleRow[CyclesTable.note],
             isClosed = cycleRow[CyclesTable.isClosed]
         )
@@ -92,8 +93,9 @@ class DatabaseService(dbPath: String = "data/kinsena.db") {
         CycleSummary(cycle, items)
     }
 
-    fun createCycle(title: String, cadence: CadenceType): Long = transaction {
+    fun createCycle(title: String, cadence: CadenceType, salary: Double? = null): Long = transaction {
         require(title.length <= 128) { "Title is too long" }
+        require(salary == null || (salary.isFinite() && salary >= 0 && salary <= 999999999999.99)) { "Invalid salary" }
         require(CyclesTable.selectAll().where { CyclesTable.isClosed eq false }.empty()) { "Finish the current cycle first" }
         val today = LocalDate.now().toString()
         val now = System.currentTimeMillis()
@@ -101,6 +103,7 @@ class DatabaseService(dbPath: String = "data/kinsena.db") {
         val cycleId = CyclesTable.insert {
             it[CyclesTable.title] = title.ifBlank { "Payday $today" }
             it[CyclesTable.date] = today
+            it[CyclesTable.salary] = salary
             it[CyclesTable.createdAt] = now
         } get CyclesTable.id
 
@@ -126,6 +129,14 @@ class DatabaseService(dbPath: String = "data/kinsena.db") {
         }
 
         cycleId
+    }
+
+    fun updateCycleSalary(cycleId: Long, salary: Double?) = transaction {
+        require(salary == null || (salary.isFinite() && salary >= 0 && salary <= 999999999999.99)) { "Invalid salary" }
+        require(CyclesTable.selectAll().where { (CyclesTable.id eq cycleId) and (CyclesTable.isClosed eq false) }.count() == 1L) { "Cycle is closed" }
+        CyclesTable.update({ CyclesTable.id eq cycleId }) {
+            it[CyclesTable.salary] = salary
+        }
     }
 
     private fun requireActiveItem(itemId: Long) {
@@ -200,6 +211,7 @@ class DatabaseService(dbPath: String = "data/kinsena.db") {
                     id = it[CyclesTable.id],
                     title = it[CyclesTable.title],
                     date = it[CyclesTable.date],
+                    salary = it[CyclesTable.salary],
                     note = it[CyclesTable.note],
                     isClosed = it[CyclesTable.isClosed]
                 )
