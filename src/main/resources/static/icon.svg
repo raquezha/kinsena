@@ -21,41 +21,41 @@
   <!-- Realistic EMV Smart Chip Base -->
   <rect x="80" y="106" width="352" height="300" rx="44" fill="url(#goldPlate)" stroke="#f3e5c8" stroke-width="3"/>
   
-  <!-- 4-Box "K" Contact Pads -->
+  <!-- 4-Box "K" Contact Pads (Box 2 & 4 width -10%) -->
   <path d="M 106,134
-    H 240
-    A 0,0 0 0 1 240,134
+    H 256
+    A 0,0 0 0 1 256,134
     V 248
-    A 0,0 0 0 1 240,248
+    A 0,0 0 0 1 256,248
     H 106
     A 0,0 0 0 1 106,248
     V 134
     A 0,0 0 0 1 106,134 Z" fill="url(#padGrad)" stroke="rgba(80, 50, 10, 0.45)" stroke-width="4"/>
-  <path d="M 288,134
+  <path d="M 304,134
     H 406
     A 0,0 0 0 1 406,134
     V 216
     A 32,32 0 0 1 374,248
-    H 288
-    A 32,32 0 0 1 256,216
+    H 304
+    A 32,32 0 0 1 272,216
     V 166
-    A 32,32 0 0 1 288,134 Z" fill="url(#padGrad)" stroke="rgba(80, 50, 10, 0.45)" stroke-width="4"/>
+    A 32,32 0 0 1 304,134 Z" fill="url(#padGrad)" stroke="rgba(80, 50, 10, 0.45)" stroke-width="4"/>
   <path d="M 106,264
-    H 240
-    A 0,0 0 0 1 240,264
+    H 256
+    A 0,0 0 0 1 256,264
     V 378
-    A 0,0 0 0 1 240,378
+    A 0,0 0 0 1 256,378
     H 106
     A 0,0 0 0 1 106,378
     V 264
     A 0,0 0 0 1 106,264 Z" fill="url(#padGrad)" stroke="rgba(80, 50, 10, 0.45)" stroke-width="4"/>
-  <path d="M 288,264
+  <path d="M 304,264
     H 374
     A 32,32 0 0 1 406,296
     V 378
     A 0,0 0 0 1 406,378
-    H 288
-    A 32,32 0 0 1 256,346
+    H 304
+    A 32,32 0 0 1 272,346
     V 296
-    A 32,32 0 0 1 288,264 Z" fill="url(#padGrad)" stroke="rgba(80, 50, 10, 0.45)" stroke-width="4"/>
+    A 32,32 0 0 1 304,264 Z" fill="url(#padGrad)" stroke="rgba(80, 50, 10, 0.45)" stroke-width="4"/>
 </svg>
