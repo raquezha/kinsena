@@ -1,23 +1,35 @@
-.gradle
-.kotlin/
-build/
-!gradle/wrapper/gradle-wrapper.jar
-!**/src/main/**/build
-!**/src/test/**/build
+node_modules
 
-### IntelliJ IDEA ###
+# Build output
+/.svelte-kit
+/build
+
+# Test output
+/coverage
+/test-results
+/playwright-report
+/.e2e
+
+# Editors and OS
 .idea
-*.iws
-*.iml
-*.ipr
-out/
-
-### macOS ###
+.vscode/*
+!.vscode/extensions.json
 .DS_Store
+Thumbs.db
 
-### Data ###
+# Env
+.env
+.env.*
+!.env.example
+
+# Vite
+vite.config.ts.timestamp-*
+
+# Data and secrets: never commit records or the passphrase
 data/
 backups/
 credentials/
 *.db
 *.db-journal
+*.db-wal
+*.db-shm

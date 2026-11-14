@@ -1,0 +1,7 @@
+package-lock.json
+/static/
+/drizzle/
+/build/
+/coverage/
+/docs/screenshots/
+/.svelte-kit/

@@ -1,0 +1,20 @@
+{
+	"extends": "$app/tsconfig",
+	"compilerOptions": {
+		"strict": true,
+		"noUncheckedIndexedAccess": true,
+		"noImplicitOverride": true,
+		"types": ["$app/types", "node"]
+	},
+	"include": [
+		"src",
+		"e2e",
+		"scripts",
+		"server.js",
+		"vite.config.ts",
+		"prettier.config.js",
+		"eslint.config.js",
+		"playwright.config.ts",
+		"drizzle.config.ts"
+	]
+}
