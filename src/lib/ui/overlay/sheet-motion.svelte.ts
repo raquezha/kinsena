@@ -1,4 +1,5 @@
 import { prefersReducedMotion, Spring } from 'svelte/motion';
+import { springTo } from '../motion.ts';
 
 const DISMISS_FRACTION = 0.25;
 const DISMISS_VELOCITY = 0.7; // px per ms, downward
@@ -25,14 +26,16 @@ export class SheetMotion {
 		return this.progress.current;
 	}
 
-	enter(): Promise<void> {
-		return this.progress.set(1, { instant: prefersReducedMotion.current });
+	/** Resolves false when interrupted by another movement. */
+	enter(): Promise<boolean> {
+		return springTo(this.progress, 1, { instant: prefersReducedMotion.current });
 	}
 
-	exit(): Promise<void> {
+	/** Resolves false when interrupted, e.g. the sheet reopened mid-close. */
+	exit(): Promise<boolean> {
 		const momentum = this.#velocity > DISMISS_VELOCITY ? 120 : 0;
 		this.#velocity = 0;
-		return this.progress.set(0, {
+		return springTo(this.progress, 0, {
 			instant: prefersReducedMotion.current,
 			preserveMomentum: momentum
 		});
@@ -50,7 +53,7 @@ export class SheetMotion {
 	drag(clientY: number): void {
 		if (!this.dragging) return;
 		const distance = Math.max(0, clientY - this.#startY);
-		void this.progress.set(1 - distance / this.#height, { instant: true });
+		void springTo(this.progress, 1 - distance / this.#height, { instant: true });
 		const now = performance.now();
 		this.#velocity = (clientY - this.#lastY) / Math.max(1, now - this.#lastTime);
 		this.#lastY = clientY;
@@ -63,7 +66,7 @@ export class SheetMotion {
 		this.dragging = false;
 		const dismiss =
 			1 - this.progress.current > DISMISS_FRACTION || this.#velocity > DISMISS_VELOCITY;
-		if (!dismiss) void this.progress.set(1);
+		if (!dismiss) void springTo(this.progress, 1);
 		return dismiss;
 	}
 }

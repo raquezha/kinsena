@@ -1,4 +1,5 @@
 import { prefersReducedMotion, Spring } from 'svelte/motion';
+import { springTo } from '../motion.ts';
 
 const AXIS_LOCK_DISTANCE = 8;
 const DELETE_DISTANCE = 96;
@@ -33,7 +34,7 @@ export class SwipeToDelete {
 		if (this.#axis === 'pending') this.#lockAxis(event);
 		if (this.#axis !== 'x') return;
 		const dx = Math.min(0, event.clientX - this.#startX);
-		void this.offset.set(dx, { instant: true });
+		void springTo(this.offset, dx, { instant: true });
 		const now = performance.now();
 		this.#velocity = (event.clientX - this.#lastX) / Math.max(1, now - this.#lastTime);
 		this.#lastX = event.clientX;
@@ -58,13 +59,12 @@ export class SwipeToDelete {
 		this.swiped = true;
 		const remove = this.offset.current < -DELETE_DISTANCE || this.#velocity < DELETE_VELOCITY;
 		if (!remove) {
-			void this.offset.set(0);
+			void springTo(this.offset, 0);
 			return false;
 		}
-		await this.offset.set(-480, {
+		return springTo(this.offset, -480, {
 			instant: prefersReducedMotion.current,
 			preserveMomentum: 120
 		});
-		return true;
 	}
 }

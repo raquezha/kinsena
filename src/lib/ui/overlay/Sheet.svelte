@@ -27,6 +27,10 @@
 	let dialog: HTMLDialogElement | undefined = $state();
 	let panel: HTMLElement | undefined = $state();
 	let rendered = $state(untrack(() => open));
+	// Server-rendered sheets start with the open attribute so they work without JavaScript.
+	// Spread it once so Svelte never rewrites it: clearing `open` on a modal dialog
+	// leaves it stuck in the top layer, ignoring Escape.
+	const serverAttributes = untrack(() => (open ? { open: true } : {}));
 
 	async function show() {
 		rendered = true;
@@ -39,8 +43,8 @@
 	}
 
 	async function hide() {
-		await motion.exit();
-		if (open) return; // reopened while closing
+		const finished = await motion.exit();
+		if (!finished || open) return; // reopened while closing
 		dialog?.close();
 		document.body.classList.remove('scroll-locked');
 		rendered = false;
@@ -79,7 +83,7 @@
 	<dialog
 		bind:this={dialog}
 		class="sheet-layer"
-		open={!dialog ? true : undefined}
+		{...serverAttributes}
 		aria-labelledby="{uid}-title"
 		aria-describedby={description ? `${uid}-description` : undefined}
 		oncancel={onCancel}
