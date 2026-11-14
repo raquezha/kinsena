@@ -1,89 +1,146 @@
 # Kinsena
 
-A small, self-hosted checklist for things you handle each payday. This is not a bank integration or an expense tracker. Add saved items once, start a cycle, enter amounts when known, and mark items done.
+A small, self-hosted checklist for the things you handle each payday. It is not a bank integration or an expense tracker. Save recurring items once, start a cycle, enter amounts when you know them, and tick items off.
 
 ## Screenshots
 
-Mobile login and checklist with example items (no personal records):
+Example data only (no personal records).
 
-![Kinsena login](docs/screenshots/login.png)
+| Mobile                                                     | Tablet                                                     | Desktop                                                      |
+| ---------------------------------------------------------- | ---------------------------------------------------------- | ------------------------------------------------------------ |
+| ![Mobile checklist](docs/screenshots/mobile-checklist.png) | ![Tablet checklist](docs/screenshots/tablet-checklist.png) | ![Desktop checklist](docs/screenshots/desktop-checklist.png) |
+| ![Mobile bottom sheet](docs/screenshots/mobile-editor.png) | ![Tablet dialog](docs/screenshots/tablet-editor.png)       | ![Desktop side panel](docs/screenshots/desktop-editor.png)   |
 
-![Kinsena payday checklist](docs/screenshots/checklist.png)
+![Mobile sign-in](docs/screenshots/mobile-login.png)
 
-## Run
+Kinsena adapts to three layouts:
 
-Requires JDK 21. Kinsena requires one passphrase (at least 16 characters) in a private text file, outside this repo and outside synced notes. Create the file using your password manager or a private editor, keep it readable only by the server user, and never commit it. From the repo root:
+- **Mobile** (under 640 px): bottom navigation, floating add button, and a draggable bottom sheet editor.
+- **Tablet** (640–1100 px): a slim icon rail, a roomier single column, and a centered dialog editor.
+- **Desktop** (1100 px and wider): a full sidebar, the checklist and summary side by side, a side-panel editor, and keyboard shortcuts.
+
+## Before you upgrade: back up your database
+
+**Back up `data/kinsena.db` before the first run of a new version.** Kinsena upgrades databases from earlier releases in place (including the old REAL/DOUBLE peso columns, which become integer centavos once). Copy the file somewhere safe first, or use `deploy/backup.sh`:
 
 ```bash
-KINSENA_PASSWORD_FILE="$HOME/kinsena-deploy/credentials/password" ./gradlew run
+cp data/kinsena.db "data/kinsena-$(date +%Y%m%d).db.bak"
 ```
 
-Open http://127.0.0.1:8080. The server listens on loopback by default; it is not reachable from other devices without a protected gateway.
+## Run locally
+
+Requires Node.js 22.17 or newer (see `.nvmrc`). Kinsena needs one passphrase of **at least 16 characters** in a private text file, outside this repository and outside synced notes. Create it with your password manager or a private editor, make it readable only by you, and never commit it. Kinsena refuses to start without it.
+
+```bash
+npm ci
+npm run build
+KINSENA_PASSWORD_FILE="$HOME/kinsena-deploy/credentials/password" npm start
+```
+
+Open http://127.0.0.1:8080. The server listens on loopback by default. Settings:
+
+| Variable                | Default           | Purpose                                     |
+| ----------------------- | ----------------- | ------------------------------------------- |
+| `KINSENA_PASSWORD_FILE` | (required)        | Path to the passphrase file                 |
+| `DB_PATH`               | `data/kinsena.db` | SQLite database file (directory is created) |
+| `HOST`                  | `127.0.0.1`       | Address to listen on                        |
+| `PORT`                  | `8080`            | Port to listen on                           |
+| `MIGRATIONS_DIR`        | `drizzle`         | Database migrations shipped with the app    |
+
+Never set `HOST=0.0.0.0` on a machine reachable from a shared network. To reach Kinsena from your phone, bind to a private interface such as your Tailscale address, or put an authenticated HTTPS gateway (for example Tailscale Serve) in front of loopback.
 
 For Docker:
 
 ```bash
 docker build -t kinsena .
-docker run -d -p 127.0.0.1:8080:8080 -v "$(pwd)/data:/app/data" -v "$HOME/kinsena-deploy/credentials/password:/run/secrets/kinsena_password:ro" -e KINSENA_PASSWORD_FILE=/run/secrets/kinsena_password kinsena
+docker run -d -p 127.0.0.1:8080:8080 \
+  -v "$(pwd)/data:/app/data" \
+  -v "$HOME/kinsena-deploy/credentials/password:/run/secrets/kinsena_password:ro" \
+  -e KINSENA_PASSWORD_FILE=/run/secrets/kinsena_password \
+  kinsena
 ```
 
-All records are stored in `data/kinsena.db`. Docker needs the volume shown above to preserve them. Amounts are stored as integer centavos. On startup, Kinsena upgrades older REAL/DOUBLE peso columns to BIGINT centavos automatically once; back up `kinsena.db` before the first upgrade. New installations create the centavos schema directly and do not seed personal payees.
+The image runs as the unprivileged `node` user (UID 1000) and checks `/login` for health. Records live in `data/kinsena.db`; keep the volume shown above. If an earlier image created `data/` as root, run `sudo chown -R 1000:1000 data` once before starting the new one.
+
+## Use
+
+1. Add recurring items under **Defaults**. Leave the amount blank when it varies. Pick when each applies: every payday, mid-month, or month-end.
+2. Start a cycle from **Active**. Saved items matching that payday are copied in. One cycle can be open at a time.
+3. Tap the circle to mark an item paid; an **Undo** toast appears. Tap the row to edit its amount, mark it, or delete it. On a phone you can also swipe a row left to delete it, with undo. Sums like `10,538.91 + 3403` work.
+4. **Known total** and **To pay** skip blank amounts, and a warning counts them. An explicit `0` is different from blank. Add a salary to see what is left over.
+5. Finish the cycle to keep a read-only record in **History**. Finished one by mistake? Reopen the most recent cycle before starting a new one.
+
+Amounts are stored as integer centavos, and values with more than two decimals round half-up. **Settings** changes the currency symbol only; it does not convert amounts.
+
+Keyboard shortcuts (outside text fields): `1`–`4` switch tabs, `n` adds an item, `c` opens salary, note and finish, `Esc` closes the editor.
+
+## Install on a phone
+
+Kinsena ships its four-block K icon, a maskable variant, Apple touch icon, and a web manifest. Use **Add to Home Screen** in Safari, or the install action in other browsers; remote installs need HTTPS. **Online only:** there is no offline cache, so it never shows a stale payment state.
+
+## Private access
+
+There is one built-in login, with no registration or extra accounts. The passphrase never goes in the database or Git and is compared in constant time. Session cookies hold random tokens and are HTTP-only, SameSite Strict, and Secure except on loopback and Tailscale (100.64.0.0/10) addresses. Sessions last seven days; logging out revokes the session, and restarting Kinsena signs out every device. Changing the passphrase requires a restart. Ten failed sign-ins within a minute block further attempts until that minute passes. Cross-site form posts are rejected.
 
 ## Automatic home-server updates (Linux + Docker Compose)
 
-A push to `main` runs [the publish workflow](.github/workflows/publish.yml). GitHub builds and tests the Docker image, then publishes `ghcr.io/raquezha/kinsena:main` and a commit-specific `sha-<commit>` tag. The home server checks for a new image every five minutes and on startup. No inbound SSH or self-hosted GitHub runner is needed. When the server was off during a push, it catches up on its next check.
+A push to `main` runs [the publish workflow](.github/workflows/publish.yml): lint, type check, unit tests with coverage, end-to-end tests in three viewports, and a production build. Only then does it publish `ghcr.io/raquezha/kinsena:main` and `:sha-<commit>`. The home server checks for a new image every five minutes and on startup, with no inbound SSH or self-hosted runner.
 
-`gradle.properties` is the version source of truth. To publish a release, update its `version`, commit that change, then push the matching Git tag, such as `v0.2.0`. A matching release tag publishes `:0.2.0`, `:0.2`, `:stable`, and its commit-specific SHA tag. The workflow fails when the Git tag and Gradle version differ. The included Compose file stays on `:main`; switch it to `:stable` after you prefer release-only automatic updates. Avoid `:latest`: it does not identify a release or a rollback target.
+`package.json` is the version source of truth. To release, bump `version`, commit, and push the matching tag (for example `v0.2.0`). That publishes `:0.2.0`, `:0.2`, `:stable`, and the commit's SHA tag. The workflow fails when the tag and `package.json` disagree. The Compose file follows `:main`; switch to `:stable` for release-only updates. Avoid `:latest`.
 
-Before setup, confirm the GHCR package is **public** in GitHub's package settings so the server can pull it without registry credentials. Install Docker with the Compose plugin on the server. The user running the update timer must be able to run Docker. Install the `sqlite3` command on the server for scheduled backups. Docker access has host-level privileges; keep that user and its account secure.
+Setup on the server:
 
-On the server, run `mkdir -p ~/kinsena-deploy/credentials ~/.config/systemd/user`. Put a private passphrase file at `~/kinsena-deploy/credentials/password` **before** enabling automatic updates. Do not add that file to Git. From your local clone, copy `deploy/compose.yaml` to `~/kinsena-deploy/compose.yaml` on the server. Copy the four `deploy/kinsena-*.service` and `deploy/kinsena-*.timer` files to `~/.config/systemd/user/`, and copy `deploy/backup.sh` to `~/kinsena-deploy/backup.sh` on the server. If you already have Kinsena records on that server, **stop the old container and move its database into `~/kinsena-deploy/data/kinsena.db` before the first start**. Do not overwrite an existing database. Then run on the server:
+1. Make sure the GHCR package is **public**, Docker with the Compose plugin is installed, and `sqlite3` is available for backups. Docker access is host-level; keep that account secure.
+2. `mkdir -p ~/kinsena-deploy/credentials ~/.config/systemd/user`, then put the passphrase file at `~/kinsena-deploy/credentials/password` **before** enabling updates.
+3. Copy `deploy/compose.yaml` and `deploy/backup.sh` to `~/kinsena-deploy/`, and the four `deploy/kinsena-*.service` / `.timer` files to `~/.config/systemd/user/`.
+4. If you already have records, **stop the old container, back up, and move the database to `~/kinsena-deploy/data/kinsena.db` before the first start.** Never overwrite an existing database.
+5. Enable the timers:
 
 ```bash
 systemctl --user daemon-reload
 systemctl --user enable --now kinsena-update.timer kinsena-backup.timer
-systemctl --user start kinsena-update.service
-systemctl --user start kinsena-backup.service
+systemctl --user start kinsena-update.service kinsena-backup.service
 systemctl --user status kinsena-update.service kinsena-backup.service
 ```
 
-The updater waits for the container's login page health check and reports failure if the new container does not start. It does not automatically restore the previous image; use the rollback instructions below if an update fails. The unit assumes Docker is at `/usr/bin/docker`. Adjust that path if your installation differs. A user timer starts when that user's systemd session starts. For checks after a reboot **without anyone logging in**, ask your server administrator to enable lingering for that user. Docker's `restart: unless-stopped` restarts the existing container at boot while the update timer waits.
+The updater waits for the container health check and reports failure, but does not roll back on its own. The unit expects Docker at `/usr/bin/docker`. For checks after a reboot without logging in, enable lingering for that user. Compose binds port 8080 to **loopback only**.
 
-The Compose file binds port 8080 to **loopback only** and keeps the database under `~/kinsena-deploy/data/`. Use a private HTTPS gateway such as Tailscale Serve to reach it from your phone; do not publish the port directly. The daily backup timer uses SQLite's online backup command and checks database integrity. It writes private timestamped files to `~/kinsena-deploy/backups/`. **These files are on the same server, not a disaster recovery plan.** Copy backups to another device and test restoring one before relying on automatic updates. Monitor free disk space and remove old backups only after a tested off-device copy.
+The daily backup uses SQLite's online backup and an integrity check, writing private timestamped files to `~/kinsena-deploy/backups/`. **Those are on the same server and are not disaster recovery.** Copy them to another device and test restoring a copy. Run one manually with `sh ~/kinsena-deploy/backup.sh`.
 
-To roll back a bad release, temporarily change the Compose image from `:main` to a previously published `:sha-<commit>` tag and run `systemctl --user start kinsena-update.service`. Restore a database backup if a release changed stored data. The timer does not roll back automatically.
-
-## Use
-
-1. Add recurring item names under **Defaults**. Leave the amount blank for items that vary.
-2. Start a cycle from **Active**. One cycle can be open at a time.
-3. Tap the circle to mark an item paid. Tap its amount to edit or remove the item, then tap **Save**. `10,538.91 + 3403` also works.
-4. **Known total** and **remaining** exclude blank amounts; a warning counts them. Zero entered explicitly is different from blank.
-5. Finish the cycle to keep a read-only record in **History**. If you finish it by mistake, reopen the most recent cycle before starting a new one. Update saved default amounts under **Defaults** without changing past cycles.
-
-Values with more than two decimal places round half-up to cents. The app records what you confirm; it does not check your bank.
-
-## Install on a phone
-
-Kinsena has an original vector icon, a web manifest, and home-screen icons for installation. Use Safari's **Add to Home Screen** on iPhone, or the browser install action on other platforms. Remote installs need HTTPS. **Online only:** there is no offline cache; the app will not show an old payment state when disconnected.
-
-## Private access and backups
-
-There is one built-in login, not public registration or multiple accounts. The passphrase never goes in the database or Git. Session cookies contain random tokens, are HTTP-only, SameSite Strict, and Secure for non-local hosts. They expire after seven days. Logout revokes that session; restarting Kinsena signs out all devices. Changing the passphrase requires a restart. Ten failed attempts within a minute temporarily block further login attempts until that minute passes.
-
-Do not expose port 8080 to the internet or a shared LAN. To reach it from a phone, use an authenticated HTTPS gateway that proxies to loopback (or a private tunnel whose access you control). Set `HOST=0.0.0.0` inside a container only when the published host port is restricted as shown above. Protect the gateway against cross-site requests.
-
-For an extra private, integrity-checked backup, run this on the home server:
-
-```bash
-sh ~/kinsena-deploy/backup.sh
-```
-
-Keep backups on another device and periodically test a restore using a *copy* of the backup, not your live database. Stop the server before replacing the live database.
+To roll back, change the Compose image to a previous `:sha-<commit>` tag and run `systemctl --user start kinsena-update.service`. Restore a backup if a release changed stored data.
 
 ## Development
 
-`./gradlew test` checks login, session revocation, amount edge cases, editable defaults, reopen behavior, the HTTP payment flow, history protection, and install assets. The backend is Kotlin/Ktor, the database is SQLite/Exposed, and pages use server-rendered HTML and plain forms; there is no JavaScript build or third-party CDN.
+```bash
+npm run dev           # Vite dev server on 127.0.0.1:5173 (needs KINSENA_PASSWORD_FILE)
+npm run lint          # Prettier + ESLint
+npm run check         # svelte-check (TypeScript strict)
+npm test              # Vitest unit and integration tests
+npm run test:coverage # with v8 coverage thresholds
+npm run test:e2e      # build + Playwright in mobile, tablet and desktop viewports
+npm run screenshots   # regenerate docs/screenshots with example data
+npm run icons         # re-render PNG/ICO icons from static/*.svg
+npm run db:generate   # create a Drizzle migration after editing the schema
+```
+
+Built with Svelte 5 (runes), SvelteKit, TypeScript, Drizzle ORM on better-sqlite3, and Zod. There is no UI library or third-party CDN.
+
+```
+src/
+  lib/domain/         pure rules: money, amount parsing, cadence, summaries
+  lib/server/data/    Drizzle schema, migrations runner, legacy upgrade, repositories
+  lib/server/services cycle, item, template, settings use cases (ports + factories)
+  lib/server/auth/    passphrase file, constant-time check, sessions, rate limit
+  lib/server/http/    origin checks, session cookie, form parsing
+  lib/server/testing/ in-memory repositories and clock for fast tests
+  lib/client/         optimistic checklist, sheets in the URL, toasts, shortcuts
+  lib/ui/             components: layout, overlay sheet, checklist, brand, icons
+  routes/             SvelteKit pages and form actions
+drizzle/              SQL migrations
+e2e/                  Playwright tests and screenshot capture
+deploy/               Compose file, systemd units, backup script
+server.js             production entry (loopback by default)
+```
 
 ## License
 
