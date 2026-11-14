@@ -326,6 +326,11 @@ class DatabaseService(dbPath: String = "data/kinsena.db") {
         CycleItemsTable.deleteWhere { CycleItemsTable.id eq itemId }
     }
 
+    fun clearCycleItems(cycleId: Long) = transaction {
+        require(CyclesTable.selectAll().where { (CyclesTable.id eq cycleId) and (CyclesTable.isClosed eq false) }.count() == 1L) { "Cycle is closed" }
+        CycleItemsTable.deleteWhere { CycleItemsTable.cycleId eq cycleId }
+    }
+
     fun closeCycle(cycleId: Long) = transaction {
         require(CyclesTable.selectAll().where { (CyclesTable.id eq cycleId) and (CyclesTable.isClosed eq false) }.count() == 1L) { "Cycle is already closed" }
         CyclesTable.update({ CyclesTable.id eq cycleId }) {

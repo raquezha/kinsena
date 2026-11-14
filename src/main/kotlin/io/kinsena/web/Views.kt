@@ -45,7 +45,7 @@ object Views {
                     .header-bar { display: flex; gap: 8px; justify-content: space-between; align-items: center; margin-bottom: 12px; }
                     .brand { font-size: 1.45rem; font-weight: 800; letter-spacing: -0.05em; color: var(--text); margin: 0; }
                     .brand-wrap { display: flex; align-items: center; justify-content: space-between; width: 100%; }
-                    .wallet-card { position: relative; overflow: hidden; background: linear-gradient(135deg, #1b211d 0%, #0f1311 50%, var(--surface-nav) 100%); color: var(--text); border: 1px solid rgba(181, 216, 193, 0.16); border-radius: 24px; padding: 22px 22px 18px; margin-bottom: 16px; box-shadow: 0 20px 40px rgba(0, 0, 0, 0.6), inset 0 1px 0 rgba(255, 255, 255, 0.08); display: flex; flex-direction: column; justify-content: space-between; min-height: 215px; }
+                    .wallet-card { position: relative; overflow: hidden; aspect-ratio: 1.586 / 1; background: linear-gradient(135deg, #1b211d 0%, #0f1311 50%, var(--surface-nav) 100%); color: var(--text); border: 1px solid rgba(181, 216, 193, 0.16); border-radius: 22px; padding: 20px 22px 18px; margin-bottom: 16px; box-shadow: 0 20px 40px rgba(0, 0, 0, 0.6), inset 0 1px 0 rgba(255, 255, 255, 0.08); display: grid; grid-template-rows: auto 1fr auto; min-height: 0; }
                     .wallet-card::before { content: ""; position: absolute; top: -50px; right: -50px; width: 160px; height: 160px; border-radius: 50%; background: radial-gradient(circle, rgba(181, 216, 193, 0.09), transparent 70%); pointer-events: none; }
                     .wallet-card::after { content: ""; position: absolute; bottom: 0; left: 0; right: 0; height: 1px; background: linear-gradient(90deg, transparent, rgba(181, 216, 193, 0.25), transparent); pointer-events: none; }
                     .wallet-top { display: flex; align-items: center; justify-content: space-between; gap: 8px; }
@@ -58,18 +58,18 @@ object Views {
                     .emv-chip span:nth-child(4) { border-radius: 4px 4px 0 4px; }
                     .card-network { font-size: 1.25rem; font-weight: 800; letter-spacing: -0.05em; color: #f2f3f1; text-transform: lowercase; line-height: 1; }
                     .card-digits { font-family: var(--font-mono); font-size: 0.8125rem; letter-spacing: 0.22em; color: #627267; font-weight: 500; }
-                    .wallet-balance { margin: 16px 0 14px; }
+                    .wallet-balance { display: flex; flex-direction: column; justify-content: center; margin: 0; }
                     .wallet-balance .balance-label-btn { background: transparent; border: 0; padding: 0; color: #7f8e84; font-size: 0.6875rem; text-transform: uppercase; letter-spacing: 0.12em; font-weight: 600; margin-bottom: 4px; display: inline-flex; align-items: center; gap: 6px; cursor: pointer; }
                     .wallet-balance .balance-label-btn span { text-decoration: underline dotted #7f8e84; }
                     .wallet-balance .balance-row { display: flex; align-items: baseline; gap: 4px; }
                     .wallet-balance .balance-currency { font-size: 1.5rem; font-weight: 600; color: #b5d8c1; opacity: 0.85; }
-                    .wallet-balance .balance-major { font-size: clamp(2.2rem, 9vw, 2.75rem); letter-spacing: -0.05em; font-weight: 800; color: #f2f3f1; font-variant-numeric: tabular-nums; line-height: 1; }
+                    .wallet-balance .balance-major { font-size: clamp(2.1rem, 8.5vw, 2.6rem); letter-spacing: -0.05em; font-weight: 800; color: #f2f3f1; font-variant-numeric: tabular-nums; line-height: 1; }
                     .wallet-balance .balance-minor { font-size: 1.25rem; font-weight: 600; color: #8a9c91; font-variant-numeric: tabular-nums; }
                     .wallet-salary-sub { font-size: 0.75rem; color: #7f8e84; margin-top: 4px; }
                     .wallet-salary-sub strong { color: #b5d8c1; font-weight: 600; }
-                    .wallet-note { align-self: flex-start; max-width: 100%; margin: 8px 0 0; padding: 0; min-height: 0; background: transparent; color: var(--text-muted); border: 0; font-size: 0.75rem; text-align: left; overflow-wrap: anywhere; }
-                    .wallet-note:hover { color: var(--text); }
-                    .wallet-note-empty { color: var(--text-dim); font-style: italic; }
+                    .cycle-note-trigger { width: 100%; display: flex; align-items: center; justify-content: space-between; gap: 12px; margin: -6px 0 16px; padding: 10px 14px; min-height: 42px; background: transparent; color: var(--text-muted); border: 1px solid var(--border); border-radius: 12px; text-align: left; font-size: 0.8125rem; }
+                    .cycle-note-trigger strong { color: var(--text); font-weight: 600; overflow-wrap: anywhere; }
+                    .cycle-note-trigger .note-label { color: var(--text-dim); flex: 0 0 auto; }
                     .wallet-footer { display: flex; align-items: flex-end; justify-content: space-between; gap: 12px; border-top: 1px solid rgba(255, 255, 255, 0.05); padding-top: 12px; }
                     .wallet-footer .footer-label { display: block; color: #627267; font-size: 0.625rem; text-transform: uppercase; letter-spacing: 0.1em; font-weight: 700; }
                     .wallet-footer .footer-val { display: block; font-size: 0.875rem; font-weight: 600; color: #c4cec7; margin-top: 2px; font-variant-numeric: tabular-nums; }
@@ -82,20 +82,26 @@ object Views {
                     .section-heading-left { display: flex; align-items: baseline; gap: 8px; }
                     .section-heading h2 { margin: 0; font-size: 1.25rem; }
                     .section-heading span { color: #aab4ad; font-size: 0.875rem; }
-                    .bill-row { display: grid; grid-template-columns: 48px minmax(0, 1fr); gap: 8px; align-items: start; background: var(--surface); color: var(--text); padding: 8px 10px; margin-bottom: 6px; border-radius: 12px; border: 1px solid var(--border); }
+                    .section-heading-right { display: flex; align-items: center; }
+                    .clear-list-btn { background: transparent; border: 0; color: var(--text-dim); font-size: 0.75rem; font-weight: 500; cursor: pointer; padding: 4px 8px; border-radius: 8px; transition: color 150ms ease, background 150ms ease; }
+                    .clear-list-btn:hover { color: var(--danger); background: rgba(243, 170, 164, 0.1); }
+                    .danger-submit-btn { background: var(--danger); color: #1c0e0d; box-shadow: 0 4px 16px rgba(243, 170, 164, 0.2); }
+                    .cancel-btn { background: transparent; color: var(--text-muted); border: 1px solid var(--border-strong); }
+                    .dialog-actions { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-top: 8px; }
+                    .bill-row { display: grid; grid-template-columns: 48px minmax(0, 1fr); gap: 8px; align-items: center; background: var(--surface); color: var(--text); padding: 8px 10px; margin-bottom: 6px; border-radius: 12px; border: 1px solid var(--border); touch-action: pan-y; transition: transform 150ms ease; }
                     .bill-row.done { background: var(--surface-input); border-color: #272d2a; }
-                    .bill-details { min-width: 0; }
-                    .bill-details summary { list-style: none; display: flex; align-items: center; gap: 8px; min-height: 48px; cursor: pointer; }
-                    .bill-details summary::-webkit-details-marker { display: none; }
+                    .bill-content { min-width: 0; display: flex; align-items: center; min-height: 48px; }
+                    .bill-row:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+                    .sr-only { position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px; overflow: hidden; clip: rect(0, 0, 0, 0); white-space: nowrap; border: 0; }
                     .bill-title { flex: 1; min-width: 0; overflow-wrap: anywhere; font-weight: 600; color: #f2f3f1; }
                     .bill-row.done .bill-title { text-decoration: line-through; color: #a5afaa; }
                     .bill-amount { color: #d7dfd9; font-variant-numeric: tabular-nums; white-space: nowrap; font-size: 0.875rem; }
                     .bill-amount.unknown { color: #f1d59a; }
-                    .bill-editor { display: grid; gap: 12px; padding: 12px 0 4px; border-top: 1px solid #303638; margin: 8px 0 0 -56px; }
+                    .bill-editor { display: grid; gap: 12px; padding: 12px 0 4px; border-top: 1px solid var(--border); margin: 8px 0 0; }
+                    .item-actions-name { color: var(--text-muted); margin: 0; overflow-wrap: anywhere; }
                     .amount-form { display: flex; gap: 8px; }
                     .amount-form input { flex: 1; width: 100%; text-align: right; font-variant-numeric: tabular-nums; }
-                    .remove-form { justify-self: start; }
-                    .remove-form button { background: transparent; color: #d4dad6; min-height: 48px; }
+                    .remove-form button { width: 100%; min-height: 48px; background: transparent; color: var(--danger); border: 1px solid var(--danger); }
                     .check-btn { width: 48px; height: 48px; border: 0; background: transparent; padding: 0; display: grid; place-items: center; }
                     .check-btn::before { content: ""; grid-area: 1 / 1; width: 28px; height: 28px; border: 2px solid #91a397; border-radius: 10px; transition: background 150ms ease, transform 150ms ease; }
                     .check-btn.checked::before { border-color: #b5d8c1; background: #b5d8c1; }
@@ -103,23 +109,24 @@ object Views {
                     .check-btn img { grid-area: 1 / 1; z-index: 1; width: 18px; height: 18px; }
 
                     .signed-in-main { padding-bottom: calc(96px + env(safe-area-inset-bottom)); }
-                    .bottom-nav { position: fixed; z-index: 6; left: 50%; bottom: 0; transform: translateX(-50%); width: 100%; max-width: 414px; display: grid; grid-template-columns: 1fr 1fr 64px 1fr 1fr; align-items: center; padding: 4px 8px calc(4px + env(safe-area-inset-bottom)); background: var(--surface-nav); border-top: 1px solid var(--border-subtle); border-left: 1px solid var(--border-subtle); border-right: 1px solid var(--border-subtle); }
+                    .bottom-nav { position: fixed; z-index: 6; left: 50%; bottom: 0; transform: translateX(-50%); width: 100%; max-width: 414px; display: grid; grid-template-columns: 1fr 1fr 60px 1fr 1fr; column-gap: 6px; align-items: center; padding: 4px 10px calc(4px + env(safe-area-inset-bottom)); background: var(--surface-nav); border-top: 1px solid var(--border-subtle); border-left: 1px solid var(--border-subtle); border-right: 1px solid var(--border-subtle); }
                     @media (max-width: 414px) { .bottom-nav { border-left: 0; border-right: 0; } }
-                    .bottom-nav a { display: grid; justify-items: center; align-content: center; gap: 2px; min-height: 54px; border-radius: 12px; color: var(--text-muted); font-size: 0.625rem; line-height: 1.1; text-decoration: none; white-space: nowrap; }
+                    .bottom-nav a { display: grid; justify-items: center; align-content: center; gap: 2px; min-height: 50px; border-radius: 12px; color: var(--text-muted); font-size: 0.625rem; line-height: 1.1; text-decoration: none; white-space: nowrap; transition: background 150ms ease, color 150ms ease; }
                     .bottom-nav img { width: 20px; height: 20px; opacity: .65; }
-                    .bottom-nav a:hover, .bottom-nav a[aria-current="page"] { color: #b5d8c1; background: #b5d8c11a; }
-                    .bottom-nav a[aria-current="page"] img { opacity: 1; }
+                    .bottom-nav a:hover { color: var(--text); background: rgba(255, 255, 255, 0.06); }
+                    .bottom-nav a[aria-current="page"] { color: var(--accent); background: rgba(181, 216, 193, 0.12); }
+                    .bottom-nav a:hover img, .bottom-nav a[aria-current="page"] img { opacity: 1; }
                     .nav-fab-wrap { display: flex; justify-content: center; align-items: center; }
-                    .nav-fab-btn { width: 52px; height: 52px; border-radius: 18px; background: var(--accent); color: var(--accent-ink); border: 0; padding: 0; display: grid; place-items: center; box-shadow: 0 -4px 16px rgba(181, 216, 193, 0.3), 0 4px 12px rgba(0,0,0,0.6); transform: translateY(-14px); cursor: pointer; transition: transform 150ms ease, box-shadow 150ms ease; }
+                    .nav-fab-btn { width: 52px; height: 52px; border-radius: 50%; background: var(--accent); color: var(--accent-ink); border: 0; padding: 0; display: grid; place-items: center; box-shadow: 0 -4px 16px rgba(181, 216, 193, 0.3), 0 4px 12px rgba(0,0,0,0.6); transform: translateY(-14px); cursor: pointer; transition: transform 150ms ease, box-shadow 150ms ease; }
                     .nav-fab-btn:active { transform: translateY(-11px) scale(0.94); }
                     .nav-fab-btn img { width: 24px; height: 24px; }
-                    .bottom-nav a:hover, .bottom-nav a[aria-current="page"] { color: #b5d8c1; background: #b5d8c11a; }
-                    .bottom-nav a[aria-current="page"] img { opacity: 1; }
                     dialog.bottom-sheet { position: fixed; inset: 0; width: 100vw; height: 100dvh; max-width: none; max-height: none; margin: 0; padding: 0; background: transparent; color: var(--text); border: 0; display: flex; flex-direction: column; justify-content: flex-end; align-items: center; z-index: 100; box-sizing: border-box; }
                     dialog.bottom-sheet:not([open]) { display: none; }
-                    dialog.bottom-sheet::backdrop { background: rgba(0, 0, 0, 0.7); backdrop-filter: blur(4px); }
-                    .sheet-content { width: 100%; max-width: 414px; max-height: calc(100dvh - env(safe-area-inset-top)); overflow-y: auto; box-sizing: border-box; background: var(--surface-raised); color: var(--text); border: 1px solid #2e3831; border-bottom: 0; border-radius: 28px 28px 0 0; padding: 12px 20px calc(24px + env(safe-area-inset-bottom)); box-shadow: 0 -12px 40px rgba(0, 0, 0, 0.7); display: flex; flex-direction: column; gap: 16px; animation: slideUp 200ms cubic-bezier(0.1, 0.9, 0.2, 1); }
-                    @keyframes slideUp { from { transform: translateY(100%); } to { transform: translateY(0); } }
+                    dialog.bottom-sheet::backdrop { background: rgba(0, 0, 0, 0.75); backdrop-filter: blur(4px); }
+                    .sheet-content { width: 100%; max-width: 414px; max-height: calc(100dvh - env(safe-area-inset-top) - 48px); overflow-y: auto; -webkit-overflow-scrolling: touch; box-sizing: border-box; background: var(--surface-raised); color: var(--text); border: 1px solid #2e3831; border-bottom: 0; border-radius: 28px 28px 0 0; padding: 12px 20px calc(24px + env(safe-area-inset-bottom)); box-shadow: 0 -12px 40px rgba(0, 0, 0, 0.7); display: flex; flex-direction: column; gap: 16px; animation: sheetSlideIn 240ms cubic-bezier(0.16, 1, 0.3, 1) forwards; }
+                    .sheet-content.closing { animation: sheetSlideOut 180ms ease-in forwards; }
+                    @keyframes sheetSlideIn { from { transform: translateY(100%); } to { transform: translateY(0); } }
+                    @keyframes sheetSlideOut { from { transform: translateY(0); } to { transform: translateY(100%); } }
                     .sheet-handle { width: 36px; height: 4px; background: #5a6b61; border-radius: 2px; margin: 0 auto 4px; }
                     .sheet-header { display: flex; justify-content: space-between; align-items: center; }
                     .sheet-header h2 { font-size: 1.15rem; font-weight: 700; margin: 0; color: var(--text); }
@@ -145,18 +152,25 @@ object Views {
                     .add-saved .add-box input[name="name"], .add-saved .add-box button { grid-column: 1 / -1; width: 100%; }
                     .add-saved .add-box input, .add-saved .add-box select { width: 100%; }
                     .saved-row .bill-editor { margin-left: 0; }
-                    .settings-action { width: 100%; text-align: left; background: var(--surface); color: var(--text); border: 1px solid var(--border-strong); }
+                    .settings-group { display: flex; flex-direction: column; gap: 8px; margin-bottom: 24px; }
+                    .settings-action { width: 100%; text-align: left; background: var(--surface); color: var(--text); border: 1px solid var(--border-strong); border-radius: 14px; padding: 14px 16px; min-height: 52px; transition: background 150ms ease, border-color 150ms ease, transform 120ms ease; }
+                    .settings-action:hover { background: #22272a; border-color: var(--accent); }
+                    .settings-action:active { transform: scale(0.99); }
+                    .settings-danger { color: var(--danger); border-color: rgba(243, 170, 164, 0.3); }
+                    .settings-danger:hover { background: rgba(243, 170, 164, 0.08); border-color: var(--danger); }
                     .settings-row { display: grid; grid-template-columns: minmax(0, 1fr) auto; align-items: center; gap: 12px; }
-                    .settings-row span { color: var(--text-muted); font-weight: 500; }
+                    .settings-row span { color: var(--text); font-weight: 500; font-size: 0.9375rem; }
                     .settings-row > div { display: flex; align-items: center; gap: 8px; }
-                    .settings-row strong { color: var(--text); font-size: 0.875rem; }
+                    .settings-row strong { color: var(--text-muted); font-size: 0.875rem; font-weight: 500; }
                     .settings-chevron { color: var(--text-dim); font-size: 1.25rem; }
-                    .currency-options { display: grid; gap: 6px; }
-                    .currency-option { width: 100%; min-height: 48px; display: flex; align-items: center; justify-content: space-between; gap: 12px; background: var(--surface); color: var(--text); border: 1px solid var(--border); padding: 8px 12px; text-align: left; }
-                    .currency-option > span { min-width: 0; }
+                    .currency-options { display: grid; gap: 8px; }
+                    .currency-option { width: 100%; min-height: 52px; display: flex; align-items: center; justify-content: space-between; gap: 12px; background: var(--surface); color: var(--text); border: 1px solid var(--border); border-radius: 12px; padding: 10px 14px; text-align: left; cursor: pointer; transition: background 150ms ease, border-color 150ms ease, transform 120ms ease; }
+                    .currency-option:hover { background: #22272a; border-color: var(--accent); }
+                    .currency-option:active { transform: scale(0.98); }
+                    .currency-option > span { min-width: 0; display: flex; align-items: baseline; gap: 6px; }
                     .currency-option[aria-pressed="true"] { border-color: var(--accent); background: #b5d8c11a; }
                     .currency-option small { color: var(--text-muted); }
-                    .currency-option .currency-check { color: var(--accent); font-size: 1rem; }
+                    .currency-option .currency-check { color: var(--accent); font-size: 1.1rem; font-weight: 700; }
                     .app-version { color: var(--text-dim); font-size: 0.75rem; text-align: center; margin: 28px 0 0; font-variant-numeric: tabular-nums; }
                     """
                 }
@@ -223,7 +237,7 @@ object Views {
                                 if (!actDialog) return;
                                 isLongPress = true;
                                 if (navigator.vibrate) navigator.vibrate(40);
-                                actDialog.showModal();
+                                openModal(actDialog);
                             }, 500);
                         }
                         function cancel() {
@@ -246,7 +260,7 @@ object Views {
                             var actDialog = document.getElementById('cycle-actions-dialog');
                             if (!actDialog) return;
                             isLongPress = true;
-                            actDialog.showModal();
+                            openModal(actDialog);
                         });
                         fab.addEventListener('click', function(e) {
                             if (isLongPress) {
@@ -256,11 +270,170 @@ object Views {
                             }
                             var addDialog = document.getElementById('add-payment-dialog');
                             if (addDialog) {
-                                addDialog.showModal();
+                                openModal(addDialog);
                             } else {
                                 window.location.href = '/';
                             }
                         });
+
+                        function openModal(dialog) {
+                            if (!dialog) return;
+                            var sheet = dialog.querySelector('.sheet-content');
+                            if (sheet) sheet.classList.remove('closing');
+                            dialog.showModal();
+                        }
+                        function closeModal(dialog) {
+                            if (!dialog || !dialog.open) return;
+                            var sheet = dialog.querySelector('.sheet-content');
+                            if (sheet && !sheet.classList.contains('closing')) {
+                                sheet.classList.add('closing');
+                                setTimeout(function() {
+                                    sheet.classList.remove('closing');
+                                    dialog.close();
+                                }, 180);
+                            } else {
+                                dialog.close();
+                            }
+                        }
+
+                        function openItemActions(row) {
+                            var dialog = document.getElementById('item-actions-dialog-' + row.dataset.itemId);
+                            openModal(dialog);
+                        }
+                        function removeItem(row) {
+                            if (window.confirm('Remove this item from this cycle?')) {
+                                row.querySelector('.item-delete-form').requestSubmit();
+                            }
+                        }
+                        document.querySelectorAll('.bill-row[data-item-id]').forEach(function(row) {
+                            var pressTimer = null;
+                            var startX = 0;
+                            var startY = 0;
+                            var isHorizontalSwipe = false;
+                            var isScrolling = false;
+                            var longPressed = false;
+                            function cancelPress() {
+                                if (pressTimer) { clearTimeout(pressTimer); pressTimer = null; }
+                            }
+                            row.addEventListener('touchstart', function(e) {
+                                if (e.target.closest('button, input, form')) return;
+                                var touch = e.touches[0];
+                                startX = touch.clientX;
+                                startY = touch.clientY;
+                                isHorizontalSwipe = false;
+                                isScrolling = false;
+                                longPressed = false;
+                                pressTimer = setTimeout(function() {
+                                    longPressed = true;
+                                    if (navigator.vibrate) navigator.vibrate(40);
+                                    openItemActions(row);
+                                }, 500);
+                            }, {passive: true});
+                            row.addEventListener('touchmove', function(e) {
+                                if (!startX || isScrolling) return;
+                                var touch = e.touches[0];
+                                var dx = touch.clientX - startX;
+                                var dy = touch.clientY - startY;
+                                var absX = Math.abs(dx);
+                                var absY = Math.abs(dy);
+
+                                if (absY > 8 && absY > absX) {
+                                    isScrolling = true;
+                                    cancelPress();
+                                    row.style.transform = '';
+                                    return;
+                                }
+
+                                if (absX > 10) {
+                                    cancelPress();
+                                    isHorizontalSwipe = true;
+                                    row.style.transform = 'translateX(' + Math.max(-56, Math.min(56, dx / 3)) + 'px)';
+                                }
+                            }, {passive: true});
+                            row.addEventListener('touchend', function(e) {
+                                cancelPress();
+                                if (!startX) return;
+                                var touch = e.changedTouches[0];
+                                var dx = touch.clientX - startX;
+                                var wasHorizontal = isHorizontalSwipe;
+                                row.style.transform = '';
+                                startX = 0;
+                                startY = 0;
+                                isHorizontalSwipe = false;
+                                isScrolling = false;
+                                if (longPressed) { e.preventDefault(); return; }
+                                if (wasHorizontal && dx > 64) openItemActions(row);
+                                if (wasHorizontal && dx < -64) removeItem(row);
+                            });
+                            row.addEventListener('touchcancel', function() {
+                                cancelPress();
+                                row.style.transform = '';
+                                startX = 0;
+                                startY = 0;
+                                isHorizontalSwipe = false;
+                                isScrolling = false;
+                            });
+                            row.addEventListener('contextmenu', function(e) { e.preventDefault(); openItemActions(row); });
+                            row.addEventListener('keydown', function(e) {
+                                if (e.key === 'ContextMenu' || (e.shiftKey && e.key === 'F10')) {
+                                    e.preventDefault();
+                                    openItemActions(row);
+                                }
+                            });
+
+                            var toggleForm = row.querySelector('.toggle-form');
+                            if (toggleForm) {
+                                toggleForm.addEventListener('submit', function(e) {
+                                    e.preventDefault();
+                                    var btn = row.querySelector('.check-btn');
+                                    var isChecked = btn.classList.contains('checked');
+                                    var nowChecked = !isChecked;
+
+                                    if (nowChecked) {
+                                        btn.classList.add('checked');
+                                        row.classList.add('done');
+                                        btn.setAttribute('aria-label', btn.getAttribute('aria-label').replace('Mark', 'Mark unpaid').replace('unpaid unpaid', 'unpaid'));
+                                        if (!btn.querySelector('img')) {
+                                            var img = document.createElement('img');
+                                            img.src = '/icons/check.svg';
+                                            img.alt = '';
+                                            btn.appendChild(img);
+                                        }
+                                        if (navigator.vibrate) navigator.vibrate(25);
+                                    } else {
+                                        btn.classList.remove('checked');
+                                        row.classList.remove('done');
+                                        var checkImg = btn.querySelector('img');
+                                        if (checkImg) checkImg.remove();
+                                        if (navigator.vibrate) navigator.vibrate(15);
+                                    }
+
+                                    var totalItems = document.querySelectorAll('.bill-row[data-item-id]').length;
+                                    var doneItems = document.querySelectorAll('.bill-row.done[data-item-id]').length;
+                                    var pendingCount = totalItems - doneItems;
+                                    var pendingLabel = document.querySelector('.pending-count-label');
+                                    if (pendingLabel) pendingLabel.textContent = pendingCount + ' left';
+
+                                    var clearedLabel = document.querySelector('.footer-cleared-count');
+                                    if (clearedLabel) clearedLabel.textContent = doneItems + ' of ' + totalItems + ' Paid';
+
+                                    fetch(toggleForm.action, {
+                                        method: 'POST',
+                                        headers: { 'X-Requested-With': 'XMLHttpRequest' }
+                                    }).catch(function() {
+                                        if (isChecked) {
+                                            btn.classList.add('checked');
+                                            row.classList.add('done');
+                                        } else {
+                                            btn.classList.remove('checked');
+                                            row.classList.remove('done');
+                                        }
+                                    });
+                                });
+                            }
+                        });
+                        window.openModal = openModal;
+                        window.closeModal = closeModal;
                     })();
                     """
                 }
@@ -341,9 +514,9 @@ object Views {
             }
             div("wallet-balance") {
                 button(type = ButtonType.button, classes = "balance-label-btn") {
-                    attributes["onclick"] = "document.getElementById('salary-dialog').showModal()"
+                    attributes["onclick"] = "openModal(document.getElementById('salary-dialog'))"
                     if (summary.salaryAmount != null) {
-                        span { +"After planned bills · Salary ${currency.symbol}${Money.formatDisplay(summary.salaryAmount!!)}" }
+                        span { +"Leftover · Salary ${currency.symbol}${Money.formatDisplay(summary.salaryAmount!!)}" }
                     } else {
                         span { +"Remaining · ${summary.cycle.title} (tap to add salary)" }
                     }
@@ -365,10 +538,6 @@ object Views {
                         +" of ${currency.symbol}${Money.formatDisplay(summary.totalAmount)}"
                     }
                 }
-                button(type = ButtonType.button, classes = if (summary.cycle.note.isNullOrBlank()) "wallet-note wallet-note-empty" else "wallet-note") {
-                    attributes["onclick"] = "document.getElementById('cycle-note-dialog').showModal()"
-                    +(summary.cycle.note ?: "Add a cycle note")
-                }
             }
             div("wallet-footer") {
                 div {
@@ -377,7 +546,7 @@ object Views {
                 }
                 div {
                     span("footer-label") { +"Cleared" }
-                    span("footer-val") { +"${summary.doneCount} of ${summary.items.size} Paid" }
+                    span("footer-val footer-cleared-count") { +"${summary.doneCount} of ${summary.items.size} Paid" }
                 }
                 div("card-brand-badge") {
                     div("brand-circles") {
@@ -396,6 +565,11 @@ object Views {
                 button(type = ButtonType.submit) { +"Undo" }
             }
         }
+        button(type = ButtonType.button, classes = "cycle-note-trigger") {
+            attributes["onclick"] = "openModal(document.getElementById('cycle-note-dialog'))"
+            span("note-label") { +"Cycle note" }
+            strong { +(summary.cycle.note ?: "Add context") }
+        }
         if (summary.missingCount > 0) p("notice") {
             attributes["role"] = "status"
             +"${summary.missingCount} ${if (summary.missingCount == 1) "amount" else "amounts"} missing; totals exclude ${if (summary.missingCount == 1) "it" else "them"}."
@@ -404,7 +578,47 @@ object Views {
         div("section-heading") {
             div("section-heading-left") {
                 h2 { +"To pay" }
-                span { +"${summary.pendingCount} left" }
+                span("pending-count-label") { +"${summary.pendingCount} left" }
+            }
+            if (summary.items.isNotEmpty()) {
+                div("section-heading-right") {
+                    button(type = ButtonType.button, classes = "clear-list-btn") {
+                        attributes["onclick"] = "openModal(document.getElementById('clear-list-dialog'))"
+                        +"Clear list"
+                    }
+                }
+            }
+        }
+
+        dialog("bottom-sheet") {
+            id = "clear-list-dialog"
+            attributes["aria-labelledby"] = "clear-list-title"
+            attributes["onclick"] = "if (event.target === this) closeModal(this)"
+            div("sheet-content") {
+                div("sheet-handle") { }
+                div("sheet-header") {
+                    h2 { id = "clear-list-title"; +"Clear all payments?" }
+                    button(type = ButtonType.button, classes = "sheet-close") {
+                        attributes["onclick"] = "closeModal(document.getElementById('clear-list-dialog'))"
+                        attributes["aria-label"] = "Close"
+                        +"×"
+                    }
+                }
+                p {
+                    style = "color: #a5afaa; margin: 0; font-size: 0.9375rem;"
+                    +"Are you sure you want to remove all ${summary.items.size} payments from this cycle? This action cannot be undone."
+                }
+                form(action = "/cycles/${summary.cycle.id}/clear", method = FormMethod.post, classes = "sheet-form") {
+                    div("dialog-actions") {
+                        button(type = ButtonType.button, classes = "sheet-submit cancel-btn") {
+                            attributes["onclick"] = "closeModal(document.getElementById('clear-list-dialog'))"
+                            +"Cancel"
+                        }
+                        button(type = ButtonType.submit, classes = "sheet-submit danger-submit-btn") {
+                            +"Yes, clear all"
+                        }
+                    }
+                }
             }
         }
 
@@ -420,13 +634,13 @@ object Views {
         dialog("bottom-sheet") {
             id = "salary-dialog"
             attributes["aria-labelledby"] = "salary-title"
-            attributes["onclick"] = "if (event.target === this) this.close()"
+            attributes["onclick"] = "if (event.target === this) closeModal(this)"
             div("sheet-content") {
                 div("sheet-handle") { }
                 div("sheet-header") {
                     h2 { id = "salary-title"; +"Incoming Salary" }
                     button(type = ButtonType.button, classes = "sheet-close") {
-                        attributes["onclick"] = "document.getElementById('salary-dialog').close()"
+                        attributes["onclick"] = "closeModal(document.getElementById('salary-dialog'))"
                         attributes["aria-label"] = "Close"
                         +"×"
                     }
@@ -458,13 +672,13 @@ object Views {
         dialog("bottom-sheet") {
             id = "cycle-note-dialog"
             attributes["aria-labelledby"] = "cycle-note-title"
-            attributes["onclick"] = "if (event.target === this) this.close()"
+            attributes["onclick"] = "if (event.target === this) closeModal(this)"
             div("sheet-content") {
                 div("sheet-handle") { }
                 div("sheet-header") {
                     h2 { id = "cycle-note-title"; +"Cycle note" }
                     button(type = ButtonType.button, classes = "sheet-close") {
-                        attributes["onclick"] = "document.getElementById('cycle-note-dialog').close()"
+                        attributes["onclick"] = "closeModal(document.getElementById('cycle-note-dialog'))"
                         attributes["aria-label"] = "Close"
                         +"×"
                     }
@@ -490,13 +704,13 @@ object Views {
         dialog("bottom-sheet") {
             id = "cycle-actions-dialog"
             attributes["aria-labelledby"] = "cycle-actions-title"
-            attributes["onclick"] = "if (event.target === this) this.close()"
+            attributes["onclick"] = "if (event.target === this) closeModal(this)"
             div("sheet-content") {
                 div("sheet-handle") { }
                 div("sheet-header") {
                     h2 { id = "cycle-actions-title"; +"Payday Actions" }
                     button(type = ButtonType.button, classes = "sheet-close") {
-                        attributes["onclick"] = "document.getElementById('cycle-actions-dialog').close()"
+                        attributes["onclick"] = "closeModal(document.getElementById('cycle-actions-dialog'))"
                         attributes["aria-label"] = "Close"
                         +"×"
                     }
@@ -517,13 +731,13 @@ object Views {
         dialog("bottom-sheet") {
             id = "add-payment-dialog"
             attributes["aria-labelledby"] = "add-payment-title"
-            attributes["onclick"] = "if (event.target === this) this.close()"
+            attributes["onclick"] = "if (event.target === this) closeModal(this)"
             div("sheet-content") {
                 div("sheet-handle") { }
                 div("sheet-header") {
                     h2 { id = "add-payment-title"; +"Add Payment" }
                     button(type = ButtonType.button, classes = "sheet-close") {
-                        attributes["onclick"] = "document.getElementById('add-payment-dialog').close()"
+                        attributes["onclick"] = "closeModal(document.getElementById('add-payment-dialog'))"
                         attributes["aria-label"] = "Close"
                         +"×"
                     }
@@ -566,35 +780,58 @@ object Views {
     fun FlowContent.renderBillItem(item: CycleItem, currency: Currency) {
         div(if (item.isDone) "bill-row done" else "bill-row") {
             id = "bill-item-${item.id}"
-            form(action = "/items/${item.id}/toggle", method = FormMethod.post) {
+            attributes["data-item-id"] = item.id.toString()
+            attributes["data-item-amount"] = item.amount.toString()
+            attributes["tabindex"] = "0"
+            attributes["aria-label"] = "Actions for ${item.name}"
+            form(action = "/items/${item.id}/toggle", method = FormMethod.post, classes = "toggle-form") {
                 button(type = ButtonType.submit, classes = if (item.isDone) "check-btn checked" else "check-btn") {
                     attributes["aria-label"] = if (item.isDone) "Mark ${item.name} unpaid" else "Mark ${item.name} paid"
                     if (item.isDone) img(src = "/icons/check.svg", alt = "")
                 }
             }
-            details("bill-details") {
-                summary {
-                    span("bill-title") { +item.name }
-                    span(if (item.amountExpr.isNullOrBlank()) "bill-amount unknown" else "bill-amount") {
-                        +(if (item.amountExpr.isNullOrBlank()) "Set amount" else "${currency.symbol}${Money.formatDisplay(item.amount)}")
-                    }
-                    img(src = "/icons/edit.svg", alt = "")
+            div("bill-content") {
+                span("bill-title") { +item.name }
+                span(if (item.amountExpr.isNullOrBlank()) "bill-amount unknown" else "bill-amount") {
+                    +(if (item.amountExpr.isNullOrBlank()) "Set amount" else "${currency.symbol}${Money.formatDisplay(item.amount)}")
                 }
-                div("bill-editor") {
-                    form(action = "/items/${item.id}/amount", method = FormMethod.post, classes = "amount-form") {
-                        input(type = InputType.text, name = "amountExpr") {
-                            value = item.amountExpr ?: ""
-                            placeholder = "Amount or 1000 + 500"
-                            attributes["aria-label"] = "Amount for ${item.name}"
-                            attributes["inputmode"] = "decimal"
-                            attributes["maxlength"] = "256"
-                        }
-                        button(type = ButtonType.submit) { +"Save" }
+            }
+            form(action = "/items/${item.id}/delete", method = FormMethod.post, classes = "sr-only item-delete-form") {
+                button(type = ButtonType.submit) { +"Remove ${item.name}" }
+            }
+        }
+        dialog("bottom-sheet") {
+            id = "item-actions-dialog-${item.id}"
+            attributes["aria-labelledby"] = "item-actions-title-${item.id}"
+            attributes["onclick"] = "if (event.target === this) closeModal(this)"
+            div("sheet-content") {
+                div("sheet-handle") { }
+                div("sheet-header") {
+                    h2 { id = "item-actions-title-${item.id}"; +"Edit payment" }
+                    button(type = ButtonType.button, classes = "sheet-close") {
+                        attributes["onclick"] = "closeModal(document.getElementById('item-actions-dialog-${item.id}'))"
+                        attributes["aria-label"] = "Close"
+                        +"×"
                     }
-                    form(action = "/items/${item.id}/delete", method = FormMethod.post, classes = "remove-form") {
-                        attributes["onsubmit"] = "return confirm('Remove this item from this cycle?')"
-                        button(type = ButtonType.submit) { +"Remove item" }
+                }
+                p("item-actions-name") { +item.name }
+                form(action = "/items/${item.id}/amount", method = FormMethod.post, classes = "sheet-form") {
+                    label {
+                        attributes["for"] = "item-amount-${item.id}"
+                        +"Amount"
                     }
+                    input(type = InputType.text, name = "amountExpr") {
+                        id = "item-amount-${item.id}"
+                        value = item.amountExpr ?: ""
+                        placeholder = "Amount or 1000 + 500"
+                        attributes["inputmode"] = "decimal"
+                        attributes["maxlength"] = "256"
+                    }
+                    button(type = ButtonType.submit, classes = "sheet-submit") { +"Save amount" }
+                }
+                form(action = "/items/${item.id}/delete", method = FormMethod.post, classes = "remove-form") {
+                    attributes["onsubmit"] = "return confirm('Remove ${item.name} from this cycle?')"
+                    button(type = ButtonType.submit) { +"Remove item" }
                 }
             }
         }
@@ -704,24 +941,26 @@ object Views {
     fun MAIN.renderSettings(currency: Currency, version: String) {
         h2 { +"Settings" }
         h3 { +"Currency" }
-        button(type = ButtonType.button, classes = "settings-action settings-row") {
-            attributes["onclick"] = "document.getElementById('currency-dialog').showModal()"
-            span { +"Currency" }
-            div {
-                strong { +"${currency.label} (${currency.symbol})" }
-                span("settings-chevron") { +"›" }
+        div("settings-group") {
+            button(type = ButtonType.button, classes = "settings-action settings-row") {
+                attributes["onclick"] = "openModal(document.getElementById('currency-dialog'))"
+                span { +"Display currency" }
+                div {
+                    strong { +"${currency.label} (${currency.symbol})" }
+                    span("settings-chevron") { +"›" }
+                }
             }
         }
         dialog("bottom-sheet") {
             id = "currency-dialog"
             attributes["aria-labelledby"] = "currency-title"
-            attributes["onclick"] = "if (event.target === this) this.close()"
+            attributes["onclick"] = "if (event.target === this) closeModal(this)"
             div("sheet-content") {
                 div("sheet-handle") { }
                 div("sheet-header") {
                     h2 { id = "currency-title"; +"Display currency" }
                     button(type = ButtonType.button, classes = "sheet-close") {
-                        attributes["onclick"] = "document.getElementById('currency-dialog').close()"
+                        attributes["onclick"] = "closeModal(document.getElementById('currency-dialog'))"
                         attributes["aria-label"] = "Close"
                         +"×"
                     }
@@ -746,8 +985,10 @@ object Views {
             }
         }
         h3 { +"Account" }
-        form(action = "/logout", method = FormMethod.post) {
-            button(type = ButtonType.submit, classes = "settings-action") { +"Log out" }
+        div("settings-group") {
+            form(action = "/logout", method = FormMethod.post) {
+                button(type = ButtonType.submit, classes = "settings-action settings-danger") { +"Log out" }
+            }
         }
         p("app-version") { +"Kinsena $version" }
     }

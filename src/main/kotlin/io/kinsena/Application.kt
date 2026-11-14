@@ -129,6 +129,13 @@ fun Application.module(
             db.closeCycle(call.parameters["id"]?.toLongOrNull() ?: throw IllegalArgumentException("Invalid cycle"))
             call.respondRedirect("/")
         }
+        post("/cycles/{id}/clear") {
+            if (!call.authorized(login)) return@post
+            call.requireSameOrigin()
+            val cycleId = call.parameters["id"]?.toLongOrNull() ?: throw IllegalArgumentException("Invalid cycle")
+            db.clearCycleItems(cycleId)
+            call.respondRedirect("/")
+        }
         post("/cycles/{id}/reopen") {
             if (!call.authorized(login)) return@post
             call.requireSameOrigin()
@@ -148,7 +155,11 @@ fun Application.module(
             call.requireSameOrigin()
             val itemId = call.parameters["id"]?.toLongOrNull() ?: throw IllegalArgumentException("Invalid item")
             val markedPaid = db.toggleItemDone(itemId)
-            call.respondRedirect(if (markedPaid) "/?undoItem=$itemId" else "/")
+            if (call.request.header("X-Requested-With") == "XMLHttpRequest") {
+                call.respond(HttpStatusCode.OK, """{"ok":true,"markedPaid":$markedPaid}""")
+            } else {
+                call.respondRedirect(if (markedPaid) "/?undoItem=$itemId" else "/")
+            }
         }
         post("/items/{id}/amount") {
             if (!call.authorized(login)) return@post

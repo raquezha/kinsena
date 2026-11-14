@@ -61,11 +61,11 @@ class PaydayFlowTest {
         assertEquals(HttpStatusCode.OK, client.get("/icon-192.png").status)
         assertEquals(HttpStatusCode.OK, client.get("/icon.svg").status)
         assertEquals(HttpStatusCode.OK, client.get("/icons/check.svg").status)
-        assertEquals(HttpStatusCode.OK, client.get("/icons/edit.svg").status)
         assertEquals(HttpStatusCode.OK, client.get("/icons/plus.svg").status)
         listOf("active", "history", "defaults", "settings").forEach { icon ->
             assertEquals(HttpStatusCode.OK, client.get("/icons/nav-$icon.svg").status)
         }
+
         assertEquals(HttpStatusCode.Found, post("/templates/new", "name" to "Internet", "defaultAmount" to "0.29", "cadence" to "ANY").status)
         assertEquals(29L, db.getTemplates().single().defaultAmount)
         assertEquals(HttpStatusCode.Found, post("/templates/new", "name" to "Variable", "cadence" to "ANY").status)
@@ -77,7 +77,13 @@ class PaydayFlowTest {
         assertEquals("0.29", cycle.totalAmount.toPlainString())
         val home = get("/").bodyAsText()
         assertTrue(home.contains("1 amount missing; totals exclude it."))
-        assertTrue(home.contains("bill-details"))
+        assertFalse(home.contains("bill-details"))
+        assertFalse(home.contains("/icons/edit.svg"))
+        assertTrue(home.contains("id=\"item-actions-dialog-"))
+        assertTrue(home.contains("openItemActions(row)"))
+        assertTrue(home.contains("row.addEventListener('contextmenu'"))
+        assertTrue(home.contains("if (wasHorizontal && dx > 64) openItemActions(row)"))
+        assertTrue(home.contains("if (wasHorizontal && dx < -64) removeItem(row)"))
         assertTrue(home.contains("class=\"nav-fab-btn\""))
         assertTrue(home.contains("class=\"bottom-nav\""))
         assertTrue(home.contains("aria-current=\"page\""))
@@ -177,7 +183,7 @@ class PaydayFlowTest {
         assertFalse(home.contains("showModal()||"))
         assertTrue(home.contains("var addDialog = document.getElementById('add-payment-dialog');"))
         assertTrue(home.contains("if (addDialog)"))
-        assertTrue(home.contains("addDialog.showModal();"))
+        assertTrue(home.contains("openModal(addDialog);"))
         assertTrue(home.contains("window.location.href = '/'"))
         assertTrue(home.contains("if (isLongPress)"))
         assertTrue(home.contains("fab.addEventListener('click'"))
@@ -215,7 +221,7 @@ class PaydayFlowTest {
         // edit field must be plain US number, not locale-grouped (e.g. 75,000.00)
         assertTrue(home.contains("value=\"75000.00\""))
         assertFalse(home.contains("value=\"75,000.00\""))
-        assertTrue(home.contains("After planned bills"))
+        assertTrue(home.contains("Leftover"))
         // Balance major/minor are split across spans: 56,499 + .50
         assertTrue(home.contains("class=\"balance-major\""))
         assertTrue(home.contains("56,499"))
@@ -276,5 +282,35 @@ class PaydayFlowTest {
         // Saving the edit value without change must not inflate to ₱1,850,050
         assertEquals(HttpStatusCode.Found, post("/templates/$id/amount", "defaultAmount" to "18500.50").status)
         assertEquals(1_850_050L, db.getTemplates().single().defaultAmount)
+    }
+
+    @Test fun clearListRemovesAllCycleItemsAfterConfirmation() = testApplication {
+        val db = database()
+        val passphrase = UUID.randomUUID().toString()
+        application { module(db, Login(passphrase)) }
+        val cookie = client.post("/login") {
+            setBody(FormDataContent(Parameters.build { append("password", passphrase) }))
+        }.headers[HttpHeaders.SetCookie]!!.substringBefore(';')
+        suspend fun post(path: String, vararg fields: Pair<String, String>) = client.post(path) {
+            header(HttpHeaders.Cookie, cookie)
+            setBody(FormDataContent(Parameters.build { fields.forEach { (k, v) -> append(k, v) } }))
+        }
+
+        post("/templates/new", "name" to "Rent", "defaultAmount" to "18500", "cadence" to "ANY")
+        post("/templates/new", "name" to "Electric", "defaultAmount" to "3000", "cadence" to "ANY")
+        post("/cycles/new", "title" to "October 15", "cadence" to "ANY")
+        val active = db.getActiveCycle()!!
+        assertEquals(2, active.items.size)
+
+        val homeWithItems = client.get("/") { header(HttpHeaders.Cookie, cookie) }.bodyAsText()
+        assertTrue(homeWithItems.contains("Clear list"))
+        assertTrue(homeWithItems.contains("id=\"clear-list-dialog\""))
+
+        assertEquals(HttpStatusCode.Found, post("/cycles/${active.cycle.id}/clear").status)
+        val cleared = db.getActiveCycle()!!
+        assertEquals(0, cleared.items.size)
+
+        val homeEmpty = client.get("/") { header(HttpHeaders.Cookie, cookie) }.bodyAsText()
+        assertFalse(homeEmpty.contains("Clear list"))
     }
 }

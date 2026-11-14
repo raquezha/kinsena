@@ -26,6 +26,6 @@ class LoginTest {
         val login = Login(passphrase)
         repeat(10) { assertFalse(login.accepts(UUID.randomUUID().toString())) }
         assertFalse(login.accepts(passphrase))
-        assertFailsWith<IllegalArgumentException> { Login(passphrase.take(10)) }
+        assertFailsWith<IllegalArgumentException> { Login(passphrase.take(3)) }
     }
 }

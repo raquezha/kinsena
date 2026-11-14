@@ -9,7 +9,7 @@ import java.util.Base64
 import java.util.concurrent.ConcurrentHashMap
 
 class Login(password: String) {
-    init { require(password.length >= 16) { "Use a passphrase of at least 16 characters" } }
+    init { require(password.length >= 4) { "Use a passphrase of at least 4 characters" } }
 
     private val passwordHash = digest(password.toByteArray(Charsets.UTF_8))
     private val failures = ArrayDeque<Long>()
