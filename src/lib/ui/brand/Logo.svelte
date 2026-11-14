@@ -1,6 +1,14 @@
 <script lang="ts">
-	/** The Kinsena mark: a mint coin with a check, on a deep green tile. */
+	/** The Kinsena mark: Jan's four-block K in brushed titanium gold on an obsidian tile. */
 	let { size = 40, animate = false }: { size?: number; animate?: boolean } = $props();
+
+	const id = $props.id();
+	const BLOCKS = [
+		'M112 112H240V240H112Z',
+		'M302 112H390V200A40 40 0 0 1 350 240H302A40 40 0 0 1 262 200V152A40 40 0 0 1 302 112Z',
+		'M112 262H240V390H112Z',
+		'M302 262H350A40 40 0 0 1 390 302V390H302A40 40 0 0 1 262 350V302A40 40 0 0 1 302 262Z'
+	];
 </script>
 
 <svg
@@ -13,36 +21,35 @@
 	focusable="false"
 >
 	<defs>
-		<linearGradient id="logo-bg" x1="0" y1="0" x2="0" y2="1">
-			<stop offset="0" stop-color="#16251c" />
-			<stop offset="1" stop-color="#0a120d" />
-		</linearGradient>
-		<linearGradient id="logo-coin" x1="0" y1="0" x2="1" y2="1">
-			<stop offset="0" stop-color="#d6eedf" />
-			<stop offset="1" stop-color="#9ccbac" />
+		<radialGradient id="{id}-canvas" cx="50%" cy="35%" r="70%">
+			<stop offset="0" stop-color="#191610" />
+			<stop offset="0.6" stop-color="#0a0907" />
+			<stop offset="1" stop-color="#040403" />
+		</radialGradient>
+		<linearGradient id="{id}-gold" x1="0" y1="0" x2="1" y2="1">
+			<stop offset="0" stop-color="#fff6e2" />
+			<stop offset="0.25" stop-color="#ecd39d" />
+			<stop offset="0.65" stop-color="#cda863" />
+			<stop offset="1" stop-color="#9a7637" />
 		</linearGradient>
 	</defs>
-	<rect width="512" height="512" rx="116" fill="url(#logo-bg)" />
-	<circle class="coin" cx="256" cy="256" r="164" fill="url(#logo-coin)" />
-	<circle
-		cx="256"
-		cy="256"
-		r="134"
+	<rect width="512" height="512" rx="116" fill="url(#{id}-canvas)" />
+	<rect
+		x="18"
+		y="18"
+		width="476"
+		height="476"
+		rx="100"
 		fill="none"
-		stroke="#0c1610"
-		stroke-opacity="0.22"
-		stroke-width="12"
+		stroke="#cda863"
+		stroke-opacity="0.2"
+		stroke-width="4"
 	/>
-	<path
-		class="tick"
-		d="M176 262 L232 318 L340 200"
-		fill="none"
-		stroke="#0c1610"
-		stroke-width="46"
-		stroke-linecap="round"
-		stroke-linejoin="round"
-		pathLength="1"
-	/>
+	<g fill="url(#{id}-gold)" transform="translate(5 5)">
+		{#each BLOCKS as d, index (d)}
+			<path class="block" style:--i={index} {d} />
+		{/each}
+	</g>
 </svg>
 
 <style>
@@ -52,35 +59,24 @@
 		flex: none;
 	}
 
-	.animate .coin {
-		transform-origin: 256px 256px;
-		animation: coin-in 600ms var(--ease-spring) both;
+	.block {
+		transform-box: fill-box;
+		transform-origin: center;
 	}
 
-	.animate .tick {
-		stroke-dasharray: 1;
-		animation: draw 520ms 260ms var(--ease-out) both;
+	.animate .block {
+		animation: block-in 520ms calc(var(--i) * 70ms) var(--ease-spring) both;
 	}
 
-	@keyframes coin-in {
+	@keyframes block-in {
 		from {
-			transform: scale(0.4) rotate(-40deg);
+			transform: scale(0.3);
 			opacity: 0;
 		}
 	}
 
-	@keyframes draw {
-		from {
-			stroke-dashoffset: 1;
-		}
-		to {
-			stroke-dashoffset: 0;
-		}
-	}
-
 	@media (prefers-reduced-motion: reduce) {
-		.animate .coin,
-		.animate .tick {
+		.animate .block {
 			animation: none;
 		}
 	}

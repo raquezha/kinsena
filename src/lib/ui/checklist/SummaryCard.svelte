@@ -4,7 +4,7 @@
 	import { formatMoney } from '../../domain/money.ts';
 	import type { CycleSummary } from '../../domain/summary.ts';
 	import Amount from '../money/Amount.svelte';
-	import Logo from '../brand/Logo.svelte';
+	import ChipEmblem from '../brand/ChipEmblem.svelte';
 
 	let {
 		cycle,
@@ -18,7 +18,7 @@
 
 <section class="wallet" aria-label="Cycle summary">
 	<header>
-		<Logo size={28} />
+		<ChipEmblem />
 		<span class="eyebrow">
 			{#if cycle.salary !== null}
 				Leftover · salary {formatMoney(cycle.salary, currency)}
