@@ -4,31 +4,59 @@ on:
   push:
     branches: [main]
     tags: ['v*']
+  pull_request:
 
 permissions:
   contents: read
-  packages: write
 
 concurrency:
   group: publish-${{ github.ref }}
   cancel-in-progress: false
 
 jobs:
-  publish:
+  verify:
     runs-on: ubuntu-latest
+    outputs:
+      version: ${{ steps.version.outputs.value }}
     steps:
       - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version-file: .nvmrc
+          cache: npm
       - name: Read and verify version
         id: version
         shell: bash
         run: |
-          version="$(awk -F= '$1 == "version" { print $2 }' gradle.properties)"
+          version="$(node -p "require('./package.json').version")"
           test -n "$version"
           if [[ "$GITHUB_REF_TYPE" == "tag" && "$GITHUB_REF_NAME" != "v$version" ]]; then
-            echo "Tag $GITHUB_REF_NAME must match gradle.properties version $version" >&2
+            echo "Tag $GITHUB_REF_NAME must match package.json version $version" >&2
             exit 1
           fi
           echo "value=$version" >> "$GITHUB_OUTPUT"
+      - run: npm ci
+      - run: npm run lint
+      - run: npm run check
+      - run: npm run test:coverage
+      - run: npx playwright install --with-deps chromium
+      - run: npm run test:e2e
+      - uses: actions/upload-artifact@v4
+        if: failure()
+        with:
+          name: playwright-results
+          path: test-results
+          retention-days: 7
+
+  publish:
+    needs: verify
+    if: github.event_name == 'push'
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      packages: write
+    steps:
+      - uses: actions/checkout@v4
       - name: Name image
         id: image
         run: echo "name=ghcr.io/${GITHUB_REPOSITORY,,}" >> "$GITHUB_OUTPUT"
@@ -42,6 +70,7 @@ jobs:
             type=semver,pattern={{version}}
             type=semver,pattern={{major}}.{{minor}}
             type=raw,value=stable,enable=${{ startsWith(github.ref, 'refs/tags/v') }}
+      - uses: docker/setup-buildx-action@v3
       - uses: docker/login-action@v3
         with:
           registry: ghcr.io
@@ -52,6 +81,8 @@ jobs:
           context: .
           push: true
           build-args: |
-            APP_VERSION=${{ steps.version.outputs.value }}
+            APP_VERSION=${{ needs.verify.outputs.version }}
           tags: ${{ steps.metadata.outputs.tags }}
           labels: ${{ steps.metadata.outputs.labels }}
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
