@@ -1,5 +1,5 @@
 <script lang="ts">
-	/** The Kinsena mark: Jan's four-block K in brushed titanium gold on an obsidian tile. */
+	/** The Kinsena mark: the four-block K in brushed titanium gold on an obsidian tile. */
 	let { size = 40, animate = false }: { size?: number; animate?: boolean } = $props();
 
 	const id = $props.id();
