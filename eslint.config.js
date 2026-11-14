@@ -23,7 +23,7 @@ export default defineConfig(
 			'@typescript-eslint/no-unused-vars': ['error', { argsIgnorePattern: '^_' }],
 			'max-lines': ['error', { max: 250, skipBlankLines: true, skipComments: true }],
 			'max-lines-per-function': ['warn', { max: 60, skipBlankLines: true, skipComments: true }],
-			'max-len': ['error', { code: 100, ignoreUrls: true, ignoreStrings: true }],
+			'max-len': ['error', { code: 100, tabWidth: 2, ignoreUrls: true, ignoreStrings: true }],
 			complexity: ['warn', 10]
 		}
 	},
@@ -44,6 +44,6 @@ export default defineConfig(
 	},
 	{
 		files: ['**/*.test.ts', 'e2e/**'],
-		rules: { 'max-lines-per-function': 'off' }
+		rules: { 'max-lines-per-function': 'off', complexity: 'off' }
 	}
 );

@@ -26,9 +26,9 @@ Thumbs.db
 vite.config.ts.timestamp-*
 
 # Data and secrets: never commit records or the passphrase
-data/
-backups/
-credentials/
+/data/
+/backups/
+/credentials/
 *.db
 *.db-journal
 *.db-wal

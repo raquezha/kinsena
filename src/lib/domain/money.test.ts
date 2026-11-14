@@ -1,5 +1,12 @@
 import { describe, expect, it } from 'vitest';
-import { formatEdit, formatMoney, formatPlain, isValidCents, MAX_CENTS, splitMoney } from './money.ts';
+import {
+	formatEdit,
+	formatMoney,
+	formatPlain,
+	isValidCents,
+	MAX_CENTS,
+	splitMoney
+} from './money.ts';
 
 describe('money formatting', () => {
 	it('uses US grouping and a dot decimal', () => {
