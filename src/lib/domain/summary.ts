@@ -40,3 +40,10 @@ export function sortForChecklist(items: CycleItem[]): CycleItem[] {
 		(a, b) => Number(a.isDone) - Number(b.isDone) || a.sortOrder - b.sortOrder || a.id - b.id
 	);
 }
+
+/** A cycle with its items in checklist order and their totals. */
+export interface CycleView {
+	cycle: Cycle;
+	items: CycleItem[];
+	summary: CycleSummary;
+}

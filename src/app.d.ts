@@ -13,6 +13,10 @@ declare global {
 			sessionToken: string | null;
 			authenticated: boolean;
 		}
+		interface PageState {
+			sheet?: string | null;
+			pushed?: boolean;
+		}
 	}
 }
 

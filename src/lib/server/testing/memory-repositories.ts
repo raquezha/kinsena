@@ -57,7 +57,7 @@ function memoryCyclesAndItems(): Pick<Repositories, 'cycles' | 'items'> {
 			itemRows.push({ ...item, id, cycleId });
 			return id;
 		},
-		update: (id, patch) => patchRow(itemRows, id, patch),
+		update: (id, patch) => patchRow<CycleItem>(itemRows, id, patch),
 		remove(id) {
 			const index = itemRows.findIndex((row) => row.id === id);
 			if (index >= 0) itemRows.splice(index, 1);
@@ -85,7 +85,7 @@ function memoryCyclesAndItems(): Pick<Repositories, 'cycles' | 'items'> {
 			newItems.forEach((item) => items.add(id, item));
 			return id;
 		},
-		update: (id, patch) => patchRow(cycleRows, id, patch)
+		update: (id, patch) => patchRow<Cycle>(cycleRows, id, patch)
 	};
 	return { cycles, items };
 }

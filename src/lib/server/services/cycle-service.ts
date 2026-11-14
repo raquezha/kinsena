@@ -2,18 +2,12 @@ import { parseOptionalAmount } from '../../domain/amount-parser.ts';
 import { cadenceMatches, type Cadence } from '../../domain/cadence.ts';
 import { localIsoDate } from '../../domain/dates.ts';
 import { ensure } from '../../domain/errors.ts';
-import type { Cycle, CycleItem, TemplateItem } from '../../domain/models.ts';
+import type { Cycle, TemplateItem } from '../../domain/models.ts';
 import { formatEdit } from '../../domain/money.ts';
 import { normalizeNote, normalizeTitle } from '../../domain/rules.ts';
-import { sortForChecklist, summarize, type CycleSummary } from '../../domain/summary.ts';
+import { sortForChecklist, summarize, type CycleView } from '../../domain/summary.ts';
 import type { Clock, NewCycle, NewCycleItem, Repositories } from '../ports.ts';
 import { requireOpenCycle } from './guards.ts';
-
-export interface CycleView {
-	cycle: Cycle;
-	items: CycleItem[];
-	summary: CycleSummary;
-}
 
 export interface StartCycleInput {
 	title: string;
