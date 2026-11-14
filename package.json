@@ -25,7 +25,7 @@
 		"test:coverage": "vitest run --coverage",
 		"test:e2e": "vite build && playwright test --project=mobile --project=tablet --project=desktop",
 		"screenshots": "vite build && playwright test --project=screenshots",
-		"icons": "node scripts/generate-icons.js",
+		"icons": "sh scripts/generate-icons.sh",
 		"db:generate": "drizzle-kit generate"
 	},
 	"dependencies": {

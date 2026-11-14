@@ -24,7 +24,9 @@ export default defineConfig(
 			'max-lines': ['error', { max: 250, skipBlankLines: true, skipComments: true }],
 			'max-lines-per-function': ['warn', { max: 60, skipBlankLines: true, skipComments: true }],
 			'max-len': ['error', { code: 100, tabWidth: 2, ignoreUrls: true, ignoreStrings: true }],
-			complexity: ['warn', 10]
+			complexity: ['warn', 10],
+			// Kinsena is always served from the site root (no paths.base), so plain hrefs are correct.
+			'svelte/no-navigation-without-resolve': 'off'
 		}
 	},
 	{

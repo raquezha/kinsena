@@ -1,0 +1,140 @@
+/* Shared form controls and buttons, used across pages and sheets. */
+.field {
+	display: grid;
+	gap: var(--space-2);
+}
+
+.field > span {
+	font-size: var(--text-sm);
+	font-weight: 600;
+	color: var(--text-muted);
+}
+
+.field small {
+	color: var(--text-dim);
+	font-size: var(--text-xs);
+}
+
+.input {
+	width: 100%;
+	min-height: var(--tap);
+	padding: 0 var(--space-4);
+	border-radius: var(--radius-md);
+	border: 1px solid var(--border);
+	background: var(--surface-sunken);
+	font-size: var(--text-md);
+	transition:
+		border-color var(--duration-fast),
+		box-shadow var(--duration-fast);
+}
+
+textarea.input {
+	padding: var(--space-3) var(--space-4);
+	min-height: 96px;
+	resize: vertical;
+}
+
+.input:focus {
+	outline: none;
+	border-color: var(--accent);
+	box-shadow: 0 0 0 3px var(--accent-soft);
+}
+
+.input.money {
+	font-variant-numeric: tabular-nums;
+	font-size: var(--text-lg);
+	font-weight: 700;
+}
+
+.button {
+	display: inline-flex;
+	align-items: center;
+	justify-content: center;
+	gap: var(--space-2);
+	min-height: var(--tap);
+	padding: 0 var(--space-5);
+	border-radius: var(--radius-md);
+	border: 1px solid var(--border);
+	background: var(--surface-raised);
+	font-weight: 650;
+	text-decoration: none;
+	color: var(--text);
+	transition:
+		transform var(--duration-fast) var(--ease-out),
+		background var(--duration-fast),
+		border-color var(--duration-fast);
+}
+
+.button:active {
+	transform: scale(0.97);
+}
+
+.button.primary {
+	background: var(--accent);
+	border-color: transparent;
+	color: var(--accent-ink);
+	box-shadow: 0 6px 18px rgb(181 216 193 / 0.18);
+}
+
+.button.danger {
+	background: var(--danger-soft);
+	border-color: rgb(243 170 164 / 0.25);
+	color: var(--danger);
+}
+
+.button.ghost {
+	background: transparent;
+	border-color: transparent;
+	color: var(--text-muted);
+}
+
+.button.block {
+	width: 100%;
+}
+
+.button:disabled {
+	opacity: 0.55;
+	cursor: not-allowed;
+}
+
+@media (hover: hover) {
+	.button:hover {
+		border-color: var(--border-strong);
+		background: var(--surface-hover);
+	}
+
+	.button.primary:hover {
+		background: var(--accent-strong);
+	}
+
+	.button.ghost:hover {
+		color: var(--text);
+	}
+}
+
+.form-error {
+	color: var(--danger);
+	font-size: var(--text-sm);
+	font-weight: 600;
+}
+
+.stack {
+	display: grid;
+	gap: var(--space-4);
+}
+
+.card {
+	background: var(--surface);
+	border: 1px solid var(--border-subtle);
+	border-radius: var(--radius-lg);
+	padding: var(--space-5);
+}
+
+.kbd {
+	font-family: var(--font-mono);
+	font-size: var(--text-xs);
+	padding: 1px 6px;
+	border-radius: 6px;
+	border: 1px solid var(--border-strong);
+	color: var(--text-muted);
+}

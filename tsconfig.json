@@ -10,7 +10,6 @@
 		"src",
 		"e2e",
 		"scripts",
-		"server.js",
 		"vite.config.ts",
 		"prettier.config.js",
 		"eslint.config.js",

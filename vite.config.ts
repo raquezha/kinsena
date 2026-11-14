@@ -26,7 +26,16 @@ export default defineConfig({
 		coverage: {
 			provider: 'v8',
 			include: ['src/lib/domain/**', 'src/lib/server/**', 'src/lib/client/**'],
-			exclude: ['src/lib/server/testing/**', '**/*.test.ts', '**/index.ts'],
+			// Browser-only glue (fetch, history, runes state) is covered by the Playwright suite.
+			exclude: [
+				'src/lib/server/testing/**',
+				'src/lib/server/data/fixtures/**',
+				'src/lib/client/actions.ts',
+				'src/lib/client/sheet-route.ts',
+				'**/*.svelte.ts',
+				'**/*.test.ts',
+				'**/index.ts'
+			],
 			reporter: ['text', 'text-summary', 'html'],
 			thresholds: { lines: 90, functions: 90, statements: 90, branches: 85 }
 		}
