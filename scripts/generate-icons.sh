@@ -1,0 +1,13 @@
+#!/bin/sh
+# Renders the PNG and ICO app icons from the SVG sources in static/.
+# Needs rsvg-convert (librsvg) and ImageMagick.
+set -eu
+cd "$(dirname "$0")/../static"
+rsvg-convert -w 192 -h 192 icon.svg -o icon-192.png
+rsvg-convert -w 512 -h 512 icon.svg -o icon-512.png
+rsvg-convert -w 192 -h 192 icon-maskable.svg -o icon-maskable-192.png
+rsvg-convert -w 512 -h 512 icon-maskable.svg -o icon-maskable-512.png
+rsvg-convert -w 180 -h 180 icon-maskable.svg -o apple-touch-icon.png
+for size in 16 32 48; do rsvg-convert -w "$size" -h "$size" icon.svg -o "favicon-$size.png"; done
+magick favicon-16.png favicon-32.png favicon-48.png favicon.ico
+rm favicon-16.png favicon-32.png favicon-48.png
