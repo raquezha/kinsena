@@ -1,4 +1,4 @@
-// Schemas exactly as Kinsena 0.1 (Kotlin/Exposed) created them, for migration tests.
+// Schemas exactly as Kinsena 0.1 created them, for migration tests.
 
 /** The centavos schema written by Kinsena 0.1.0. */
 export const KINSENA_0_1_SCHEMA = `

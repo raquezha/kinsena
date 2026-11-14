@@ -121,6 +121,10 @@
 			display: flex;
 		}
 
+		.brand-name {
+			display: none;
+		}
+
 		ul {
 			height: auto;
 			display: flex;
@@ -149,6 +153,7 @@
 		}
 
 		.brand-name {
+			display: inline;
 			font-size: var(--text-xl);
 			font-weight: 800;
 			letter-spacing: -0.02em;

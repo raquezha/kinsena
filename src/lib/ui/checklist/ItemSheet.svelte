@@ -4,7 +4,7 @@
 	import { FormState } from '../../client/form-state.svelte.ts';
 	import { closeSheet } from '../../client/sheet-route.ts';
 	import type { CurrencyCode } from '../../domain/currency.ts';
-	import type { CycleItem } from '../../domain/models.ts';
+	import { hasKnownAmount, type CycleItem } from '../../domain/models.ts';
 	import { formatMoney } from '../../domain/money.ts';
 	import Icon from '../icons/Icon.svelte';
 	import Sheet from '../overlay/Sheet.svelte';
@@ -28,12 +28,19 @@
 		closeSheet();
 		void checklist.remove(target);
 	}
+
+	function describe(item: CycleItem): string {
+		if (item.isDone) return 'Paid';
+		return hasKnownAmount(item)
+			? `To pay ${formatMoney(item.amount, currency)}`
+			: 'Amount not set yet';
+	}
 </script>
 
 <Sheet
 	open={item !== undefined}
 	title={shown?.name ?? 'Item'}
-	description={shown?.isDone ? 'Paid' : shown ? `Now ${formatMoney(shown.amount, currency)}` : ''}
+	description={shown ? describe(shown) : ''}
 	closeHref="/"
 	onclose={closeSheet}
 >
