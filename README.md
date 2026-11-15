@@ -1,6 +1,8 @@
 # Kinsena
 
-A small, self-hosted checklist for the things you handle each payday. It is not a bank integration or an expense tracker. Save recurring items once, start a cycle, enter amounts when you know them, and tick items off.
+A self-hosted payday routing checklist for bills, statements, and transfers. It is not a bank integration or an expense tracker. Before payday you record incoming bills and the date you will pay them. When salary arrives you go item by item and decide where that money goes — a biller, an account, or left unrouted.
+
+The interface uses a Pinoy jeepney signage look: bold local colors, a condensed route-board display face, and flat color blocks. Color, type, and motion live in one token file; the faces are self-hosted (SIL Open Font License).
 
 ## Screenshots
 
@@ -64,15 +66,15 @@ The image runs as the unprivileged `node` user (UID 1000) and checks `/login` fo
 
 ## Use
 
-1. Add recurring items under **Defaults**. Leave the amount blank when it varies. Pick when each applies: every payday, mid-month, or month-end.
-2. Start a cycle from **Active**. Saved items matching that payday are copied in. One cycle can be open at a time.
-3. Tap the circle to mark an item paid; an **Undo** toast appears. Tap the row to edit its amount, mark it, or delete it. On a phone you can also swipe a row left to delete it, with undo. Sums like `10,538.91 + 3403` work.
-4. **Known total** and **To pay** skip blank amounts, and a warning counts them. An explicit `0` is different from blank. Add a salary to see what is left over.
-5. Finish the cycle to keep a read-only record in **History**. Finished one by mistake? Reopen the most recent cycle before starting a new one.
+1. Add destinations (accounts and billers) and recurring items under **Defaults**. Leave the amount blank when it varies. Pick when each is funded: every payday, mid-month, month-end, or before the due date.
+2. Kinsena creates the next 15th and month-end paydays automatically. In plan mode, add statements and bills to an upcoming payday. You can also add a payday on any other date.
+3. When salary arrives, **Salary in** switches to routing mode. For each item choose Full, Min, Custom, or Skip (optionally move it to the next payday). Tick a routed item to mark it done; an **Undo** toast appears. Tap the row to edit it. On a phone you can also swipe a row left to delete it, with undo. Sums like `10,538.91 + 3403` work.
+4. **Salary**, **Planned** (minimum through full), **Routed**, and **Left to route** skip blank amounts, and a warning counts them. An explicit `0` is different from blank.
+5. Finish the payday to keep a read-only record in **History**. Finished one by mistake? Reopen the most recent finished payday.
 
-Amounts are stored as integer centavos, and values with more than two decimals round half-up. **Settings** changes the currency symbol only; it does not convert amounts.
+Amounts are stored as integer centavos, and values with more than two decimals round half-up. **Settings** changes the currency symbol only; it does not convert amounts. Default mid-month and month-end salaries live in Settings too.
 
-Keyboard shortcuts (outside text fields): `1`–`4` switch tabs, `n` adds an item, `c` opens salary, note and finish, `Esc` closes the editor.
+Keyboard shortcuts (outside text fields): `1`–`4` switch tabs, `n` adds an item, `i` marks salary in, `c` opens salary, note and finish, `Esc` closes the editor. In an item sheet, `F`, `M`, `U`, and `S` choose Full, Min, Custom, and Skip.
 
 ## Install on a phone
 
@@ -127,14 +129,14 @@ Built with Svelte 5 (runes), SvelteKit, TypeScript, Drizzle ORM on better-sqlite
 
 ```
 src/
-  lib/domain/         pure rules: money, amount parsing, cadence, summaries
+  lib/domain/         pure rules: calendar, money, decisions, destinations, summaries
   lib/server/data/    Drizzle schema, migrations runner, legacy upgrade, repositories
-  lib/server/services cycle, item, template, settings use cases (ports + factories)
+  lib/server/services payday, route, template, destination, settings use cases
   lib/server/auth/    passphrase file, constant-time check, sessions, rate limit
   lib/server/http/    origin checks, session cookie, form parsing
   lib/server/testing/ in-memory repositories and clock for fast tests
   lib/client/         optimistic checklist, sheets in the URL, toasts, shortcuts
-  lib/ui/             components: layout, overlay sheet, checklist, brand, icons
+  lib/ui/             tokens, layout, overlay sheet, checklist, brand, icons
   routes/             SvelteKit pages and form actions
 drizzle/              SQL migrations
 e2e/                  Playwright tests and screenshot capture
