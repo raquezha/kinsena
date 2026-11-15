@@ -1,12 +1,14 @@
 <script lang="ts">
-	import { enhance } from '$app/forms';
+	import { refreshAll } from '$app/navigation';
 	import { flip } from 'svelte/animate';
 	import { prefersReducedMotion } from 'svelte/motion';
 	import { crossfade, fade, slide } from 'svelte/transition';
 	import { cubicOut } from 'svelte/easing';
+	import { failureMessage, postAction } from '../../client/actions.ts';
 	import type { Checklist } from '../../client/checklist.svelte.ts';
+	import { toasts } from '../../client/toasts.svelte.ts';
 	import type { CurrencyCode } from '../../domain/currency.ts';
-	import type { Destination, TemplateItem } from '../../domain/models.ts';
+	import type { Destination, RouteItem, TemplateItem } from '../../domain/models.ts';
 	import Icon from '../icons/Icon.svelte';
 	import ChecklistRow from './ChecklistRow.svelte';
 
@@ -31,6 +33,21 @@
 		fallback: (node) => slide(node, { duration: duration() })
 	});
 
+	/** While dragging open items, local id order; null means use checklist.unpaid. */
+	let draftOpenIds = $state<number[] | null>(null);
+	let draggingId = $state<number | null>(null);
+	let saving = $state(false);
+
+	const openItems = $derived.by((): RouteItem[] => {
+		const source = checklist.unpaid;
+		if (!draftOpenIds) return source;
+		const byId = new Map(source.map((item) => [item.id, item]));
+		return draftOpenIds.flatMap((id) => {
+			const item = byId.get(id);
+			return item ? [item] : [];
+		});
+	});
+
 	function destinationFor(id: number | null) {
 		return destinations.find((entry) => entry.id === id) ?? null;
 	}
@@ -42,55 +59,90 @@
 		return `${template.installmentsCompleted} of ${template.installmentCount}`;
 	}
 
-	function movedOrder(items: { id: number }[], index: number, delta: number): number[] | null {
-		const next = index + delta;
-		if (next < 0 || next >= items.length) return null;
-		const ids = items.map((item) => item.id);
-		const swap = ids[index]!;
-		ids[index] = ids[next]!;
-		ids[next] = swap;
-		return ids;
+	function startDrag(event: PointerEvent, id: number) {
+		if (event.button !== 0 || saving || checklist.unpaid.length < 2) return;
+		event.preventDefault();
+		const handle = event.currentTarget as HTMLElement;
+		handle.setPointerCapture(event.pointerId);
+		draftOpenIds = checklist.unpaid.map((item) => item.id);
+		draggingId = id;
+	}
+
+	function moveDrag(event: PointerEvent) {
+		if (draggingId === null || !draftOpenIds) return;
+		const el = document.elementFromPoint(event.clientX, event.clientY);
+		const row = el?.closest('[data-open-id]') as HTMLElement | null;
+		if (!row) return;
+		const overId = Number(row.dataset.openId);
+		if (!Number.isInteger(overId) || overId === draggingId) return;
+		const from = draftOpenIds.indexOf(draggingId);
+		const to = draftOpenIds.indexOf(overId);
+		if (from < 0 || to < 0 || from === to) return;
+		const next = [...draftOpenIds];
+		next.splice(from, 1);
+		next.splice(to, 0, draggingId);
+		draftOpenIds = next;
+	}
+
+	async function endDrag(event: PointerEvent) {
+		if (draggingId === null || !draftOpenIds) return;
+		const handle = event.currentTarget as HTMLElement;
+		if (handle.hasPointerCapture(event.pointerId)) {
+			handle.releasePointerCapture(event.pointerId);
+		}
+		const orderedIds = draftOpenIds;
+		const changed =
+			orderedIds.join(',') !== checklist.unpaid.map((item) => item.id).join(',');
+		draggingId = null;
+		if (!changed) {
+			draftOpenIds = null;
+			return;
+		}
+		saving = true;
+		const result = await postAction('?/reorder', {
+			paydayId,
+			orderedIds: JSON.stringify(orderedIds)
+		});
+		const error = failureMessage(result);
+		if (error) {
+			draftOpenIds = null;
+			saving = false;
+			toasts.error(error);
+			return;
+		}
+		await refreshAll();
+		draftOpenIds = null;
+		saving = false;
 	}
 </script>
 
-{#snippet section(title: string, count: string, items: typeof checklist.items, kind: string)}
+{#snippet section(title: string, count: string, items: RouteItem[], kind: string)}
 	<section class="group" aria-labelledby="{kind}-heading">
 		<h2 id="{kind}-heading">{title} <span class="count">{count}</span></h2>
 		<ul class="rows">
-			{#each items as item, index (item.id)}
+			{#each items as item (item.id)}
 				<li
 					class="row-wrap"
+					class:dragging={kind === 'open' && item.id === draggingId}
+					class:can-drag={kind === 'open' && items.length > 1}
+					data-open-id={kind === 'open' ? item.id : undefined}
 					animate:flip={{ duration: duration() }}
 					in:receive={{ key: item.id }}
 					out:send={{ key: item.id }}
 				>
 					{#if kind === 'open' && items.length > 1}
-						{@const up = movedOrder(items, index, -1)}
-						{@const down = movedOrder(items, index, 1)}
-						<div class="rank">
-							{#if up}
-								<form method="POST" action="?/reorder" use:enhance>
-									<input type="hidden" name="paydayId" value={paydayId} />
-									<input type="hidden" name="orderedIds" value={JSON.stringify(up)} />
-									<button class="rank-btn" type="submit" aria-label={`Move ${item.name} up`}>
-										<Icon name="chevronUp" size={16} />
-									</button>
-								</form>
-							{:else}
-								<span class="rank-btn" aria-hidden="true"></span>
-							{/if}
-							{#if down}
-								<form method="POST" action="?/reorder" use:enhance>
-									<input type="hidden" name="paydayId" value={paydayId} />
-									<input type="hidden" name="orderedIds" value={JSON.stringify(down)} />
-									<button class="rank-btn" type="submit" aria-label={`Move ${item.name} down`}>
-										<Icon name="chevronDown" size={16} />
-									</button>
-								</form>
-							{:else}
-								<span class="rank-btn" aria-hidden="true"></span>
-							{/if}
-						</div>
+						<button
+							class="grip"
+							type="button"
+							aria-label={`Drag to reorder ${item.name}`}
+							disabled={saving}
+							onpointerdown={(event) => startDrag(event, item.id)}
+							onpointermove={moveDrag}
+							onpointerup={endDrag}
+							onpointercancel={endDrag}
+						>
+							<Icon name="grip" size={16} />
+						</button>
 					{/if}
 					<div class="row-body">
 						<ChecklistRow
@@ -119,11 +171,11 @@
 			{/if}
 		</p>
 	{/if}
-	{#if checklist.unpaid.length > 0}
+	{#if openItems.length > 0}
 		{@render section(
 			checklist.routing ? 'To route' : 'Planned',
-			`${checklist.unpaid.length}`,
-			checklist.unpaid,
+			`${openItems.length}`,
+			openItems,
 			'open'
 		)}
 	{/if}
@@ -167,35 +219,42 @@
 
 	.row-wrap {
 		display: grid;
-		grid-template-columns: auto minmax(0, 1fr);
-		gap: var(--space-2);
-		align-items: start;
-	}
-
-	.row-wrap:not(:has(.rank)) {
 		grid-template-columns: minmax(0, 1fr);
+		gap: var(--space-2);
+		align-items: stretch;
 	}
 
-	.rank {
-		display: grid;
-		gap: 2px;
-		padding-top: 0.55rem;
+	.row-wrap.can-drag {
+		grid-template-columns: auto minmax(0, 1fr);
 	}
 
-	.rank-btn {
+	.row-wrap.dragging {
+		opacity: 0.72;
+	}
+
+	.grip {
 		display: grid;
 		place-items: center;
+		align-self: center;
 		width: 2rem;
-		height: 1.6rem;
+		height: 2.5rem;
 		padding: 0;
-		border: 1px solid var(--border);
+		border: 0;
 		border-radius: var(--radius-sm);
-		background: var(--surface);
+		background: transparent;
+		color: var(--text-dim);
+		cursor: grab;
+		touch-action: none;
+		user-select: none;
+	}
+
+	.grip:active {
+		cursor: grabbing;
 		color: var(--text-muted);
 	}
 
-	.rank-btn:disabled {
-		opacity: 0.35;
+	.grip:disabled {
+		opacity: 0.4;
 	}
 
 	.row-body {

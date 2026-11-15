@@ -31,10 +31,7 @@
 						onchange={() => formElement?.requestSubmit()}
 					/>
 					<span class="symbol">{CURRENCIES[code].symbol}</span>
-					<span class="label">
-						{CURRENCIES[code].label}
-						{#if code === 'PHP'}<span class="default-badge">Default</span>{/if}
-					</span>
+					<span class="label">{CURRENCIES[code].label}</span>
 					<span class="code">{code}</span>
 				</label>
 			{/each}
@@ -113,17 +110,6 @@
 		align-items: center;
 		gap: var(--space-2);
 		font-weight: 600;
-	}
-
-	.default-badge {
-		padding: 1px 7px;
-		border-radius: 999px;
-		background: var(--accent-soft);
-		color: var(--accent);
-		font-size: var(--text-xs);
-		font-weight: 700;
-		letter-spacing: 0.04em;
-		text-transform: uppercase;
 	}
 
 	.code {
