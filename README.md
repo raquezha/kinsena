@@ -86,9 +86,9 @@ There is one built-in login, with no registration or extra accounts. The passphr
 
 ## Automatic home-server updates (Linux + Docker Compose)
 
-A push to `main` runs [the publish workflow](.github/workflows/publish.yml): lint, type check, unit tests with coverage, end-to-end tests in three viewports, and a production build. Only then does it publish `ghcr.io/raquezha/kinsena:main` and `:sha-<commit>`. The home server checks for a new image every five minutes and on startup, with no inbound SSH or self-hosted runner.
+A push to `main` runs [the publish workflow](.github/workflows/publish.yml): lint, type check, unit tests with coverage, end-to-end tests in three viewports, and a production build. Only then does it publish `ghcr.io/raquezha/kinsena:main` and `:sha-<commit>`. A matching semver tag (for example `v0.3.0`) also publishes `:0.3.0`, `:0.3`, `:stable`, and `:latest`, then opens a GitHub Release with generated notes. Verify always gates publishing and the release. The home server follows `:stable` and checks for a new image every five minutes and on startup, with no inbound SSH or self-hosted runner.
 
-`package.json` is the version source of truth. To release, bump `version`, commit, and push the matching tag (for example `v0.2.0`). That publishes `:0.2.0`, `:0.2`, `:stable`, and the commit's SHA tag. The workflow fails when the tag and `package.json` disagree. The Compose file follows `:main`; switch to `:stable` for release-only updates. Avoid `:latest`.
+`package.json` is the version source of truth. To release, bump `version`, commit, and push the matching tag. The workflow fails when the tag and `package.json` disagree.
 
 Setup on the server:
 
@@ -105,7 +105,7 @@ systemctl --user start kinsena-update.service kinsena-backup.service
 systemctl --user status kinsena-update.service kinsena-backup.service
 ```
 
-The updater waits for the container health check and reports failure, but does not roll back on its own. The unit expects Docker at `/usr/bin/docker`. For checks after a reboot without logging in, enable lingering for that user. Compose binds port 8080 to **loopback only**.
+The updater waits for the container health check and reports failure, but does not roll back on its own. The unit expects Docker at `/usr/bin/docker`. For checks after a reboot without logging in, enable lingering for that user (`loginctl enable-linger "$USER"`, which may need sudo). Compose publishes the container's port 8080 on **host 8081**, bound to loopback and to `HOST_BIND` (your Tailscale IPv4, `100.116.201.64` by default). That leaves a local dev server free on `:8080`. Set `HOST_BIND` in `~/kinsena-deploy/.env` if the Tailscale address changes. Do not set it to `0.0.0.0` on a shared LAN.
 
 The daily backup uses SQLite's online backup and an integrity check, writing private timestamped files to `~/kinsena-deploy/backups/`. **Those are on the same server and are not disaster recovery.** Copy them to another device and test restoring a copy. Run one manually with `sh ~/kinsena-deploy/backup.sh`.
 

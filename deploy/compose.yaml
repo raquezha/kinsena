@@ -2,14 +2,19 @@ name: kinsena
 
 services:
   app:
-    image: ghcr.io/raquezha/kinsena:main
+    image: ghcr.io/raquezha/kinsena:stable
+    container_name: kinsena
     restart: unless-stopped
     environment:
       KINSENA_PASSWORD_FILE: /run/secrets/kinsena_password
     secrets:
       - kinsena_password
     ports:
-      - '127.0.0.1:8080:8080'
+      # Host 8081 keeps the local dev server on :8080 free.
+      # Loopback plus HOST_BIND (Tailscale address by default). Do not use 0.0.0.0
+      # on a shared LAN; set HOST_BIND in ~/kinsena-deploy/.env if the Tailscale IP changes.
+      - "127.0.0.1:8081:8080"
+      - "${HOST_BIND:-100.116.201.64}:8081:8080"
     volumes:
       - ./data:/app/data
 
