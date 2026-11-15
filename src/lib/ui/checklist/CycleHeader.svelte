@@ -105,6 +105,12 @@
 		white-space: nowrap;
 	}
 
+	/* The shortcut badge sits on the gold primary fill; keep it on accent-ink like the label. */
+	.receive .kbd {
+		color: var(--accent-ink);
+		border-color: rgb(26 22 14 / 0.35);
+	}
+
 	.icon-only {
 		width: var(--tap);
 		padding: 0;

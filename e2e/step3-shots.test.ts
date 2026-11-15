@@ -51,11 +51,17 @@ test('captures routing, salary header, PHP currency default, and settings', asyn
 	await expect(page.getByRole('heading', { level: 1, name: 'November 15' })).toBeVisible();
 	await expect(page.getByText(/Arrives Fri Nov 13/)).toBeVisible();
 	await shot(page, 'mobile-payday-header', { top: true });
+	await page.getByRole('link', { name: /Salary in/ }).screenshot({
+		path: `${OUT}/mobile-salary-in.png`
+	});
 
 	await page.setViewportSize(LAYOUTS[2]);
 	await page.goto('/');
 	await expect(page.getByRole('heading', { level: 1, name: 'November 15' })).toBeVisible();
 	await shot(page, 'desktop-payday-header', { top: true });
+	await page.getByRole('link', { name: /Salary in/ }).screenshot({
+		path: `${OUT}/desktop-salary-in.png`
+	});
 
 	await page.setViewportSize(LAYOUTS[0]);
 	await page.goto('/settings');
