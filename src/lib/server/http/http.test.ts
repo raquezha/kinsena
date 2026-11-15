@@ -58,16 +58,36 @@ describe('forms', () => {
 		const form = await readForm(post({ id: '7', amount: '1 + 2', flag: 'true' }), {
 			id: fields.id,
 			amount: fields.amount,
-			cadence: fields.cadence,
+			fundFrom: fields.fundFrom,
 			flag: fields.flag
 		});
-		expect(form).toEqual({ id: 7, amount: '1 + 2', cadence: 'ANY', flag: true });
+		expect(form).toEqual({ id: 7, amount: '1 + 2', fundFrom: 'BEFORE_DUE', flag: true });
+	});
+
+	it('parses optional ids and integer cents', async () => {
+		const form = await readForm(post({ destinationId: '4', minimumAmount: '2500' }), {
+			destinationId: fields.optionalId,
+			minimumAmount: fields.cents
+		});
+		expect(form).toEqual({ destinationId: 4, minimumAmount: 2500 });
+		expect(
+			await readForm(post({}), { destinationId: fields.optionalId, minimumAmount: fields.cents })
+		).toEqual({ destinationId: null, minimumAmount: null });
+		expect(
+			await readForm(post({ minimumAmount: 'null' }), { minimumAmount: fields.cents })
+		).toEqual({ minimumAmount: null });
 	});
 
 	it('rejects malformed input', async () => {
 		await expect(readForm(post({ id: 'abc' }), { id: fields.id })).rejects.toThrow(DomainError);
 		await expect(
 			readForm(post({ currency: 'XXX' }), { currency: fields.currency })
+		).rejects.toThrow('Check the form');
+		await expect(
+			readForm(post({ destinationId: '0' }), { destinationId: fields.optionalId })
+		).rejects.toThrow('Check the form');
+		await expect(
+			readForm(post({ minimumAmount: '-1' }), { minimumAmount: fields.cents })
 		).rejects.toThrow('Check the form');
 	});
 

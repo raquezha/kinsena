@@ -1,14 +1,22 @@
 import { DEFAULT_CURRENCY, type CurrencyCode } from '../../domain/currency.ts';
-import type { Cycle, CycleItem, TemplateItem } from '../../domain/models.ts';
 import type {
-	CycleRepository,
-	ItemRepository,
+	Destination,
+	Payday,
+	RouteItem,
+	Settings,
+	TemplateItem
+} from '../../domain/models.ts';
+import type {
+	DestinationRepository,
+	PaydayRepository,
 	Repositories,
+	RouteItemRepository,
 	SettingsRepository,
 	TemplateRepository
 } from '../ports.ts';
 
 type StoredTemplate = TemplateItem & { isArchived: boolean };
+type StoredDestination = Destination & { isArchived: boolean };
 
 function patchRow<T extends { id: number }>(rows: T[], id: number, patch: Partial<T>): boolean {
 	const row = rows.find((entry) => entry.id === id);
@@ -17,90 +25,192 @@ function patchRow<T extends { id: number }>(rows: T[], id: number, patch: Partia
 	return true;
 }
 
+function copy<T>(row: T | undefined): T | null {
+	return row ? { ...row } : null;
+}
+
 function memoryTemplates(): TemplateRepository {
 	const rows: StoredTemplate[] = [];
 	const active = (id: number) => rows.find((row) => row.id === id && !row.isArchived);
+	const publicOf = ({
+		id,
+		name,
+		defaultAmount,
+		minimumAmount,
+		dueDay,
+		fundFrom,
+		destinationId
+	}: StoredTemplate): TemplateItem => ({
+		id,
+		name,
+		defaultAmount,
+		minimumAmount,
+		dueDay,
+		fundFrom,
+		destinationId
+	});
 	return {
 		listActive: () =>
 			rows
 				.filter((row) => !row.isArchived)
 				.sort((a, b) => a.name.localeCompare(b.name) || a.id - b.id)
-				.map(({ id, name, defaultAmount, cadence }) => ({ id, name, defaultAmount, cadence })),
+				.map(publicOf),
+		findById: (id) => {
+			const row = active(id);
+			return row ? publicOf(row) : null;
+		},
 		add(template) {
 			const id = rows.length + 1;
-			const { name, defaultAmount, cadence } = template;
-			rows.push({ id, name, defaultAmount, cadence, isArchived: false });
+			const { name, defaultAmount, minimumAmount, dueDay, fundFrom, destinationId } = template;
+			rows.push({
+				id,
+				name,
+				defaultAmount,
+				minimumAmount,
+				dueDay,
+				fundFrom,
+				destinationId,
+				isArchived: false
+			});
 			return id;
 		},
-		updateAmount: (id, amount) =>
-			active(id) ? patchRow(rows, id, { defaultAmount: amount }) : false,
+		update: (id, patch) => (active(id) ? patchRow<StoredTemplate>(rows, id, patch) : false),
 		archive: (id) => (active(id) ? patchRow(rows, id, { isArchived: true }) : false)
 	};
 }
 
-function memoryCyclesAndItems(): Pick<Repositories, 'cycles' | 'items'> {
-	const cycleRows: Cycle[] = [];
-	const itemRows: CycleItem[] = [];
-	const copy = <T>(row: T | undefined) => (row ? { ...row } : null);
-	const byNewest = () => [...cycleRows].sort((a, b) => b.id - a.id);
-	let nextItemId = 1;
-
-	const items: ItemRepository = {
-		findById: (id) => copy(itemRows.find((row) => row.id === id)),
-		listByCycle: (cycleId) =>
-			itemRows
-				.filter((row) => row.cycleId === cycleId)
-				.sort((a, b) => a.sortOrder - b.sortOrder || a.id - b.id)
-				.map((row) => ({ ...row })),
-		add(cycleId, item) {
-			const id = nextItemId++;
-			itemRows.push({ ...item, id, cycleId });
+function memoryDestinations(): DestinationRepository {
+	const rows: StoredDestination[] = [];
+	const active = (id: number) => rows.find((row) => row.id === id && !row.isArchived);
+	const publicOf = ({ id, name, kind }: StoredDestination): Destination => ({ id, name, kind });
+	return {
+		listActive: () =>
+			rows
+				.filter((row) => !row.isArchived)
+				.sort((a, b) => a.name.localeCompare(b.name) || a.id - b.id)
+				.map(publicOf),
+		findById: (id) => copy(rows.find((row) => row.id === id) ?? undefined),
+		add(destination) {
+			const id = rows.length + 1;
+			rows.push({ id, name: destination.name, kind: destination.kind, isArchived: false });
 			return id;
 		},
-		update: (id, patch) => patchRow<CycleItem>(itemRows, id, patch),
+		update: (id, patch) => (active(id) ? patchRow<StoredDestination>(rows, id, patch) : false),
+		archive: (id) => (active(id) ? patchRow(rows, id, { isArchived: true }) : false)
+	};
+}
+
+function memoryPaydaysAndItems(): Pick<Repositories, 'paydays' | 'items'> {
+	const paydayRows: Payday[] = [];
+	const itemRows: RouteItem[] = [];
+	let nextPaydayId = 1;
+	let nextItemId = 1;
+
+	const items: RouteItemRepository = {
+		findById: (id) => copy(itemRows.find((row) => row.id === id)),
+		listByPayday: (paydayId) =>
+			itemRows
+				.filter((row) => row.paydayId === paydayId)
+				.sort((a, b) => a.sortOrder - b.sortOrder || a.id - b.id)
+				.map((row) => ({ ...row })),
+		listInbox: () =>
+			itemRows
+				.filter((row) => row.paydayId === null)
+				.sort((a, b) => a.sortOrder - b.sortOrder || a.id - b.id)
+				.map((row) => ({ ...row })),
+		add(item) {
+			const id = nextItemId++;
+			itemRows.push({ ...item, id });
+			return id;
+		},
+		update: (id, patch) => patchRow<RouteItem>(itemRows, id, patch),
 		remove(id) {
 			const index = itemRows.findIndex((row) => row.id === id);
 			if (index >= 0) itemRows.splice(index, 1);
 			return index >= 0;
 		},
-		removeByCycle(cycleId) {
-			const before = itemRows.length;
-			const kept = itemRows.filter((row) => row.cycleId !== cycleId);
-			itemRows.splice(0, itemRows.length, ...kept);
-			return before - kept.length;
-		},
-		maxSortOrder: (cycleId) =>
-			Math.max(-1, ...itemRows.filter((row) => row.cycleId === cycleId).map((row) => row.sortOrder))
+		maxSortOrder: (paydayId) =>
+			Math.max(
+				-1,
+				...itemRows.filter((row) => row.paydayId === paydayId).map((row) => row.sortOrder)
+			),
+		hasTemplate: (paydayId, templateId) =>
+			itemRows.some((row) => row.paydayId === paydayId && row.templateId === templateId)
 	};
 
-	const cycles: CycleRepository = {
-		findOpen: () => copy(byNewest().find((row) => !row.isClosed)),
-		findLatest: () => copy(byNewest()[0]),
-		findById: (id) => copy(cycleRows.find((row) => row.id === id)),
-		listClosed: () => byNewest().filter((row) => row.isClosed),
-		create(cycle, newItems) {
-			const id = cycleRows.length + 1;
-			const { title, date, salary, note } = cycle;
-			cycleRows.push({ id, title, date, salary, note, isClosed: false });
-			newItems.forEach((item) => items.add(id, item));
+	const paydays: PaydayRepository = {
+		findById: (id) => copy(paydayRows.find((row) => row.id === id)),
+		findByScheduledDate: (scheduledDate) =>
+			copy(
+				[...paydayRows]
+					.filter((row) => row.scheduledDate === scheduledDate)
+					.sort((a, b) => b.id - a.id)[0]
+			),
+		listOpen: () =>
+			paydayRows
+				.filter((row) => !row.isClosed)
+				.sort((a, b) => a.scheduledDate.localeCompare(b.scheduledDate) || a.id - b.id)
+				.map((row) => ({ ...row })),
+		listClosed: () =>
+			paydayRows
+				.filter((row) => row.isClosed)
+				.sort((a, b) => b.scheduledDate.localeCompare(a.scheduledDate) || b.id - a.id)
+				.map((row) => ({ ...row })),
+		findLatest: () => copy([...paydayRows].sort((a, b) => b.id - a.id)[0]),
+		create(payday) {
+			const id = nextPaydayId++;
+			const {
+				title,
+				cadence,
+				scheduledDate,
+				payDate,
+				expectedAmount,
+				receivedAmount,
+				receivedAt,
+				note
+			} = payday;
+			paydayRows.push({
+				id,
+				title,
+				cadence,
+				scheduledDate,
+				payDate,
+				expectedAmount,
+				receivedAmount,
+				receivedAt,
+				note,
+				isClosed: false
+			});
 			return id;
 		},
-		update: (id, patch) => patchRow<Cycle>(cycleRows, id, patch)
+		update: (id, patch) => patchRow<Payday>(paydayRows, id, patch)
 	};
-	return { cycles, items };
+	return { paydays, items };
 }
 
 function memorySettings(): SettingsRepository {
-	let currency: CurrencyCode = DEFAULT_CURRENCY;
+	let state: Settings = {
+		currency: DEFAULT_CURRENCY,
+		midMonthSalary: null,
+		monthEndSalary: null
+	};
 	return {
-		getCurrency: () => currency,
-		setCurrency: (next) => {
-			currency = next;
+		get: () => ({ ...state }),
+		setCurrency: (currency: CurrencyCode) => {
+			state = { ...state, currency };
+		},
+		setSalaries: (midMonthSalary, monthEndSalary) => {
+			state = { ...state, midMonthSalary, monthEndSalary };
 		}
 	};
 }
 
 /** In-memory repositories with the same contract as the SQLite ones. */
 export function createMemoryRepositories(): Repositories {
-	return { templates: memoryTemplates(), ...memoryCyclesAndItems(), settings: memorySettings() };
+	return {
+		templates: memoryTemplates(),
+		destinations: memoryDestinations(),
+		...memoryPaydaysAndItems(),
+		settings: memorySettings()
+	};
 }

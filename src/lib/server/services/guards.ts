@@ -1,20 +1,32 @@
 import { ensure } from '../../domain/errors.ts';
-import type { Cycle, CycleItem } from '../../domain/models.ts';
-import type { CycleRepository, ItemRepository } from '../ports.ts';
+import type { Payday, RouteItem } from '../../domain/models.ts';
+import type { PaydayRepository, RouteItemRepository } from '../ports.ts';
 
-export function requireOpenCycle(cycles: CycleRepository, cycleId: number): Cycle {
-	const cycle = cycles.findById(cycleId);
-	ensure(cycle !== null && !cycle.isClosed, 'This cycle is already finished');
-	return cycle;
+export function requirePayday(paydays: PaydayRepository, paydayId: number): Payday {
+	const payday = paydays.findById(paydayId);
+	ensure(payday !== null, 'Unknown payday');
+	return payday;
 }
 
-export function requireActiveItem(
-	cycles: CycleRepository,
-	items: ItemRepository,
-	itemId: number
-): CycleItem {
+export function requireOpenPayday(paydays: PaydayRepository, paydayId: number): Payday {
+	const payday = requirePayday(paydays, paydayId);
+	ensure(!payday.isClosed, 'This payday is already finished');
+	return payday;
+}
+
+export function requireItem(items: RouteItemRepository, itemId: number): RouteItem {
 	const item = items.findById(itemId);
-	const cycle = item ? cycles.findById(item.cycleId) : null;
-	ensure(item !== null && cycle !== null && !cycle.isClosed, 'Item is not in the active cycle');
+	ensure(item !== null, 'Unknown item');
+	return item;
+}
+
+/** An item that can still be edited: on an open payday, or still in the inbox. */
+export function requireActiveItem(
+	paydays: PaydayRepository,
+	items: RouteItemRepository,
+	itemId: number
+): RouteItem {
+	const item = requireItem(items, itemId);
+	if (item.paydayId !== null) requireOpenPayday(paydays, item.paydayId);
 	return item;
 }

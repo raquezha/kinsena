@@ -1,7 +1,10 @@
 import { z } from 'zod';
-import { CADENCES } from '../../domain/cadence.ts';
+import { PAYDAY_CADENCES } from '../../domain/cadence.ts';
 import { CURRENCY_CODES } from '../../domain/currency.ts';
+import { DECISIONS } from '../../domain/decision.ts';
+import { DESTINATION_KINDS } from '../../domain/destination.ts';
 import { DomainError } from '../../domain/errors.ts';
+import { FUND_FROMS } from '../../domain/fund-from.ts';
 import { MAX_EXPRESSION_LENGTH } from '../../domain/amount-parser.ts';
 
 const text = (max: number) =>
@@ -12,6 +15,16 @@ const text = (max: number) =>
 
 export const fields = {
 	id: z.coerce.number().int().positive(),
+	optionalId: z
+		.string()
+		.default('')
+		.transform((value) => {
+			const trimmed = value.trim();
+			if (trimmed === '') return null;
+			const id = Number(trimmed);
+			if (!Number.isInteger(id) || id <= 0) throw new DomainError('Check the form and try again');
+			return id;
+		}),
 	name: text(128),
 	title: text(128),
 	note: text(280),
@@ -20,9 +33,26 @@ export const fields = {
 		.string()
 		.max(MAX_EXPRESSION_LENGTH * 2)
 		.default(''),
-	cadence: z.enum(CADENCES).default('ANY'),
+	date: text(32),
+	dueDay: text(2),
+	cadence: z.enum(PAYDAY_CADENCES).default('OTHER'),
+	fundFrom: z.enum(FUND_FROMS).default('BEFORE_DUE'),
+	decision: z.enum(DECISIONS),
+	kind: z.enum(DESTINATION_KINDS),
 	currency: z.enum(CURRENCY_CODES as [string, ...string[]]),
-	flag: z.enum(['true', 'false']).transform((value) => value === 'true')
+	flag: z.enum(['true', 'false']).transform((value) => value === 'true'),
+	cents: z
+		.string()
+		.default('')
+		.transform((value) => {
+			const text = value.trim();
+			if (text === '' || text === 'null') return null;
+			const cents = Number(text);
+			if (!Number.isSafeInteger(cents) || cents < 0) {
+				throw new DomainError('Check the form and try again');
+			}
+			return cents;
+		})
 };
 
 /** Reads string fields from a form and validates their shape. Throws DomainError. */

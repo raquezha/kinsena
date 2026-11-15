@@ -26,18 +26,29 @@ function openMigrated(path: string) {
 	return { handle, repos: createSqliteRepositories(handle.db) };
 }
 
+function tableExists(handle: ReturnType<typeof openDatabase>, name: string): boolean {
+	const row = handle.sqlite
+		.prepare("SELECT name FROM sqlite_master WHERE type = 'table' AND name = ?")
+		.get(name) as { name: string } | undefined;
+	return row !== undefined;
+}
+
 describe('database migration', () => {
 	it('creates a fresh schema with default settings', () => {
 		const { handle, repos } = openMigrated(':memory:');
-		expect(repos.settings.getCurrency()).toBe('PHP');
+		expect(repos.settings.get().currency).toBe('PHP');
+		expect(repos.settings.get().midMonthSalary).toBeNull();
 		expect(repos.templates.listActive()).toEqual([]);
+		expect(repos.paydays.listOpen()).toEqual([]);
+		expect(tableExists(handle, 'paydays')).toBe(true);
+		expect(tableExists(handle, 'cycles')).toBe(false);
 		handle.close();
 	});
 
 	it('creates the parent folder for a new database file', () => {
 		const dir = mkdtempSync(join(tmpdir(), 'kinsena-dir-'));
 		const { handle, repos } = openMigrated(join(dir, 'nested', 'kinsena.db'));
-		expect(repos.cycles.findOpen()).toBeNull();
+		expect(repos.paydays.listOpen()).toEqual([]);
 		handle.close();
 	});
 
@@ -45,37 +56,76 @@ describe('database migration', () => {
 		const path = fixtureDb(KINSENA_0_1_SCHEMA);
 		for (let run = 0; run < 2; run++) {
 			const { handle, repos } = openMigrated(path);
-			expect(repos.settings.getCurrency()).toBe('USD');
+			expect(repos.settings.get().currency).toBe('USD');
 			expect(repos.templates.listActive()).toEqual([
-				{ id: 1, name: 'Rent', defaultAmount: 1_850_050, cadence: 'ANY' }
+				{
+					id: 1,
+					name: 'Rent',
+					defaultAmount: 1_850_050,
+					minimumAmount: null,
+					dueDay: null,
+					fundFrom: 'EVERY',
+					destinationId: null
+				}
 			]);
-			const [closed] = repos.cycles.listClosed();
-			expect(closed).toMatchObject({ title: 'September 30', note: 'Bonus payout' });
-			expect(repos.items.listByCycle(1)[0]).toMatchObject({ amount: 1_850_050, isDone: true });
-			expect(repos.cycles.findOpen()?.title).toBe('October 15');
+			const [closed] = repos.paydays.listClosed();
+			expect(closed).toMatchObject({
+				title: 'September 30',
+				note: 'Bonus payout',
+				cadence: 'MONTH_END',
+				scheduledDate: '2026-09-30',
+				expectedAmount: 7_500_000,
+				receivedAmount: 7_500_000,
+				receivedAt: '2026-09-30'
+			});
+			expect(repos.items.listByPayday(1)[0]).toMatchObject({
+				fullAmount: 1_850_050,
+				isDone: true,
+				decision: 'FULL',
+				chosenAmount: 1_850_050
+			});
+			const open = repos.paydays.listOpen()[0];
+			expect(open).toMatchObject({
+				title: 'October 15',
+				cadence: 'MID_MONTH',
+				receivedAt: null,
+				expectedAmount: null
+			});
+			expect(repos.items.listByPayday(open?.id ?? 0)[0]).toMatchObject({
+				name: 'Electric',
+				decision: 'PENDING',
+				fullAmountExpr: ''
+			});
+			expect(tableExists(handle, 'cycles')).toBe(false);
+			expect(tableExists(handle, 'route_items')).toBe(true);
+			const index = handle.sqlite
+				.prepare(
+					"SELECT name FROM sqlite_master WHERE type = 'index' AND name = 'route_items_payday_id_idx'"
+				)
+				.get() as { name: string } | undefined;
+			expect(index?.name).toBe('route_items_payday_id_idx');
 			handle.close();
 		}
 	});
 
-	it('upgrades REAL peso columns to integer centavos exactly once', () => {
+	it('upgrades REAL peso columns to integer centavos then moves them to paydays', () => {
 		const path = fixtureDb(LEGACY_REAL_SCHEMA);
 		for (let run = 0; run < 2; run++) {
 			const { handle, repos } = openMigrated(path);
 			const [rent, variable] = repos.templates.listActive();
 			expect(rent?.defaultAmount).toBe(1_850_050);
 			expect(variable?.defaultAmount).toBeNull();
-			const cycle = repos.cycles.findOpen();
-			expect(cycle?.salary).toBe(7_500_000);
-			const items = repos.items.listByCycle(cycle?.id ?? 0);
-			expect(items[0]?.amount).toBe(1_850_050);
-			expect(summarize({ salary: cycle?.salary ?? null }, items).leftover).toBe(5_649_950);
-			for (const [table, column] of [
-				['template_items', 'default_amount'],
-				['cycles', 'salary'],
-				['cycle_items', 'amount']
-			] as const) {
-				expect(isFloatingColumn(handle.sqlite, table, column)).toBe(false);
-			}
+			const payday = repos.paydays.listOpen()[0];
+			expect(payday?.expectedAmount).toBe(7_500_000);
+			expect(payday?.receivedAmount).toBe(7_500_000);
+			expect(payday?.receivedAt).toBe('2026-10-15');
+			const items = repos.items.listByPayday(payday?.id ?? 0);
+			expect(items[0]?.fullAmount).toBe(1_850_050);
+			expect(items[0]?.decision).toBe('PENDING');
+			expect(summarize(payday!, items).salary).toBe(7_500_000);
+			expect(isFloatingColumn(handle.sqlite, 'template_items', 'default_amount')).toBe(false);
+			expect(isFloatingColumn(handle.sqlite, 'paydays', 'expected_amount')).toBe(false);
+			expect(isFloatingColumn(handle.sqlite, 'route_items', 'full_amount')).toBe(false);
 			handle.close();
 		}
 	});

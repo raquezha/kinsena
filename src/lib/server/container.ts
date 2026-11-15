@@ -7,16 +7,21 @@ import { openDatabase } from './data/database.ts';
 import { migrateDatabase } from './data/migrate.ts';
 import { createSqliteRepositories } from './data/repositories/index.ts';
 import type { Clock, Repositories } from './ports.ts';
-import { createCycleService, type CycleService } from './services/cycle-service.ts';
-import { createItemService, type ItemService } from './services/item-service.ts';
+import {
+	createDestinationService,
+	type DestinationService
+} from './services/destination-service.ts';
+import { createPaydayService, type PaydayService } from './services/payday-service.ts';
+import { createRouteService, type RouteService } from './services/route-service.ts';
 import { createSettingsService, type SettingsService } from './services/settings-service.ts';
 import { createTemplateService, type TemplateService } from './services/template-service.ts';
 
 export interface Services {
 	auth: AuthService;
-	cycles: CycleService;
-	items: ItemService;
+	paydays: PaydayService;
+	items: RouteService;
 	templates: TemplateService;
+	destinations: DestinationService;
 	settings: SettingsService;
 }
 
@@ -32,15 +37,17 @@ export function createServices(repos: Repositories, passphrase: string, clock: C
 		windowMs: LOGIN_FAILURE_WINDOW_MS,
 		clock
 	});
+	const paydays = createPaydayService(repos, clock);
 	return {
 		auth: createAuthService({
 			verify: createPassphraseVerifier(passphrase),
 			sessions: createSessionStore(clock),
 			limiter
 		}),
-		cycles: createCycleService(repos, clock),
-		items: createItemService(repos),
-		templates: createTemplateService(repos.templates, clock),
+		paydays,
+		items: createRouteService(repos, paydays),
+		templates: createTemplateService(repos, clock),
+		destinations: createDestinationService(repos.destinations, clock),
 		settings: createSettingsService(repos.settings)
 	};
 }

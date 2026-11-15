@@ -8,7 +8,10 @@ const columns = {
 	id: templateItems.id,
 	name: templateItems.name,
 	defaultAmount: templateItems.defaultAmount,
-	cadence: templateItems.cadence
+	minimumAmount: templateItems.minimumAmount,
+	dueDay: templateItems.dueDay,
+	fundFrom: templateItems.fundFrom,
+	destinationId: templateItems.destinationId
 };
 
 export function createTemplateRepository(db: Db): TemplateRepository {
@@ -24,20 +27,21 @@ export function createTemplateRepository(db: Db): TemplateRepository {
 				.orderBy(asc(templateItems.name), asc(templateItems.id))
 				.all();
 		},
+		findById(id) {
+			const row = db.select(columns).from(templateItems).where(activeById(id)).get();
+			return row ?? null;
+		},
 		add(template: NewTemplate): number {
 			return db.insert(templateItems).values(template).returning({ id: templateItems.id }).get().id;
 		},
-		updateAmount(id, amount) {
-			const result = db
-				.update(templateItems)
-				.set({ defaultAmount: amount })
-				.where(activeById(id))
-				.run();
-			return result.changes === 1;
+		update(id, patch) {
+			if (Object.keys(patch).length === 0) return false;
+			return db.update(templateItems).set(patch).where(activeById(id)).run().changes === 1;
 		},
 		archive(id) {
-			const result = db.update(templateItems).set({ isArchived: true }).where(activeById(id)).run();
-			return result.changes === 1;
+			return (
+				db.update(templateItems).set({ isArchived: true }).where(activeById(id)).run().changes === 1
+			);
 		}
 	};
 }

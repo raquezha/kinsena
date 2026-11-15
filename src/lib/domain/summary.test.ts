@@ -1,57 +1,108 @@
 import { describe, expect, it } from 'vitest';
-import type { CycleItem } from './models.ts';
-import { sortForChecklist, summarize } from './summary.ts';
+import type { RouteItem } from './models.ts';
+import { skipPastDueWarning, sortForChecklist, summarize } from './summary.ts';
 
-function item(overrides: Partial<CycleItem>): CycleItem {
+function item(overrides: Partial<RouteItem>): RouteItem {
 	return {
 		id: 1,
-		cycleId: 1,
+		paydayId: 1,
+		destinationId: null,
 		name: 'Item',
-		amount: 0,
-		amountExpr: '',
+		fullAmount: 0,
+		fullAmountExpr: '',
+		minimumAmount: null,
+		chosenAmount: 0,
+		decision: 'PENDING',
+		dueDate: null,
 		isDone: false,
 		sortOrder: 0,
+		templateId: null,
 		...overrides
 	};
 }
 
+const payday = { expectedAmount: 7_500_000, receivedAmount: null, receivedAt: null };
+
 describe('summarize', () => {
 	const items = [
-		item({ id: 1, amount: 10, amountExpr: '0.10' }),
-		item({ id: 2, amount: 20, amountExpr: '0.20', isDone: true }),
-		item({ id: 3, amountExpr: '' }),
-		item({ id: 4, amountExpr: null, isDone: true })
+		item({
+			id: 1,
+			fullAmount: 1_000_000,
+			fullAmountExpr: '10000',
+			minimumAmount: 200_000,
+			chosenAmount: 1_000_000,
+			decision: 'FULL',
+			isDone: true
+		}),
+		item({
+			id: 2,
+			fullAmount: 500_000,
+			fullAmountExpr: '5000',
+			minimumAmount: 100_000,
+			chosenAmount: 0,
+			decision: 'PENDING'
+		}),
+		item({ id: 3, fullAmountExpr: '' }),
+		item({
+			id: 4,
+			fullAmount: 300_000,
+			fullAmountExpr: '3000',
+			chosenAmount: 0,
+			decision: 'SKIPPED'
+		})
 	];
 
-	it('sums in cents without floating point drift', () => {
-		const summary = summarize({ salary: 7_500_000 }, items);
-		expect(summary.total).toBe(30);
-		expect(summary.paid).toBe(20);
-		expect(summary.remaining).toBe(10);
+	it('uses expected salary until it is received', () => {
+		const summary = summarize(payday, items);
+		expect(summary.salary).toBe(7_500_000);
+		expect(summary.plannedMin).toBe(300_000);
+		expect(summary.plannedFull).toBe(1_500_000);
+		expect(summary.routed).toBe(1_000_000);
+		expect(summary.leftToRoute).toBe(6_500_000);
+		expect(summary.missingCount).toBe(1);
+		expect(summary.skippedCount).toBe(1);
+		expect(summary.doneCount).toBe(1);
+		expect(summary.pendingCount).toBe(2);
+		expect(summary.itemCount).toBe(4);
 	});
 
-	it('keeps leftover as salary minus all obligations', () => {
-		expect(summarize({ salary: 7_500_000 }, items).leftover).toBe(7_499_970);
-		expect(summarize({ salary: null }, items).leftover).toBeNull();
+	it('switches to the received amount once salary is in', () => {
+		const received = summarize(
+			{ expectedAmount: 7_500_000, receivedAmount: 8_000_000, receivedAt: '2026-11-15' },
+			items
+		);
+		expect(received.salary).toBe(8_000_000);
+		expect(received.leftToRoute).toBe(7_000_000);
+		expect(
+			summarize({ expectedAmount: null, receivedAmount: null, receivedAt: null }, items).leftToRoute
+		).toBeNull();
 	});
 
-	it('counts blanks as missing, and zero as known', () => {
-		const summary = summarize({ salary: null }, [...items, item({ id: 5, amountExpr: '0' })]);
-		expect(summary.missingCount).toBe(2);
-		expect(summary.doneCount).toBe(2);
-		expect(summary.pendingCount).toBe(3);
-		expect(summary.itemCount).toBe(5);
+	it('treats an explicit zero as a known amount', () => {
+		const summary = summarize(payday, [item({ id: 5, fullAmountExpr: '0', fullAmount: 0 })]);
+		expect(summary.missingCount).toBe(0);
+		expect(summary.plannedFull).toBe(0);
 	});
 });
 
 describe('sortForChecklist', () => {
-	it('puts unpaid first, then by sort order and id', () => {
+	it('puts open items first, then by due date, and skipped last', () => {
 		const sorted = sortForChecklist([
-			item({ id: 1, isDone: true, sortOrder: 0 }),
-			item({ id: 2, sortOrder: 2 }),
-			item({ id: 3, sortOrder: 1 }),
-			item({ id: 4, sortOrder: 1 })
+			item({ id: 1, isDone: true, dueDate: '2026-11-01', sortOrder: 0 }),
+			item({ id: 2, dueDate: '2026-11-20', sortOrder: 0 }),
+			item({ id: 3, dueDate: '2026-11-10', sortOrder: 0 }),
+			item({ id: 4, dueDate: null, sortOrder: 0 }),
+			item({ id: 5, decision: 'SKIPPED', dueDate: '2026-11-05', sortOrder: 0 })
 		]);
-		expect(sorted.map((entry) => entry.id)).toEqual([3, 4, 2, 1]);
+		expect(sorted.map((entry) => entry.id)).toEqual([3, 2, 4, 1, 5]);
+	});
+});
+
+describe('skipPastDueWarning', () => {
+	it('warns when the due date is before the next payday', () => {
+		expect(skipPastDueWarning('2026-11-20', '2026-11-30')).toMatch(/before the next payday/);
+		expect(skipPastDueWarning('2026-12-05', '2026-11-30')).toBeNull();
+		expect(skipPastDueWarning(null, '2026-11-30')).toBeNull();
+		expect(skipPastDueWarning('2026-11-20', null)).toBeNull();
 	});
 });

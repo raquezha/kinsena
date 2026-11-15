@@ -34,7 +34,8 @@ export default defineConfig({
 				'src/lib/client/sheet-route.ts',
 				'**/*.svelte.ts',
 				'**/*.test.ts',
-				'**/index.ts'
+				'**/index.ts',
+				'src/lib/server/data/schema.ts'
 			],
 			reporter: ['text', 'text-summary', 'html'],
 			thresholds: { lines: 90, functions: 90, statements: 90, branches: 85 }

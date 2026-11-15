@@ -1,49 +1,91 @@
-import { hasKnownAmount, type Cents, type Cycle, type CycleItem } from './models.ts';
+import { compareIsoDate, formatPaydayTitle } from './calendar.ts';
+import { isSkipped } from './decision.ts';
+import { hasKnownAmount, isReceived, type Cents, type Payday, type RouteItem } from './models.ts';
 
-export interface CycleSummary {
-	/** Sum of all known amounts. Blank amounts count as nothing. */
-	total: Cents;
-	paid: Cents;
-	remaining: Cents;
-	/** Salary minus every obligation. Stays put while items are ticked off. */
-	leftover: Cents | null;
+export interface PaydaySummary {
+	/** Received amount if salary is in, otherwise the expected amount. */
+	salary: Cents | null;
+	/** Sum of minimums (or full when no minimum) of known, non-skipped items. */
+	plannedMin: Cents;
+	/** Sum of full amounts of known, non-skipped items. */
+	plannedFull: Cents;
+	/** Chosen amounts of items already marked done. */
+	routed: Cents;
+	/** Salary minus chosen amounts of non-skipped items. */
+	leftToRoute: Cents | null;
 	missingCount: number;
 	doneCount: number;
 	pendingCount: number;
+	skippedCount: number;
 	itemCount: number;
 }
 
-function sum(items: CycleItem[]): Cents {
-	return items.reduce((total, item) => total + item.amount, 0);
+function plannedMinOf(item: RouteItem): Cents {
+	return item.minimumAmount ?? item.fullAmount;
 }
 
-export function summarize(cycle: Pick<Cycle, 'salary'>, items: CycleItem[]): CycleSummary {
+export function summarize(
+	payday: Pick<Payday, 'expectedAmount' | 'receivedAmount' | 'receivedAt'>,
+	items: RouteItem[]
+): PaydaySummary {
+	const salary = isReceived(payday) ? payday.receivedAmount : payday.expectedAmount;
 	const known = items.filter(hasKnownAmount);
-	const total = sum(known);
-	const paid = sum(known.filter((item) => item.isDone));
+	const counted = known.filter((item) => !isSkipped(item.decision));
+	const plannedMin = counted.reduce((sum, item) => sum + plannedMinOf(item), 0);
+	const plannedFull = counted.reduce((sum, item) => sum + item.fullAmount, 0);
+	const chosen = counted.reduce((sum, item) => sum + item.chosenAmount, 0);
+	const routed = items
+		.filter((item) => item.isDone && !isSkipped(item.decision))
+		.reduce((sum, item) => sum + item.chosenAmount, 0);
+	const skippedCount = items.filter((item) => isSkipped(item.decision)).length;
 	const doneCount = items.filter((item) => item.isDone).length;
 	return {
-		total,
-		paid,
-		remaining: total - paid,
-		leftover: cycle.salary === null ? null : cycle.salary - total,
-		missingCount: items.length - known.length,
+		salary,
+		plannedMin,
+		plannedFull,
+		routed,
+		leftToRoute: salary === null ? null : salary - chosen,
+		missingCount: items.filter((item) => !isSkipped(item.decision) && !hasKnownAmount(item)).length,
 		doneCount,
-		pendingCount: items.length - doneCount,
+		pendingCount: items.length - doneCount - skippedCount,
+		skippedCount,
 		itemCount: items.length
 	};
 }
 
-/** Unpaid first, then by the order items were added. */
-export function sortForChecklist(items: CycleItem[]): CycleItem[] {
-	return [...items].sort(
-		(a, b) => Number(a.isDone) - Number(b.isDone) || a.sortOrder - b.sortOrder || a.id - b.id
-	);
+function dueSortKey(item: RouteItem): string {
+	return item.dueDate ?? '9999-99-99';
 }
 
-/** A cycle with its items in checklist order and their totals. */
-export interface CycleView {
-	cycle: Cycle;
-	items: CycleItem[];
-	summary: CycleSummary;
+/** Open items first, then due date, then the order they were added. Skipped last. */
+export function sortForChecklist(items: RouteItem[]): RouteItem[] {
+	return [...items].sort((a, b) => {
+		const skip = Number(isSkipped(a.decision)) - Number(isSkipped(b.decision));
+		if (skip !== 0) return skip;
+		const done = Number(a.isDone) - Number(b.isDone);
+		if (done !== 0) return done;
+		const due = compareIsoDate(dueSortKey(a), dueSortKey(b));
+		if (due !== 0) return due;
+		return a.sortOrder - b.sortOrder || a.id - b.id;
+	});
+}
+
+export interface PaydayView {
+	payday: Payday;
+	items: RouteItem[];
+	summary: PaydaySummary;
+}
+
+/** Next payday is after this item's due date, so skipping would miss the due date. */
+export function skipPastDueWarning(
+	dueDate: string | null,
+	nextScheduledDate: string | null
+): string | null {
+	if (!dueDate || !nextScheduledDate) return null;
+	if (dueDate < nextScheduledDate) {
+		const due = formatPaydayTitle(dueDate);
+		const next = formatPaydayTitle(nextScheduledDate);
+		return `This is due ${due}, before the next payday on ${next}.`;
+	}
+	return null;
 }
