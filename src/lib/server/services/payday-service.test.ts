@@ -164,6 +164,54 @@ describe('payday service', () => {
 	});
 });
 
+describe('defaults apply-if-missing', () => {
+	it('skips seeding open paydays when applyToOpen is false', () => {
+		const services = createServices(createMemoryRepositories(), 'test-passphrase-16c', createTestClock());
+		services.paydays.ensureUpcoming();
+		const mid = services.paydays.active()!.payday;
+		const before = services.paydays.view(mid.id).items.length;
+		const id = services.templates.add({
+			name: 'Hold back',
+			amount: '100',
+			minimum: '',
+			dueDay: '',
+			fundFrom: 'EVERY',
+			destinationId: null,
+			applyToOpen: false
+		});
+		expect(services.paydays.view(mid.id).items.some((item) => item.templateId === id)).toBe(false);
+		expect(services.paydays.view(mid.id).items).toHaveLength(before);
+
+		const pulled = services.paydays.applyMissingDefaults(mid.id);
+		expect(pulled.added).toBe(1);
+		expect(pulled.alreadyPresent).toBe(0);
+		expect(services.paydays.view(mid.id).items.some((item) => item.templateId === id)).toBe(true);
+
+		const again = services.paydays.applyMissingDefaults(mid.id);
+		expect(again).toMatchObject({ added: 0, alreadyPresent: 1 });
+	});
+
+	it('does not add missing defaults after salary is received', () => {
+		const services = createServices(createMemoryRepositories(), 'test-passphrase-16c', createTestClock());
+		services.paydays.ensureUpcoming();
+		const mid = services.paydays.active()!.payday;
+		services.templates.add({
+			name: 'Later',
+			amount: '50',
+			minimum: '',
+			dueDay: '',
+			fundFrom: 'EVERY',
+			destinationId: null,
+			applyToOpen: false
+		});
+		services.paydays.receive(mid.id, '75,000');
+		const result = services.paydays.applyMissingDefaults(mid.id);
+		expect(result.added).toBe(0);
+		expect(result.skippedByRule).toBeGreaterThan(0);
+		expect(services.paydays.view(mid.id).items.some((item) => item.name === 'Later')).toBe(false);
+	});
+});
+
 describe('applyTemplateToUpcoming', () => {
 	it('skips received, already-copied, and non-matching paydays', () => {
 		const repos = createMemoryRepositories();

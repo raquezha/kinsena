@@ -47,7 +47,27 @@
 			}))}
 		/>
 		<DestinationSelect {destinations} />
+		<label class="option">
+			<input type="hidden" name="applyToOpen" value="false" />
+			<input type="checkbox" name="applyToOpen" value="true" checked />
+			Add to open paydays if missing
+		</label>
 		{#if form.error}<p class="form-error" role="alert">{form.error}</p>{/if}
 		<button class="button primary block" type="submit" disabled={form.busy}>Save item</button>
 	</form>
 </Sheet>
+
+<style>
+	.option {
+		display: flex;
+		align-items: flex-start;
+		gap: var(--space-2);
+		font-size: var(--text-sm);
+		color: var(--text-muted);
+		line-height: 1.4;
+	}
+
+	.option input[type='checkbox'] {
+		margin-top: 0.2rem;
+	}
+</style>

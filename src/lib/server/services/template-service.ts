@@ -13,6 +13,8 @@ export interface TemplateInput {
 	dueDay: string;
 	fundFrom: FundFrom;
 	destinationId: number | null;
+	/** When adding: copy into matching open paydays if missing. Default true. */
+	applyToOpen?: boolean;
 }
 
 export interface TemplateService {
@@ -53,7 +55,7 @@ export function createTemplateService(repos: Repositories, clock: Clock): Templa
 			const fields = parsed(input);
 			const id = templates.add({ ...fields, createdAt: clock.now().getTime() });
 			const saved = templates.findById(id);
-			if (saved) applyTemplateToUpcoming(repos, saved);
+			if (saved && input.applyToOpen !== false) applyTemplateToUpcoming(repos, saved);
 			return id;
 		},
 		update(id, input) {

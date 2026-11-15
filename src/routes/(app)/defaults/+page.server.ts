@@ -18,7 +18,7 @@ const templateFields = {
 };
 
 export const actions: Actions = {
-	add: formAction(templateFields, (form, { templates }) => ({
+	add: formAction({ ...templateFields, applyToOpen: fields.flag }, (form, { templates }) => ({
 		templateId: templates.add(form)
 	})),
 	update: formAction({ templateId, ...templateFields }, (form, { templates }) =>

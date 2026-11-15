@@ -8,13 +8,15 @@ import {
 	nextScheduledOnOrAfter
 } from '../../domain/payday-calendar.ts';
 import { ensure } from '../../domain/errors.ts';
-import { dueDateForPayday, templateFitsPayday } from '../../domain/fund-from.ts';
 import { isReceived, type Payday } from '../../domain/models.ts';
 import { ensureMoney, normalizeDate, normalizeNote, normalizeTitle } from '../../domain/rules.ts';
 import { sortForChecklist, summarize, type PaydayView } from '../../domain/summary.ts';
 import type { Clock, Repositories } from '../ports.ts';
 import { requireOpenPayday, requirePayday } from './guards.ts';
-import { itemFromTemplate } from './template-apply.ts';
+import {
+	applyMissingDefaultsToPayday,
+	type ApplyMissingResult
+} from './template-apply.ts';
 import {
 	arrivalNoteFor,
 	isLockedPayday,
@@ -53,6 +55,8 @@ export interface PaydayService {
 	nextAfter(paydayId: number): Payday;
 	/** Drop a manual pay-date override and restore the computed date. */
 	resetPayDate(paydayId: number): void;
+	/** Add active defaults missing from this open payday. */
+	applyMissingDefaults(paydayId: number): ApplyMissingResult;
 }
 
 type Deps = Pick<
@@ -61,7 +65,7 @@ type Deps = Pick<
 >;
 
 export function createPaydayService(repos: Deps, clock: Clock): PaydayService {
-	const { paydays, items, templates, settings } = repos;
+	const { paydays, items, settings } = repos;
 
 	const viewOf = (payday: Payday): PaydayView => {
 		const routeItems = sortForChecklist(items.listByPayday(payday.id));
@@ -74,13 +78,7 @@ export function createPaydayService(repos: Deps, clock: Clock): PaydayService {
 	};
 
 	const applyTemplates = (payday: Payday) => {
-		let order = items.maxSortOrder(payday.id);
-		for (const template of templates.listActive()) {
-			if (items.hasTemplate(payday.id, template.id)) continue;
-			if (!templateFitsPayday(template, payday)) continue;
-			const dueDate = dueDateForPayday(template, payday);
-			items.add(itemFromTemplate(template, payday.id, dueDate, ++order));
-		}
+		applyMissingDefaultsToPayday(repos, payday);
 	};
 
 	const createScheduled = (date: string, cadence: ScheduledCadence): Payday => {
@@ -179,6 +177,10 @@ export function createPaydayService(repos: Deps, clock: Clock): PaydayService {
 			ensure(!isLockedPayday(payday), 'Received or finished paydays cannot move');
 			repos.payOverrides.remove(payday.scheduledDate);
 			paydays.update(paydayId, { payDate: resolvePayDate(repos, payday.scheduledDate) });
+		},
+		applyMissingDefaults(paydayId) {
+			const payday = requireOpenPayday(paydays, paydayId);
+			return applyMissingDefaultsToPayday(repos, payday);
 		},
 		setNote(paydayId, note) {
 			requireOpenPayday(paydays, paydayId);

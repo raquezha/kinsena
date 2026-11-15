@@ -1,5 +1,8 @@
 <script lang="ts">
+	import { enhance, type SubmitFunction } from '$app/forms';
 	import { openSheet, sheetHref } from '../../client/sheet-route.ts';
+	import { failureMessage } from '../../client/actions.ts';
+	import { toasts } from '../../client/toasts.svelte.ts';
 	import { isReceived, type Payday } from '../../domain/models.ts';
 	import Icon from '../icons/Icon.svelte';
 
@@ -13,6 +16,32 @@
 			void openSheet(name);
 		};
 	}
+
+	const addMissing: SubmitFunction = () => {
+		return async ({ result, update }) => {
+			const error = failureMessage(result);
+			if (error) {
+				toasts.error(error);
+				return;
+			}
+			await update({ reset: false, navigate: false });
+			const data =
+				result.type === 'success'
+					? (result.data as {
+							added?: number;
+							alreadyPresent?: number;
+							skippedByRule?: number;
+						} | null)
+					: null;
+			const added = data?.added ?? 0;
+			const already = data?.alreadyPresent ?? 0;
+			if (added === 0 && already === 0) {
+				toasts.show('No matching defaults to add');
+			} else {
+				toasts.show(`Added ${added}; ${already} already on this payday`);
+			}
+		};
+	};
 </script>
 
 <header class="cycle-header" class:has-receive={!received}>
@@ -36,6 +65,12 @@
 			>
 				Salary in <kbd class="kbd">i</kbd>
 			</a>
+		{/if}
+		{#if !received}
+			<form method="POST" action="?/addMissingDefaults" use:enhance={addMissing}>
+				<input type="hidden" name="paydayId" value={payday.id} />
+				<button class="button add-missing" type="submit">Add missing defaults</button>
+			</form>
 		{/if}
 		<a class="button add" href={sheetHref('add')} onclick={open('add')} data-sveltekit-noscroll>
 			<Icon name="plus" size={18} /> Add item <kbd class="kbd">n</kbd>
@@ -118,6 +153,11 @@
 
 	.add {
 		display: none;
+	}
+
+	.add-missing {
+		white-space: nowrap;
+		font-size: var(--text-sm);
 	}
 
 	.receive .kbd,
