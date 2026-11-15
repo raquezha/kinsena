@@ -56,9 +56,13 @@
 	{#snippet actions()}
 		<a class="button" href="/settings">Pay rule</a>
 		<nav class="years" aria-label="Year">
-			<a class="button" href="/calendar?year={year - 1}" aria-label="Previous year, {year - 1}">{year - 1}</a>
+			<a class="button" href="/calendar?year={year - 1}" aria-label="Previous year, {year - 1}"
+				>{year - 1}</a
+			>
 			<span class="this-year">{year}</span>
-			<a class="button" href="/calendar?year={year + 1}" aria-label="Next year, {year + 1}">{year + 1}</a>
+			<a class="button" href="/calendar?year={year + 1}" aria-label="Next year, {year + 1}"
+				>{year + 1}</a
+			>
 		</nav>
 	{/snippet}
 </PageHeader>
