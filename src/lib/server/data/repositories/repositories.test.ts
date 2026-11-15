@@ -55,6 +55,8 @@ describe.each([
 			dueDay: 5,
 			fundFrom: 'EVERY',
 			destinationId: null,
+			installmentCount: null,
+			installmentsCompleted: 0,
 			createdAt: 1
 		});
 		templates.add({
@@ -64,6 +66,8 @@ describe.each([
 			dueDay: null,
 			fundFrom: 'MONTH_END',
 			destinationId: null,
+			installmentCount: null,
+			installmentsCompleted: 0,
 			createdAt: 1
 		});
 		expect(templates.listActive().map((entry) => entry.name)).toEqual(['Aircon', 'Rent']);

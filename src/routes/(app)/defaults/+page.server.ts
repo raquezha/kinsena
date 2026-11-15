@@ -14,7 +14,8 @@ const templateFields = {
 	minimum: fields.amount,
 	dueDay: fields.dueDay,
 	fundFrom: fields.fundFrom,
-	destinationId: fields.optionalId
+	destinationId: fields.optionalId,
+	installmentCount: fields.dueDay
 };
 
 export const actions: Actions = {

@@ -13,6 +13,7 @@
 		item,
 		currency,
 		destination,
+		installment = null,
 		routing,
 		ontoggle,
 		ondelete
@@ -20,6 +21,7 @@
 		item: RouteItem;
 		currency: CurrencyCode;
 		destination: Destination | null;
+		installment?: string | null;
 		routing: boolean;
 		ontoggle: SubmitFunction;
 		ondelete: () => void;
@@ -79,6 +81,7 @@
 					{destination}
 					dueDate={item.dueDate}
 					isDone={item.isDone}
+					{installment}
 					reason={item.decisionReason}
 				/>
 			</span>

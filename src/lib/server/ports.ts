@@ -20,13 +20,22 @@ export interface NewTemplate {
 	dueDay: number | null;
 	fundFrom: FundFrom;
 	destinationId: number | null;
+	installmentCount: number | null;
+	installmentsCompleted: number;
 	createdAt: number;
 }
 
 export type TemplatePatch = Partial<
 	Pick<
 		TemplateItem,
-		'name' | 'defaultAmount' | 'minimumAmount' | 'dueDay' | 'fundFrom' | 'destinationId'
+		| 'name'
+		| 'defaultAmount'
+		| 'minimumAmount'
+		| 'dueDay'
+		| 'fundFrom'
+		| 'destinationId'
+		| 'installmentCount'
+		| 'installmentsCompleted'
 	>
 >;
 

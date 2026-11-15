@@ -21,6 +21,10 @@ export interface TemplateItem {
 	dueDay: number | null;
 	fundFrom: FundFrom;
 	destinationId: number | null;
+	/** null = not an installment plan. */
+	installmentCount: number | null;
+	/** Paid installments toward installmentCount. */
+	installmentsCompleted: number;
 }
 
 export interface Payday {

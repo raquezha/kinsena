@@ -28,6 +28,9 @@ export const templateItems = sqliteTable('template_items', {
 	destinationId: integer('destination_id').references(() => destinations.id),
 	// Kept so 0.1 databases that still have this column stay readable.
 	cadence: text('cadence', { length: 32 }).notNull().default('ANY'),
+	/** null = not an installment plan. */
+	installmentCount: integer('installment_count'),
+	installmentsCompleted: integer('installments_completed').notNull().default(0),
 	isArchived: integer('is_archived', { mode: 'boolean' }).notNull().default(false),
 	createdAt: integer('created_at').notNull()
 });

@@ -53,7 +53,23 @@ export interface RouteService {
 	restore(removed: RemovedItem): number;
 }
 
-type Deps = Pick<Repositories, 'paydays' | 'items'>;
+type Deps = Pick<Repositories, 'paydays' | 'items' | 'templates'>;
+
+function adjustInstallmentProgress(
+	templates: Deps['templates'],
+	templateId: number | null,
+	delta: number
+): void {
+	if (templateId === null || delta === 0) return;
+	const template = templates.findById(templateId);
+	if (!template || template.installmentCount === null) return;
+	const next = Math.min(
+		template.installmentCount,
+		Math.max(0, template.installmentsCompleted + delta)
+	);
+	if (next === template.installmentsCompleted) return;
+	templates.update(templateId, { installmentsCompleted: next });
+}
 
 function chosenFor(decision: Decision, item: RouteItem, custom: string | undefined): number {
 	if (decision === 'FULL') {
@@ -73,7 +89,7 @@ function chosenFor(decision: Decision, item: RouteItem, custom: string | undefin
 }
 
 export function createRouteService(repos: Deps, paydaysService: PaydayService): RouteService {
-	const { paydays, items } = repos;
+	const { paydays, items, templates } = repos;
 
 	const insert = (
 		item: Omit<RouteItem, 'id' | 'fullAmount'> & {
@@ -182,8 +198,10 @@ export function createRouteService(repos: Deps, paydaysService: PaydayService): 
 			if (!item.isDone) {
 				ensure(isRoutedDecision(item.decision), 'Choose how to route this item first');
 			}
-			items.update(itemId, { isDone: !item.isDone });
-			return !item.isDone;
+			const nextDone = !item.isDone;
+			items.update(itemId, { isDone: nextDone });
+			adjustInstallmentProgress(templates, item.templateId, nextDone ? 1 : -1);
+			return nextDone;
 		},
 		assign(itemId, paydayId) {
 			requireActiveItem(paydays, items, itemId);
@@ -208,6 +226,7 @@ export function createRouteService(repos: Deps, paydaysService: PaydayService): 
 		},
 		remove(itemId) {
 			const item = requireActiveItem(paydays, items, itemId);
+			if (item.isDone) adjustInstallmentProgress(templates, item.templateId, -1);
 			items.remove(itemId);
 			const {
 				paydayId,

@@ -6,7 +6,7 @@
 	import { cubicOut } from 'svelte/easing';
 	import type { Checklist } from '../../client/checklist.svelte.ts';
 	import type { CurrencyCode } from '../../domain/currency.ts';
-	import type { Destination } from '../../domain/models.ts';
+	import type { Destination, TemplateItem } from '../../domain/models.ts';
 	import Icon from '../icons/Icon.svelte';
 	import ChecklistRow from './ChecklistRow.svelte';
 
@@ -14,12 +14,14 @@
 		checklist,
 		paydayId,
 		currency,
-		destinations
+		destinations,
+		templates
 	}: {
 		checklist: Checklist;
 		paydayId: number;
 		currency: CurrencyCode;
 		destinations: Destination[];
+		templates: TemplateItem[];
 	} = $props();
 
 	const duration = () => (prefersReducedMotion.current ? 0 : 340);
@@ -31,6 +33,13 @@
 
 	function destinationFor(id: number | null) {
 		return destinations.find((entry) => entry.id === id) ?? null;
+	}
+
+	function installmentLabel(templateId: number | null): string | null {
+		if (templateId === null) return null;
+		const template = templates.find((entry) => entry.id === templateId);
+		if (!template || template.installmentCount === null) return null;
+		return `${template.installmentsCompleted} of ${template.installmentCount}`;
 	}
 
 	function movedOrder(items: { id: number }[], index: number, delta: number): number[] | null {
@@ -88,6 +97,7 @@
 							{item}
 							{currency}
 							destination={destinationFor(item.destinationId)}
+							installment={installmentLabel(item.templateId)}
 							routing={checklist.routing}
 							ontoggle={checklist.toggle(item)}
 							ondelete={() => checklist.remove(item)}

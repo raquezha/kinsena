@@ -2,7 +2,7 @@
 	import { Checklist as ChecklistState } from '../../client/checklist.svelte.ts';
 	import { currentSheet } from '../../client/sheet-route.ts';
 	import type { CurrencyCode } from '../../domain/currency.ts';
-	import type { Destination } from '../../domain/models.ts';
+	import type { Destination, TemplateItem } from '../../domain/models.ts';
 	import type { PaydayView } from '../../domain/summary.ts';
 	import PaydaySwitcher from '../payday/PaydaySwitcher.svelte';
 	import AddFab from './AddFab.svelte';
@@ -24,6 +24,7 @@
 		view,
 		currency,
 		destinations,
+		templates,
 		paydays,
 		nextScheduledDate,
 		plan,
@@ -32,6 +33,7 @@
 		view: PaydayView;
 		currency: CurrencyCode;
 		destinations: Destination[];
+		templates: TemplateItem[];
 		paydays: import('../../domain/models.ts').Payday[];
 		nextScheduledDate: string | null;
 		plan: import('../../domain/planner.ts').PlanProposal | null;
@@ -72,7 +74,7 @@
 		{#if checklist.routing}
 			<ProgressBar summary={checklist.summary} {currency} />
 		{/if}
-		<Checklist {checklist} paydayId={view.payday.id} {currency} {destinations} />
+		<Checklist {checklist} paydayId={view.payday.id} {currency} {destinations} {templates} />
 	</div>
 </div>
 

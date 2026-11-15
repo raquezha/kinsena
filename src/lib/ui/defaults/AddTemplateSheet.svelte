@@ -37,6 +37,17 @@
 			<span>Due day of month</span>
 			<input class="input" name="dueDay" inputmode="numeric" maxlength="2" placeholder="e.g. 20" />
 		</label>
+		<label class="field">
+			<span>Installments (optional)</span>
+			<input
+				class="input"
+				name="installmentCount"
+				inputmode="numeric"
+				maxlength="3"
+				placeholder="e.g. 6"
+			/>
+			<small>Fixed N payments of the default amount. Leave blank for a normal recurring item.</small>
+		</label>
 		<ChoiceGroup
 			name="fundFrom"
 			legend="Fund from"

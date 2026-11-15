@@ -11,7 +11,9 @@ const columns = {
 	minimumAmount: templateItems.minimumAmount,
 	dueDay: templateItems.dueDay,
 	fundFrom: templateItems.fundFrom,
-	destinationId: templateItems.destinationId
+	destinationId: templateItems.destinationId,
+	installmentCount: templateItems.installmentCount,
+	installmentsCompleted: templateItems.installmentsCompleted
 };
 
 export function createTemplateRepository(db: Db): TemplateRepository {

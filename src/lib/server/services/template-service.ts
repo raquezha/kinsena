@@ -13,6 +13,8 @@ export interface TemplateInput {
 	dueDay: string;
 	fundFrom: FundFrom;
 	destinationId: number | null;
+	/** Blank = not an installment plan. */
+	installmentCount?: string;
 	/** When adding: copy into matching open paydays if missing. Default true. */
 	applyToOpen?: boolean;
 }
@@ -32,18 +34,32 @@ function parseDueDay(raw: string | null | undefined): number | null {
 	return normalizeDueDay(value);
 }
 
+function parseInstallmentCount(raw: string | null | undefined): number | null {
+	const text = (raw ?? '').trim();
+	if (text === '') return null;
+	const value = Number(text);
+	ensure(Number.isInteger(value) && value >= 1, 'Installment count must be at least 1');
+	return value;
+}
+
 function parsed(input: TemplateInput) {
 	const defaultAmount = parseOptionalAmount(input.amount);
 	const minimumAmount = parseOptionalAmount(input.minimum);
 	ensureMoney(defaultAmount, 'amount');
 	ensureMoney(minimumAmount, 'minimum');
+	const installmentCount = parseInstallmentCount(input.installmentCount);
+	ensure(
+		installmentCount === null || defaultAmount !== null,
+		'Installment plans need a default amount'
+	);
 	return {
 		name: normalizeName(input.name),
 		defaultAmount,
 		minimumAmount,
 		dueDay: parseDueDay(input.dueDay),
 		fundFrom: input.fundFrom,
-		destinationId: input.destinationId
+		destinationId: input.destinationId,
+		installmentCount
 	};
 }
 
@@ -53,7 +69,11 @@ export function createTemplateService(repos: Repositories, clock: Clock): Templa
 		list: () => templates.listActive(),
 		add(input) {
 			const fields = parsed(input);
-			const id = templates.add({ ...fields, createdAt: clock.now().getTime() });
+			const id = templates.add({
+				...fields,
+				installmentsCompleted: 0,
+				createdAt: clock.now().getTime()
+			});
 			const saved = templates.findById(id);
 			if (saved && input.applyToOpen !== false) applyTemplateToUpcoming(repos, saved);
 			return id;

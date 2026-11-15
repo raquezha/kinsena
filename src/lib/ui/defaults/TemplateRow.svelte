@@ -35,6 +35,8 @@
 			{FUND_FROM_LABELS[template.fundFrom]}
 			{#if template.dueDay}
 				· Due day {template.dueDay}{/if}
+			{#if template.installmentCount !== null}
+				· {template.installmentsCompleted} of {template.installmentCount}{/if}
 			{#if destination}
 				· {destination.name}{/if}
 		</span>

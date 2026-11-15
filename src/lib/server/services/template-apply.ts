@@ -33,9 +33,46 @@ export interface ApplyMissingResult {
 	skippedByRule: number;
 }
 
+function calendarMonth(isoDate: string): string {
+	return isoDate.slice(0, 7);
+}
+
+function hasSpawnInCalendarMonth(
+	repos: Pick<Repositories, 'paydays' | 'items'>,
+	templateId: number,
+	scheduledDate: string
+): boolean {
+	const month = calendarMonth(scheduledDate);
+	for (const payday of [...repos.paydays.listOpen(), ...repos.paydays.listClosed()]) {
+		if (calendarMonth(payday.scheduledDate) !== month) continue;
+		if (repos.items.hasTemplate(payday.id, templateId)) return true;
+	}
+	return false;
+}
+
+/** Shared spawn gates for create/apply/pull. Caller still checks received/closed. */
+export function shouldSpawnTemplate(
+	repos: Pick<Repositories, 'paydays' | 'items'>,
+	template: TemplateItem,
+	payday: Payday
+): boolean {
+	if (repos.items.hasTemplate(payday.id, template.id)) return false;
+	if (!templateFitsPayday(template, payday)) return false;
+	if (template.installmentCount !== null) {
+		if (template.installmentsCompleted >= template.installmentCount) return false;
+		if (
+			template.fundFrom === 'EVERY' &&
+			hasSpawnInCalendarMonth(repos, template.id, payday.scheduledDate)
+		) {
+			return false;
+		}
+	}
+	return true;
+}
+
 /** Copy active defaults onto one payday when missing. Skips received/closed and non-fitting rules. */
 export function applyMissingDefaultsToPayday(
-	repos: Pick<Repositories, 'items' | 'templates'>,
+	repos: Pick<Repositories, 'paydays' | 'items' | 'templates'>,
 	payday: Payday
 ): ApplyMissingResult {
 	let added = 0;
@@ -48,7 +85,7 @@ export function applyMissingDefaultsToPayday(
 			alreadyPresent += 1;
 			continue;
 		}
-		if (locked || !templateFitsPayday(template, payday)) {
+		if (locked || !shouldSpawnTemplate(repos, template, payday)) {
 			skippedByRule += 1;
 			continue;
 		}
@@ -65,8 +102,7 @@ export function applyTemplateToUpcoming(
 ): void {
 	for (const payday of repos.paydays.listOpen()) {
 		if (isReceived(payday) || payday.isClosed) continue;
-		if (repos.items.hasTemplate(payday.id, template.id)) continue;
-		if (!templateFitsPayday(template, payday)) continue;
+		if (!shouldSpawnTemplate(repos, template, payday)) continue;
 		const dueDate = dueDateForPayday(template, payday);
 		const sortOrder = repos.items.maxSortOrder(payday.id) + 1;
 		repos.items.add(itemFromTemplate(template, payday.id, dueDate, sortOrder));

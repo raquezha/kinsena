@@ -29,6 +29,13 @@
 			"when": 1794760000000,
 			"tag": "0003_pay_rule",
 			"breakpoints": true
+		},
+		{
+			"idx": 4,
+			"version": "6",
+			"when": 1794770000000,
+			"tag": "0004_installments",
+			"breakpoints": true
 		}
 	]
 }

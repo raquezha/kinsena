@@ -65,7 +65,9 @@ describe('database migration', () => {
 					minimumAmount: null,
 					dueDay: null,
 					fundFrom: 'EVERY',
-					destinationId: null
+					destinationId: null,
+					installmentCount: null,
+					installmentsCompleted: 0
 				}
 			]);
 			const [closed] = repos.paydays.listClosed();

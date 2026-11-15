@@ -43,7 +43,9 @@ function memoryTemplates(): TemplateRepository {
 		minimumAmount,
 		dueDay,
 		fundFrom,
-		destinationId
+		destinationId,
+		installmentCount,
+		installmentsCompleted
 	}: StoredTemplate): TemplateItem => ({
 		id,
 		name,
@@ -51,7 +53,9 @@ function memoryTemplates(): TemplateRepository {
 		minimumAmount,
 		dueDay,
 		fundFrom,
-		destinationId
+		destinationId,
+		installmentCount,
+		installmentsCompleted
 	});
 	return {
 		listActive: () =>
@@ -65,7 +69,16 @@ function memoryTemplates(): TemplateRepository {
 		},
 		add(template) {
 			const id = rows.length + 1;
-			const { name, defaultAmount, minimumAmount, dueDay, fundFrom, destinationId } = template;
+			const {
+				name,
+				defaultAmount,
+				minimumAmount,
+				dueDay,
+				fundFrom,
+				destinationId,
+				installmentCount,
+				installmentsCompleted
+			} = template;
 			rows.push({
 				id,
 				name,
@@ -74,6 +87,8 @@ function memoryTemplates(): TemplateRepository {
 				dueDay,
 				fundFrom,
 				destinationId,
+				installmentCount,
+				installmentsCompleted,
 				isArchived: false
 			});
 			return id;

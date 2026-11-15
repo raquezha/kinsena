@@ -73,6 +73,21 @@
 						value={shown.dueDay ?? ''}
 					/>
 				</label>
+				<label class="field">
+					<span>Installments (optional)</span>
+					<input
+						class="input"
+						name="installmentCount"
+						inputmode="numeric"
+						maxlength="3"
+						value={shown.installmentCount ?? ''}
+					/>
+					{#if shown.installmentCount !== null}
+						<small>{shown.installmentsCompleted} of {shown.installmentCount} paid</small>
+					{:else}
+						<small>Fixed N payments of the default amount. Leave blank for a normal recurring item.</small>
+					{/if}
+				</label>
 				<ChoiceGroup
 					name="fundFrom"
 					legend="Fund from"

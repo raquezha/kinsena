@@ -15,6 +15,7 @@
 			view={data.active}
 			currency={data.currency}
 			destinations={data.destinations}
+			templates={data.templates}
 			paydays={data.openPaydays}
 			nextScheduledDate={data.nextScheduledDate}
 			plan={data.plan}
