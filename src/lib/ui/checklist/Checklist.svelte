@@ -5,18 +5,29 @@
 	import { cubicOut } from 'svelte/easing';
 	import type { Checklist } from '../../client/checklist.svelte.ts';
 	import type { CurrencyCode } from '../../domain/currency.ts';
+	import type { Destination } from '../../domain/models.ts';
 	import ChecklistRow from './ChecklistRow.svelte';
 
-	let { checklist, currency }: { checklist: Checklist; currency: CurrencyCode } = $props();
+	let {
+		checklist,
+		currency,
+		destinations
+	}: {
+		checklist: Checklist;
+		currency: CurrencyCode;
+		destinations: Destination[];
+	} = $props();
 
 	const duration = () => (prefersReducedMotion.current ? 0 : 340);
-
-	// Rows glide between "To pay" and "Paid" instead of jumping.
 	const [send, receive] = crossfade({
 		duration,
 		easing: cubicOut,
 		fallback: (node) => slide(node, { duration: duration() })
 	});
+
+	function destinationFor(id: number | null) {
+		return destinations.find((entry) => entry.id === id) ?? null;
+	}
 </script>
 
 {#snippet section(title: string, count: string, items: typeof checklist.items, kind: string)}
@@ -32,6 +43,8 @@
 					<ChecklistRow
 						{item}
 						{currency}
+						destination={destinationFor(item.destinationId)}
+						routing={checklist.routing}
 						ontoggle={checklist.toggle(item)}
 						ondelete={() => checklist.remove(item)}
 					/>
@@ -44,15 +57,26 @@
 <div class="checklist">
 	{#if checklist.items.length === 0}
 		<p class="empty" in:fade>
-			No items yet. Add one with the <strong>+</strong> button, or save recurring items under
-			<a href="/defaults">Defaults</a>.
+			{#if checklist.routing}
+				No bills on this payday. Salary stays unrouted — or add a transfer to an account.
+			{:else}
+				Add statements and bills you will pay from this payday.
+			{/if}
 		</p>
 	{/if}
-	{#if checklist.unpaid.length > 0 || checklist.paid.length === 0}
-		{@render section('To pay', `${checklist.unpaid.length} left`, checklist.unpaid, 'unpaid')}
+	{#if checklist.unpaid.length > 0}
+		{@render section(
+			checklist.routing ? 'To route' : 'Planned',
+			`${checklist.unpaid.length}`,
+			checklist.unpaid,
+			'open'
+		)}
 	{/if}
 	{#if checklist.paid.length > 0}
-		{@render section('Paid', `${checklist.paid.length}`, checklist.paid, 'paid')}
+		{@render section('Routed', `${checklist.paid.length}`, checklist.paid, 'done')}
+	{/if}
+	{#if checklist.skipped.length > 0}
+		{@render section('Skipped', `${checklist.skipped.length}`, checklist.skipped, 'skipped')}
 	{/if}
 </div>
 
@@ -68,8 +92,7 @@
 	}
 
 	h2 {
-		font-size: var(--text-lg);
-		font-weight: 750;
+		font-size: 1.45rem;
 	}
 
 	.count {

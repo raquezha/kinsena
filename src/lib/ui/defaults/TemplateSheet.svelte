@@ -2,15 +2,19 @@
 	import { enhance } from '$app/forms';
 	import { FormState } from '../../client/form-state.svelte.ts';
 	import { closeSheet } from '../../client/sheet-route.ts';
-	import { CADENCE_LABELS } from '../../domain/cadence.ts';
-	import type { TemplateItem } from '../../domain/models.ts';
+	import { FUND_FROM_LABELS, FUND_FROMS } from '../../domain/fund-from.ts';
+	import type { Destination, TemplateItem } from '../../domain/models.ts';
 	import { formatEdit } from '../../domain/money.ts';
 	import ConfirmButton from '../checklist/ConfirmButton.svelte';
+	import DestinationSelect from '../checklist/DestinationSelect.svelte';
 	import Sheet from '../overlay/Sheet.svelte';
 
-	let { template }: { template: TemplateItem | undefined } = $props();
+	let {
+		template,
+		destinations
+	}: { template: TemplateItem | undefined; destinations: Destination[] } = $props();
 
-	const amount = new FormState();
+	const form = new FormState();
 	const archive = new FormState();
 	let shown: TemplateItem | undefined = $state();
 	$effect(() => {
@@ -21,7 +25,7 @@
 <Sheet
 	open={template !== undefined}
 	title={shown?.name ?? 'Saved item'}
-	description={shown ? CADENCE_LABELS[shown.cadence] : undefined}
+	description={shown ? FUND_FROM_LABELS[shown.fundFrom] : undefined}
 	closeHref="/defaults"
 	onclose={closeSheet}
 >
@@ -29,11 +33,15 @@
 		<div class="stack">
 			<form
 				method="POST"
-				action="?/amount"
+				action="?/update"
 				class="stack"
-				use:enhance={amount.enhance({ success: 'Default amount saved' })}
+				use:enhance={form.enhance({ success: 'Saved item updated' })}
 			>
 				<input type="hidden" name="templateId" value={shown.id} />
+				<label class="field">
+					<span>Name</span>
+					<input class="input" name="name" required maxlength="128" value={shown.name} />
+				</label>
 				<label class="field">
 					<span>Default amount</span>
 					<input
@@ -43,10 +51,38 @@
 						autocomplete="off"
 						value={shown.defaultAmount === null ? '' : formatEdit(shown.defaultAmount)}
 					/>
-					<small>Used for new cycles only. Past cycles keep their amounts.</small>
 				</label>
-				{#if amount.error}<p class="form-error" role="alert">{amount.error}</p>{/if}
-				<button class="button primary block" type="submit" disabled={amount.busy}>Save</button>
+				<label class="field">
+					<span>Minimum</span>
+					<input
+						class="input money"
+						name="minimum"
+						inputmode="decimal"
+						autocomplete="off"
+						value={shown.minimumAmount === null ? '' : formatEdit(shown.minimumAmount)}
+					/>
+				</label>
+				<label class="field">
+					<span>Due day of month</span>
+					<input
+						class="input"
+						name="dueDay"
+						inputmode="numeric"
+						maxlength="2"
+						value={shown.dueDay ?? ''}
+					/>
+				</label>
+				<label class="field">
+					<span>Fund from</span>
+					<select class="input" name="fundFrom">
+						{#each FUND_FROMS as value (value)}
+							<option {value} selected={value === shown.fundFrom}>{FUND_FROM_LABELS[value]}</option>
+						{/each}
+					</select>
+				</label>
+				<DestinationSelect {destinations} value={shown.destinationId} />
+				{#if form.error}<p class="form-error" role="alert">{form.error}</p>{/if}
+				<button class="button primary block" type="submit" disabled={form.busy}>Save</button>
 			</form>
 			<ConfirmButton
 				action="?/archive"

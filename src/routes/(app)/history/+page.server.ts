@@ -3,11 +3,11 @@ import { formAction } from '#lib/server/http/actions.ts';
 import { fields } from '#lib/server/http/forms.ts';
 import type { Actions, PageServerLoad } from './$types';
 
-export const load: PageServerLoad = ({ locals }) => locals.services.cycles.history();
+export const load: PageServerLoad = ({ locals }) => locals.services.paydays.history();
 
 export const actions: Actions = {
-	reopen: formAction({ cycleId: fields.id }, (form, { cycles }) => {
-		cycles.reopen(form.cycleId);
+	reopen: formAction({ paydayId: fields.id }, (form, { paydays }) => {
+		paydays.reopen(form.paydayId);
 		redirect(303, '/');
 	})
 };

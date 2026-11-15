@@ -14,11 +14,10 @@
 </svelte:head>
 
 <main class="login">
-	<div class="glow" aria-hidden="true"></div>
 	<section class="card" in:fly={{ y: 16, duration: 420 }}>
 		<Logo size={72} animate />
 		<h1>Kinsena</h1>
-		<p class="tagline">Your payday checklist</p>
+		<p class="tagline">Your payday routing checklist</p>
 		<form
 			method="POST"
 			use:enhance={() => {
@@ -66,14 +65,6 @@
 		overflow: hidden;
 	}
 
-	.glow {
-		position: absolute;
-		inset: -20% -40% auto;
-		height: 70%;
-		background: radial-gradient(circle at 50% 40%, rgb(181 216 193 / 0.16), transparent 60%);
-		animation: breathe 7s ease-in-out infinite alternate;
-	}
-
 	.card {
 		position: relative;
 		width: min(100%, 380px);
@@ -81,18 +72,15 @@
 		justify-items: center;
 		gap: var(--space-2);
 		padding: var(--space-8) var(--space-6);
-		background: rgb(19 26 22 / 0.82);
-		border: 1px solid var(--border);
-		border-radius: var(--radius-xl);
+		background: var(--surface);
+		border: 2px solid var(--border);
+		border-radius: var(--radius-md);
 		box-shadow: var(--shadow-card);
-		backdrop-filter: blur(12px);
 	}
 
 	h1 {
 		margin-top: var(--space-3);
-		font-size: 1.75rem;
-		font-weight: 800;
-		letter-spacing: -0.03em;
+		font-size: 2.4rem;
 	}
 
 	.tagline {
@@ -127,15 +115,7 @@
 		}
 	}
 
-	@keyframes breathe {
-		to {
-			transform: scale(1.12);
-			opacity: 0.7;
-		}
-	}
-
 	@media (prefers-reduced-motion: reduce) {
-		.glow,
 		.shake {
 			animation: none;
 		}

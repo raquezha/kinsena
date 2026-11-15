@@ -1,10 +1,12 @@
 <script lang="ts">
 	import { page } from '$app/state';
+	import type { Payday } from '../../domain/models.ts';
 	import Logo from '../brand/Logo.svelte';
 	import Icon from '../icons/Icon.svelte';
+	import PaydayRail from '../payday/PaydayRail.svelte';
 	import { isCurrent, NAV_ITEMS } from './nav-items.ts';
 
-	let { version }: { version: string } = $props();
+	let { version, paydays = [] }: { version: string; paydays?: Payday[] } = $props();
 </script>
 
 <nav class="nav" aria-label="Main">
@@ -24,8 +26,9 @@
 			</li>
 		{/each}
 	</ul>
+	<PaydayRail {paydays} />
 	<p class="foot">
-		<span>Press <kbd class="kbd">n</kbd> to add an item</span>
+		<span>Shortcuts: <kbd class="kbd">n</kbd> add, <kbd class="kbd">i</kbd> salary in</span>
 		<span>Kinsena {version}</span>
 	</p>
 </nav>
@@ -37,9 +40,8 @@
 		inset: auto 0 0 0;
 		height: calc(var(--nav-height) + var(--safe-bottom));
 		padding: 0 var(--space-2) var(--safe-bottom);
-		background: rgb(10 14 12 / 0.86);
-		backdrop-filter: blur(18px) saturate(1.4);
-		border-top: 1px solid var(--border-subtle);
+		background: var(--surface);
+		border-top: 2px solid var(--chrome);
 		view-transition-name: nav;
 	}
 
@@ -77,8 +79,8 @@
 	}
 
 	li a[aria-current='page'] {
-		color: var(--accent);
-		background: var(--accent-soft);
+		color: var(--accent-ink);
+		background: var(--accent);
 	}
 
 	.icon {
@@ -102,7 +104,6 @@
 		}
 	}
 
-	/* Tablet: a slim icon rail on the left */
 	@media (min-width: 640px) {
 		.nav {
 			inset: 0 auto 0 0;
@@ -115,6 +116,7 @@
 			flex-direction: column;
 			align-items: center;
 			gap: var(--space-6);
+			overflow: auto;
 		}
 
 		.brand {
@@ -138,7 +140,6 @@
 		}
 	}
 
-	/* Desktop: a full sidebar with labels and shortcut hints */
 	@media (min-width: 1100px) {
 		.nav {
 			width: var(--sidebar-width);
@@ -154,9 +155,11 @@
 
 		.brand-name {
 			display: inline;
-			font-size: var(--text-xl);
-			font-weight: 800;
-			letter-spacing: -0.02em;
+			font-family: var(--font-display);
+			font-size: 1.7rem;
+			font-weight: 400;
+			letter-spacing: var(--display-tracking);
+			text-transform: uppercase;
 		}
 
 		li a {

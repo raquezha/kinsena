@@ -3,10 +3,13 @@ import { deserialize, type ActionResult } from '$app/forms';
 /** Calls a form action from code (undo, swipe), the same way use:enhance does. */
 export async function postAction(
 	action: string,
-	fields: Record<string, string | number | boolean>
+	fields: Record<string, string | number | boolean | null | undefined>
 ): Promise<ActionResult> {
 	const body = new FormData();
-	for (const [key, value] of Object.entries(fields)) body.set(key, String(value));
+	for (const [key, value] of Object.entries(fields)) {
+		if (value === null || value === undefined) body.set(key, '');
+		else body.set(key, String(value));
+	}
 	try {
 		const response = await fetch(action, {
 			method: 'POST',

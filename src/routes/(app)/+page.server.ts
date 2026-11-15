@@ -2,46 +2,83 @@ import { formAction } from '#lib/server/http/actions.ts';
 import { fields } from '#lib/server/http/forms.ts';
 import type { Actions, PageServerLoad } from './$types';
 
-export const load: PageServerLoad = ({ locals }) => ({
-	active: locals.services.cycles.getActive(),
-	savedCount: locals.services.templates.list().length
-});
+export const load: PageServerLoad = ({ locals, url }) => {
+	const raw = url.searchParams.get('p');
+	const preferredId = raw && Number.isInteger(Number(raw)) ? Number(raw) : null;
+	const active = locals.services.paydays.active(preferredId);
+	const next = active ? locals.services.paydays.findNext(active.payday.id) : null;
+	return { active, nextScheduledDate: next?.scheduledDate ?? null };
+};
 
-const cycleId = fields.id;
+const paydayId = fields.id;
 const itemId = fields.id;
+const itemFields = {
+	name: fields.name,
+	amount: fields.amount,
+	minimum: fields.amount,
+	dueDate: fields.date,
+	destinationId: fields.optionalId
+};
 
 export const actions: Actions = {
-	start: formAction(
-		{ title: fields.title, cadence: fields.cadence, salary: fields.amount },
-		(form, { cycles }) => ({ cycleId: cycles.start(form) })
+	receive: formAction({ paydayId, salary: fields.amount }, (form, { paydays }) =>
+		paydays.receive(form.paydayId, form.salary)
 	),
-	salary: formAction({ cycleId, salary: fields.amount }, (form, { cycles }) =>
-		cycles.setSalary(form.cycleId, form.salary)
+	expected: formAction({ paydayId, salary: fields.amount }, (form, { paydays }) =>
+		paydays.setExpected(form.paydayId, form.salary)
 	),
-	note: formAction({ cycleId, note: fields.note }, (form, { cycles }) =>
-		cycles.setNote(form.cycleId, form.note)
+	payDate: formAction({ paydayId, payDate: fields.date }, (form, { paydays }) =>
+		paydays.setPayDate(form.paydayId, form.payDate)
 	),
-	finish: formAction({ cycleId }, (form, { cycles }) => cycles.finish(form.cycleId)),
-	clear: formAction({ cycleId }, (form, { cycles }) => cycles.clear(form.cycleId)),
-	add: formAction({ cycleId, name: fields.name, amount: fields.amount }, (form, { items }) => ({
-		itemId: items.add(form.cycleId, form.name, form.amount)
+	note: formAction({ paydayId, note: fields.note }, (form, { paydays }) =>
+		paydays.setNote(form.paydayId, form.note)
+	),
+	finish: formAction({ paydayId }, (form, { paydays }) => paydays.close(form.paydayId)),
+	other: formAction(
+		{ title: fields.title, date: fields.date, salary: fields.amount },
+		(form, { paydays }) => ({ paydayId: paydays.createOther(form) })
+	),
+	add: formAction({ paydayId: fields.optionalId, ...itemFields }, (form, { items }) => ({
+		itemId: items.add(form)
 	})),
+	update: formAction({ itemId, ...itemFields }, (form, { items }) =>
+		items.update(form.itemId, form)
+	),
+	decide: formAction(
+		{ itemId, decision: fields.decision, amount: fields.amount },
+		(form, { items }) => items.decide(form.itemId, form.decision, form.amount)
+	),
+	skip: formAction({ itemId, moveToNext: fields.flag }, (form, { items }) =>
+		items.skip(form.itemId, form.moveToNext)
+	),
 	toggle: formAction({ itemId }, (form, { items }) => ({
 		itemId: form.itemId,
-		paid: items.toggle(form.itemId)
+		done: items.toggleDone(form.itemId)
 	})),
-	amount: formAction({ itemId, amount: fields.amount }, (form, { items }) =>
-		items.setAmount(form.itemId, form.amount)
+	assign: formAction({ itemId, paydayId: fields.optionalId }, (form, { items }) =>
+		items.assign(form.itemId, form.paydayId)
 	),
 	remove: formAction({ itemId }, (form, { items }) => ({ removed: items.remove(form.itemId) })),
 	restore: formAction(
 		{
-			cycleId,
+			paydayId: fields.optionalId,
+			destinationId: fields.optionalId,
 			name: fields.name,
-			amountExpr: fields.amount,
+			fullAmountExpr: fields.amount,
+			minimumAmount: fields.cents,
+			chosenAmount: fields.cents,
+			decision: fields.decision,
+			dueDate: fields.date,
 			isDone: fields.flag,
-			sortOrder: fields.position
+			sortOrder: fields.position,
+			templateId: fields.optionalId
 		},
-		(form, { items }) => ({ itemId: items.restore(form) })
+		(form, { items }) => ({
+			itemId: items.restore({
+				...form,
+				chosenAmount: form.chosenAmount ?? 0,
+				dueDate: form.dueDate.trim() === '' ? null : form.dueDate
+			})
+		})
 	)
 };

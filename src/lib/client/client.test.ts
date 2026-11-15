@@ -1,16 +1,22 @@
 import { describe, expect, it } from 'vitest';
-import type { CycleItem } from '../domain/models.ts';
+import type { RouteItem } from '../domain/models.ts';
 import { hide, NO_CHANGES, setPaid, settle, withPending } from './optimistic.ts';
 import { shortcutFor } from './shortcuts.ts';
 
-const item = (id: number, isDone = false): CycleItem => ({
+const item = (id: number, isDone = false): RouteItem => ({
 	id,
-	cycleId: 1,
+	paydayId: 1,
+	destinationId: null,
 	name: `Item ${id}`,
-	amount: 100,
-	amountExpr: '1',
+	fullAmount: 100,
+	fullAmountExpr: '1',
+	minimumAmount: null,
+	chosenAmount: 0,
+	decision: 'PENDING',
+	dueDate: null,
 	isDone,
-	sortOrder: id
+	sortOrder: id,
+	templateId: null
 });
 
 describe('optimistic checklist', () => {
@@ -20,7 +26,7 @@ describe('optimistic checklist', () => {
 		expect(withPending(items, NO_CHANGES).map((entry) => entry.id)).toEqual([1, 2, 3]);
 	});
 
-	it('applies paid changes and moves paid items down', () => {
+	it('applies done changes and moves done items down', () => {
 		const pending = setPaid(setPaid(NO_CHANGES, 1, true), 3, false);
 		const shown = withPending(items, pending);
 		expect(shown.map((entry) => [entry.id, entry.isDone])).toEqual([
@@ -57,6 +63,7 @@ describe('keyboard shortcuts', () => {
 		expect(press('2')).toEqual({ kind: 'navigate', href: '/history' });
 		expect(press('N')).toEqual({ kind: 'sheet', name: 'add' });
 		expect(press('c')).toEqual({ kind: 'sheet', name: 'cycle' });
+		expect(press('i')).toEqual({ kind: 'sheet', name: 'receive' });
 		expect(press('x')).toEqual({ kind: 'none' });
 	});
 

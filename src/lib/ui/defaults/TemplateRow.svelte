@@ -1,17 +1,27 @@
 <script lang="ts">
 	import { openSheet, sheetHref } from '../../client/sheet-route.ts';
-	import { CADENCE_LABELS } from '../../domain/cadence.ts';
 	import type { CurrencyCode } from '../../domain/currency.ts';
-	import type { TemplateItem } from '../../domain/models.ts';
+	import { FUND_FROM_LABELS } from '../../domain/fund-from.ts';
+	import type { Destination, TemplateItem } from '../../domain/models.ts';
 	import { formatMoney } from '../../domain/money.ts';
 	import Icon from '../icons/Icon.svelte';
 
-	let { template, currency }: { template: TemplateItem; currency: CurrencyCode } = $props();
+	let {
+		template,
+		currency,
+		destinations
+	}: {
+		template: TemplateItem;
+		currency: CurrencyCode;
+		destinations: Destination[];
+	} = $props();
+
+	const destination = $derived(destinations.find((entry) => entry.id === template.destinationId));
 	const sheet = $derived(`saved-${template.id}`);
 </script>
 
 <a
-	class="saved-row"
+	class="row"
 	href={sheetHref(sheet)}
 	data-sveltekit-noscroll
 	onclick={(event) => {
@@ -21,68 +31,55 @@
 >
 	<span class="titles">
 		<span class="name">{template.name}</span>
-		<span class="cadence">{CADENCE_LABELS[template.cadence]}</span>
+		<span class="meta">
+			{FUND_FROM_LABELS[template.fundFrom]}
+			{#if template.dueDay}
+				· Due day {template.dueDay}{/if}
+			{#if destination}
+				· {destination.name}{/if}
+		</span>
 	</span>
-	<span class="amount tabular" class:varies={template.defaultAmount === null}>
+	<span class="amount tabular">
 		{template.defaultAmount === null ? 'Varies' : formatMoney(template.defaultAmount, currency)}
 	</span>
 	<span class="chevron" aria-hidden="true"><Icon name="chevron" size={18} /></span>
 </a>
 
 <style>
-	.saved-row {
+	.row {
 		display: flex;
 		align-items: center;
 		gap: var(--space-3);
 		min-height: 64px;
-		padding: var(--space-2) var(--space-3) var(--space-2) var(--space-4);
+		padding: 0 var(--space-4);
 		border-radius: var(--radius-md);
 		border: 1px solid var(--border-subtle);
 		background: var(--surface);
 		color: inherit;
 		text-decoration: none;
-		transition:
-			background var(--duration-base),
-			border-color var(--duration-base);
 	}
 
 	.titles {
 		flex: 1;
 		min-width: 0;
 		display: grid;
+		gap: 2px;
 	}
 
 	.name {
-		font-weight: 650;
-		overflow: hidden;
-		text-overflow: ellipsis;
-		white-space: nowrap;
+		font-weight: 700;
 	}
 
-	.cadence {
+	.meta {
 		color: var(--text-dim);
-		font-size: var(--text-xs);
-		font-weight: 600;
+		font-size: var(--text-sm);
 	}
 
 	.amount {
 		font-weight: 700;
 	}
 
-	.varies {
-		color: var(--text-dim);
-		font-weight: 600;
-	}
-
 	.chevron {
-		display: grid;
 		color: var(--text-dim);
-	}
-
-	@media (hover: hover) {
-		.saved-row:hover {
-			background: var(--surface-hover);
-			border-color: var(--border);
-		}
 	}
 </style>

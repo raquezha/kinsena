@@ -46,8 +46,11 @@
 	}
 
 	legend {
-		font-size: var(--text-lg);
-		font-weight: 750;
+		font-family: var(--font-display);
+		font-size: 1.45rem;
+		letter-spacing: var(--display-tracking);
+		text-transform: uppercase;
+		font-weight: 400;
 	}
 
 	.hint {
@@ -97,7 +100,7 @@
 	.symbol {
 		width: 36px;
 		font-weight: 800;
-		color: var(--accent);
+		color: var(--accent-text);
 	}
 
 	.label {

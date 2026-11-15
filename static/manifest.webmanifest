@@ -1,12 +1,12 @@
 {
 	"name": "Kinsena",
 	"short_name": "Kinsena",
-	"description": "A small payday checklist",
+	"description": "A payday routing checklist for bills, statements, and transfers",
 	"start_url": "/",
 	"scope": "/",
 	"display": "standalone",
-	"background_color": "#040403",
-	"theme_color": "#0b100d",
+	"background_color": "#0b1528",
+	"theme_color": "#0b1528",
 	"icons": [
 		{ "src": "/icon.svg", "sizes": "any", "type": "image/svg+xml", "purpose": "any" },
 		{ "src": "/icon-192.png", "sizes": "192x192", "type": "image/png", "purpose": "any" },

@@ -22,7 +22,8 @@
 </script>
 
 {#if size === 'hero'}
-	<span class="hero tabular" aria-label={formatMoney(cents, currency)}>
+	<span class="hero tabular">
+		<span class="visually-hidden">{formatMoney(cents, currency)}</span>
 		<span class="symbol" aria-hidden="true">{currencySymbol(currency)}</span>
 		<span class="whole" aria-hidden="true">{parts.whole}</span>
 		<span class="fraction" aria-hidden="true">.{parts.fraction}</span>
@@ -37,8 +38,9 @@
 		align-items: baseline;
 		gap: 2px;
 		line-height: 1;
-		font-weight: 800;
-		letter-spacing: -0.04em;
+		font-family: var(--font-display);
+		font-weight: 400;
+		letter-spacing: 0.02em;
 	}
 
 	.symbol {

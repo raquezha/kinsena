@@ -5,7 +5,7 @@
 	import type { CurrencyCode } from '../../domain/currency.ts';
 	import { hasKnownAmount } from '../../domain/models.ts';
 	import { formatMoney } from '../../domain/money.ts';
-	import type { CycleView } from '../../domain/summary.ts';
+	import type { PaydayView } from '../../domain/summary.ts';
 	import { formatCycleDate } from '../checklist/dates.ts';
 	import Icon from '../icons/Icon.svelte';
 
@@ -13,11 +13,11 @@
 		view,
 		currency,
 		reopenable
-	}: { view: CycleView; currency: CurrencyCode; reopenable: boolean } = $props();
+	}: { view: PaydayView; currency: CurrencyCode; reopenable: boolean } = $props();
 
 	let expanded = $state(false);
 	const reopen = new FormState();
-	const { cycle, summary } = $derived(view);
+	const { payday, summary } = $derived(view);
 </script>
 
 <article class="history-card" class:expanded>
@@ -28,15 +28,15 @@
 		onclick={() => (expanded = !expanded)}
 	>
 		<span class="titles">
-			<span class="title">{cycle.title}</span>
-			<span class="meta"
-				>{formatCycleDate(cycle.date)} · {summary.doneCount} of {summary.itemCount} paid</span
-			>
+			<span class="title">{payday.title}</span>
+			<span class="meta">
+				{formatCycleDate(payday.scheduledDate)} · {summary.doneCount} of {summary.itemCount} routed
+			</span>
 		</span>
 		<span class="figures">
-			<span class="paid tabular">{formatMoney(summary.paid, currency)}</span>
-			{#if summary.leftover !== null}
-				<span class="leftover tabular">Leftover {formatMoney(summary.leftover, currency)}</span>
+			<span class="paid tabular">{formatMoney(summary.routed, currency)}</span>
+			{#if summary.leftToRoute !== null}
+				<span class="leftover tabular">Kept {formatMoney(summary.leftToRoute, currency)}</span>
 			{/if}
 		</span>
 		<span class="chevron" aria-hidden="true"><Icon name="chevron" size={18} /></span>
@@ -44,26 +44,28 @@
 
 	{#if expanded}
 		<div class="details" transition:slide={{ duration: 260 }}>
-			{#if cycle.note}<p class="note">{cycle.note}</p>{/if}
+			{#if payday.note}<p class="note">{payday.note}</p>{/if}
 			<ul>
 				{#each view.items as item (item.id)}
 					<li class:done={item.isDone}>
-						<span class="mark" aria-label={item.isDone ? 'Paid' : 'Not paid'}>
+						<span class="mark" aria-label={item.isDone ? 'Routed' : item.decision}>
 							{#if item.isDone}<Icon name="check" size={14} stroke={3} />{/if}
 						</span>
 						<span class="name">{item.name}</span>
 						<span class="tabular">
-							{hasKnownAmount(item) ? formatMoney(item.amount, currency) : 'No amount'}
+							{hasKnownAmount(item)
+								? formatMoney(item.chosenAmount || item.fullAmount, currency)
+								: 'No amount'}
 						</span>
 					</li>
 				{/each}
 			</ul>
 			{#if reopenable}
 				<form method="POST" action="?/reopen" use:enhance={reopen.enhance({ close: false })}>
-					<input type="hidden" name="cycleId" value={cycle.id} />
+					<input type="hidden" name="paydayId" value={payday.id} />
 					{#if reopen.error}<p class="form-error" role="alert">{reopen.error}</p>{/if}
 					<button class="button block" type="submit" disabled={reopen.busy}
-						>Reopen this cycle</button
+						>Reopen this payday</button
 					>
 				</form>
 			{/if}

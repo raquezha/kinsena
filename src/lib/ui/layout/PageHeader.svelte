@@ -23,9 +23,7 @@
 	}
 
 	h1 {
-		font-size: 1.75rem;
-		font-weight: 800;
-		letter-spacing: -0.02em;
+		font-size: 2.1rem;
 	}
 
 	p {
@@ -36,5 +34,20 @@
 
 	.actions {
 		flex: none;
+		display: flex;
+		flex-wrap: wrap;
+		justify-content: flex-end;
+		gap: var(--space-2);
+	}
+
+	@media (max-width: 639.98px) {
+		.page-header {
+			flex-direction: column;
+			align-items: stretch;
+		}
+
+		.actions {
+			justify-content: flex-start;
+		}
 	}
 </style>

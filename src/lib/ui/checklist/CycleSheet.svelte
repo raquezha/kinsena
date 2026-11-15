@@ -2,41 +2,76 @@
 	import { enhance } from '$app/forms';
 	import { FormState } from '../../client/form-state.svelte.ts';
 	import { closeSheet } from '../../client/sheet-route.ts';
-	import type { Cycle } from '../../domain/models.ts';
+	import { isReceived, type Payday } from '../../domain/models.ts';
 	import { formatEdit } from '../../domain/money.ts';
 	import Sheet from '../overlay/Sheet.svelte';
 	import ConfirmButton from './ConfirmButton.svelte';
 
-	let { open, cycle, itemCount }: { open: boolean; cycle: Cycle; itemCount: number } = $props();
+	let {
+		open,
+		payday,
+		unpaidCount,
+		missingCount
+	}: {
+		open: boolean;
+		payday: Payday;
+		unpaidCount: number;
+		missingCount: number;
+	} = $props();
 
-	const salary = new FormState();
+	const expected = new FormState();
+	const payDate = new FormState();
 	const note = new FormState();
 	const finish = new FormState();
-	const clear = new FormState();
+	const received = $derived(isReceived(payday));
+	const finishHint = $derived.by(() => {
+		const parts: string[] = [];
+		if (unpaidCount > 0) parts.push(`${unpaidCount} not routed yet`);
+		if (missingCount > 0) parts.push(`${missingCount} missing amounts`);
+		return parts.length ? parts.join(', ') + '. Leftover will be kept.' : 'Leftover will be kept.';
+	});
 </script>
 
-<Sheet {open} title="This payday" description={cycle.title} closeHref="/" onclose={closeSheet}>
+<Sheet {open} title="This payday" description={payday.title} closeHref="./" onclose={closeSheet}>
 	<div class="sections">
+		{#if !received}
+			<form
+				method="POST"
+				action="?/expected"
+				class="stack"
+				use:enhance={expected.enhance({ success: 'Expected salary saved' })}
+			>
+				<input type="hidden" name="paydayId" value={payday.id} />
+				<label class="field">
+					<span>Expected salary</span>
+					<input
+						class="input money"
+						name="salary"
+						inputmode="decimal"
+						autocomplete="off"
+						value={payday.expectedAmount === null ? '' : formatEdit(payday.expectedAmount)}
+					/>
+				</label>
+				{#if expected.error}<p class="form-error" role="alert">{expected.error}</p>{/if}
+				<button class="button primary block" type="submit" disabled={expected.busy}
+					>Save expected salary</button
+				>
+			</form>
+		{/if}
+
 		<form
 			method="POST"
-			action="?/salary"
+			action="?/payDate"
 			class="stack"
-			use:enhance={salary.enhance({ success: 'Salary saved' })}
+			use:enhance={payDate.enhance({ success: 'Pay date saved' })}
 		>
-			<input type="hidden" name="cycleId" value={cycle.id} />
+			<input type="hidden" name="paydayId" value={payday.id} />
 			<label class="field">
-				<span>Salary</span>
-				<input
-					class="input money"
-					name="salary"
-					inputmode="decimal"
-					autocomplete="off"
-					value={cycle.salary === null ? '' : formatEdit(cycle.salary)}
-				/>
-				<small>Leftover is salary minus every item, paid or not.</small>
+				<span>Pay date</span>
+				<input class="input" name="payDate" type="date" value={payday.payDate} />
 			</label>
-			{#if salary.error}<p class="form-error" role="alert">{salary.error}</p>{/if}
-			<button class="button primary block" type="submit" disabled={salary.busy}>Save salary</button>
+			{#if payDate.error}<p class="form-error" role="alert">{payDate.error}</p>{/if}
+			<button class="button block" type="submit" disabled={payDate.busy}>Save pay date</button>
 		</form>
 
 		<form
@@ -45,37 +80,31 @@
 			class="stack"
 			use:enhance={note.enhance({ success: 'Note saved' })}
 		>
-			<input type="hidden" name="cycleId" value={cycle.id} />
+			<input type="hidden" name="paydayId" value={payday.id} />
 			<label class="field">
 				<span>Note</span>
-				<textarea class="input" name="note" maxlength="280" rows="2">{cycle.note ?? ''}</textarea>
+				<textarea class="input" name="note" maxlength="280" rows="2">{payday.note ?? ''}</textarea>
 			</label>
 			{#if note.error}<p class="form-error" role="alert">{note.error}</p>{/if}
 			<button class="button block" type="submit" disabled={note.busy}>Save note</button>
 		</form>
 
+		<p>
+			<a href="?sheet=other">Add a one-off payday</a>
+		</p>
+
 		<div class="stack danger-zone">
+			<p class="hint">{finishHint}</p>
 			<ConfirmButton
 				action="?/finish"
-				fields={{ cycleId: cycle.id }}
+				fields={{ paydayId: payday.id }}
 				confirm="Yes, finish it"
-				onsubmit={finish.enhance({ success: 'Cycle finished. It is in History.' })}
+				onsubmit={finish.enhance({ success: 'Payday finished. It is in History.' })}
 			>
-				Finish payday cycle
+				Finish payday
 			</ConfirmButton>
-			{#if itemCount > 0}
-				<ConfirmButton
-					action="?/clear"
-					fields={{ cycleId: cycle.id }}
-					confirm="Yes, remove all {itemCount}"
-					tone="danger"
-					onsubmit={clear.enhance({ success: 'List cleared' })}
-				>
-					Clear list
-				</ConfirmButton>
-			{/if}
-			{#if finish.error || clear.error}
-				<p class="form-error" role="alert">{finish.error ?? clear.error}</p>
+			{#if finish.error}
+				<p class="form-error" role="alert">{finish.error}</p>
 			{/if}
 		</div>
 	</div>
@@ -85,6 +114,11 @@
 	.sections {
 		display: grid;
 		gap: var(--space-6);
+	}
+
+	.hint {
+		color: var(--text-muted);
+		font-size: var(--text-sm);
 	}
 
 	.danger-zone {

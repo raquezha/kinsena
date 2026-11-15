@@ -7,14 +7,35 @@ export const load: PageServerLoad = ({ locals }) => ({
 });
 
 const templateId = fields.id;
+const destinationId = fields.id;
+const templateFields = {
+	name: fields.name,
+	amount: fields.amount,
+	minimum: fields.amount,
+	dueDay: fields.dueDay,
+	fundFrom: fields.fundFrom,
+	destinationId: fields.optionalId
+};
 
 export const actions: Actions = {
-	add: formAction(
-		{ name: fields.name, amount: fields.amount, cadence: fields.cadence },
-		(form, { templates }) => ({ templateId: templates.add(form) })
+	add: formAction(templateFields, (form, { templates }) => ({
+		templateId: templates.add(form)
+	})),
+	update: formAction({ templateId, ...templateFields }, (form, { templates }) =>
+		templates.update(form.templateId, form)
 	),
-	amount: formAction({ templateId, amount: fields.amount }, (form, { templates }) =>
-		templates.updateAmount(form.templateId, form.amount)
+	archive: formAction({ templateId }, (form, { templates }) => templates.archive(form.templateId)),
+	addDestination: formAction(
+		{ name: fields.name, kind: fields.kind },
+		(form, { destinations }) => ({
+			destinationId: destinations.add(form.name, form.kind)
+		})
 	),
-	archive: formAction({ templateId }, (form, { templates }) => templates.archive(form.templateId))
+	updateDestination: formAction(
+		{ destinationId, name: fields.name, kind: fields.kind },
+		(form, { destinations }) => destinations.update(form.destinationId, form.name, form.kind)
+	),
+	archiveDestination: formAction({ destinationId }, (form, { destinations }) =>
+		destinations.archive(form.destinationId)
+	)
 };

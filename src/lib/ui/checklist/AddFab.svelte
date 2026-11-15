@@ -28,12 +28,11 @@
 		place-items: center;
 		width: 60px;
 		height: 60px;
-		border-radius: 20px;
+		border-radius: 8px;
+		border: 2px solid var(--accent-ink);
 		background: var(--accent);
 		color: var(--accent-ink);
-		box-shadow:
-			0 10px 28px rgb(181 216 193 / 0.28),
-			0 4px 12px rgb(0 0 0 / 0.5);
+		box-shadow: var(--shadow-float);
 		transition: transform var(--duration-fast) var(--ease-out);
 	}
 

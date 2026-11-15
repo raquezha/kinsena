@@ -1,9 +1,9 @@
-import type { CycleItem } from '../domain/models.ts';
+import type { RouteItem } from '../domain/models.ts';
 import { sortForChecklist } from '../domain/summary.ts';
 
 /** Changes shown before the server confirms them. */
 export interface PendingChanges {
-	/** item id -> paid state the user just chose */
+	/** item id -> done state the user just chose */
 	paid: ReadonlyMap<number, boolean>;
 	/** items the user just deleted */
 	hidden: ReadonlySet<number>;
@@ -12,7 +12,7 @@ export interface PendingChanges {
 export const NO_CHANGES: PendingChanges = { paid: new Map(), hidden: new Set() };
 
 /** Server items with the user's unconfirmed changes applied, in checklist order. */
-export function withPending(items: CycleItem[], pending: PendingChanges): CycleItem[] {
+export function withPending(items: RouteItem[], pending: PendingChanges): RouteItem[] {
 	const visible = items
 		.filter((item) => !pending.hidden.has(item.id))
 		.map((item) => {

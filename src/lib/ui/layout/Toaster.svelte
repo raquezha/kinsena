@@ -59,16 +59,16 @@
 		gap: var(--space-2);
 		min-height: 52px;
 		padding: var(--space-2) var(--space-2) var(--space-2) var(--space-4);
-		background: #212b25;
-		border: 1px solid var(--border-strong);
-		border-radius: var(--radius-md);
+		background: var(--surface-raised);
+		border: 2px solid var(--chrome);
+		border-radius: var(--radius-sm);
 		box-shadow: var(--shadow-float);
 		font-size: var(--text-sm);
 		font-weight: 600;
 	}
 
 	.toast.error {
-		border-color: rgb(243 170 164 / 0.4);
+		border-color: var(--danger-solid);
 		color: var(--danger);
 	}
 
@@ -85,7 +85,7 @@
 		border: 0;
 		border-radius: var(--radius-sm);
 		background: transparent;
-		color: var(--accent);
+		color: var(--accent-text);
 		font-weight: 700;
 	}
 

@@ -2,20 +2,38 @@
 	import { Checklist as ChecklistState } from '../../client/checklist.svelte.ts';
 	import { currentSheet } from '../../client/sheet-route.ts';
 	import type { CurrencyCode } from '../../domain/currency.ts';
-	import type { CycleView } from '../../domain/summary.ts';
+	import type { Destination } from '../../domain/models.ts';
+	import type { PaydayView } from '../../domain/summary.ts';
+	import PaydaySwitcher from '../payday/PaydaySwitcher.svelte';
 	import AddFab from './AddFab.svelte';
 	import AddItemSheet from './AddItemSheet.svelte';
 	import Checklist from './Checklist.svelte';
+	import CustomAmountSheet from './CustomAmountSheet.svelte';
 	import CycleHeader from './CycleHeader.svelte';
 	import CycleSheet from './CycleSheet.svelte';
 	import ItemSheet from './ItemSheet.svelte';
+	import OtherPaydaySheet from './OtherPaydaySheet.svelte';
+	import ReceiveSheet from './ReceiveSheet.svelte';
+	import SkipSheet from './SkipSheet.svelte';
 	import SummaryCard from './SummaryCard.svelte';
 
-	let { view, currency }: { view: CycleView; currency: CurrencyCode } = $props();
+	let {
+		view,
+		currency,
+		destinations,
+		paydays,
+		nextScheduledDate
+	}: {
+		view: PaydayView;
+		currency: CurrencyCode;
+		destinations: Destination[];
+		paydays: import('../../domain/models.ts').Payday[];
+		nextScheduledDate: string | null;
+	} = $props();
 
 	const checklist = new ChecklistState({
 		items: () => view.items,
-		salary: () => view.cycle.salary
+		payday: () => view.payday
 	});
 
 	const sheet = $derived(currentSheet());
@@ -24,20 +42,41 @@
 			? checklist.items.find((item) => `item-${item.id}` === sheet)
 			: undefined
 	);
+	const skipping = $derived(
+		sheet?.startsWith('skip-')
+			? checklist.items.find((item) => `skip-${item.id}` === sheet)
+			: undefined
+	);
+	const custom = $derived(
+		sheet?.startsWith('custom-')
+			? checklist.items.find((item) => `custom-${item.id}` === sheet)
+			: undefined
+	);
 </script>
 
+<PaydaySwitcher {paydays} activeId={view.payday.id} />
+
 <div class="active">
-	<div class="header"><CycleHeader cycle={view.cycle} /></div>
+	<div class="header"><CycleHeader payday={view.payday} /></div>
 	<div class="summary">
-		<SummaryCard cycle={view.cycle} summary={checklist.summary} {currency} />
+		<SummaryCard payday={view.payday} summary={checklist.summary} {currency} />
 	</div>
-	<div class="list"><Checklist {checklist} {currency} /></div>
+	<div class="list"><Checklist {checklist} {currency} {destinations} /></div>
 </div>
 
 <AddFab />
-<AddItemSheet open={sheet === 'add'} cycleId={view.cycle.id} />
-<CycleSheet open={sheet === 'cycle'} cycle={view.cycle} itemCount={checklist.items.length} />
-<ItemSheet item={editing} {checklist} {currency} />
+<AddItemSheet open={sheet === 'add'} paydayId={view.payday.id} {destinations} />
+<ReceiveSheet open={sheet === 'receive'} payday={view.payday} {currency} />
+<CycleSheet
+	open={sheet === 'cycle'}
+	payday={view.payday}
+	unpaidCount={checklist.unpaid.length}
+	missingCount={checklist.summary.missingCount}
+/>
+<ItemSheet item={editing} {destinations} ondelete={(item) => checklist.remove(item)} />
+<OtherPaydaySheet open={sheet === 'other'} />
+<SkipSheet item={skipping} {nextScheduledDate} />
+<CustomAmountSheet item={custom} />
 
 <style>
 	.active {

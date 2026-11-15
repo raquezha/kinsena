@@ -10,7 +10,8 @@ export const TAB_SHORTCUTS: Record<string, string> = {
 
 export const SHEET_SHORTCUTS: Record<string, string> = {
 	n: 'add',
-	c: 'cycle'
+	c: 'cycle',
+	i: 'receive'
 };
 
 interface KeyInput {

@@ -14,19 +14,19 @@
 
 <PageHeader
 	title="History"
-	description="Finished cycles are read-only. Reopen the latest one if you finished it by mistake."
+	description="Finished paydays are read-only. Reopen the latest one if you finished it by mistake."
 />
 
-{#if data.cycles.length === 0}
-	<p class="empty">No finished cycles yet.</p>
+{#if data.paydays.length === 0}
+	<p class="empty">When you finish a payday it will live here.</p>
 {:else}
 	<ol class="history">
-		{#each data.cycles as view, index (view.cycle.id)}
+		{#each data.paydays as view, index (view.payday.id)}
 			<li animate:flip={{ duration: 260 }} in:fly={{ y: 12, delay: Math.min(index, 8) * 40 }}>
 				<HistoryCard
 					{view}
 					currency={data.currency}
-					reopenable={view.cycle.id === data.reopenableId}
+					reopenable={view.payday.id === data.reopenableId}
 				/>
 			</li>
 		{/each}

@@ -12,7 +12,7 @@ export function nav(page: Page, name: string): Locator {
 	return page.getByRole('navigation', { name: 'Main' }).getByRole('link', { name, exact: true });
 }
 
-export function sheet(page: Page, name: string): Locator {
+export function sheet(page: Page, name: string | RegExp): Locator {
 	return page.getByRole('dialog', { name });
 }
 
@@ -27,42 +27,66 @@ export async function openAddItem(page: Page): Promise<Locator> {
 	return dialog;
 }
 
-export async function addItem(page: Page, name: string, amount = ''): Promise<void> {
+export async function addItem(page: Page, name: string, amount = '', dueDate = ''): Promise<void> {
 	const dialog = await openAddItem(page);
 	await dialog.getByLabel('Name').fill(name);
-	await dialog.getByLabel('Amount').fill(amount);
+	await dialog.getByLabel('Full amount').fill(amount);
+	if (dueDate) await dialog.getByLabel('Due date').fill(dueDate);
 	await dialog.getByRole('button', { name: 'Add item' }).click();
 	await expect(dialog).toBeHidden();
 	await expect(row(page, name)).toBeVisible();
 }
 
 export function row(page: Page, name: string): Locator {
-	return page.locator('.row').filter({ has: page.getByText(name, { exact: true }) });
+	return page.getByRole('listitem').filter({ has: page.getByText(name, { exact: true }) });
 }
 
 export async function addDefault(page: Page, name: string, amount = ''): Promise<void> {
 	await page.goto('/defaults');
-	await page.getByRole('link', { name: 'Add' }).click();
+	await page.getByRole('link', { name: 'Add item' }).click();
 	const dialog = sheet(page, 'New saved item');
 	await dialog.getByLabel('Name').fill(name);
 	await dialog.getByLabel('Default amount').fill(amount);
 	await dialog.getByRole('button', { name: 'Save item' }).click();
 	await expect(dialog).toBeHidden();
-	await expect(page.getByText(name, { exact: true })).toBeVisible();
+	await expect(page.getByText(name, { exact: true }).first()).toBeVisible();
 }
 
-export async function startCycle(page: Page, title: string, salary = ''): Promise<void> {
-	await page.goto('/');
-	await page.getByLabel('Title').fill(title);
-	await page.getByLabel(/^Salary/).fill(salary);
-	await page.getByRole('button', { name: 'Start cycle' }).click();
-	await expect(page.getByRole('heading', { level: 1, name: title })).toBeVisible();
+export async function addDestination(page: Page, name: string, kind = 'Account'): Promise<void> {
+	await page.goto('/defaults');
+	await page.getByRole('link', { name: 'Add destination' }).click();
+	const dialog = sheet(page, 'New destination');
+	await dialog.getByLabel('Name').fill(name);
+	await dialog.getByLabel('Kind').selectOption({ label: kind });
+	await dialog.getByRole('button', { name: 'Save destination' }).click();
+	await expect(dialog).toBeHidden();
 }
 
-export async function finishCycle(page: Page): Promise<void> {
+export async function markSalaryIn(page: Page, amount = ''): Promise<void> {
+	await page
+		.getByRole('link', { name: /Salary in/ })
+		.first()
+		.click();
+	const dialog = sheet(page, 'Salary in');
+	await expect(dialog).toBeVisible();
+	if (amount) await dialog.getByLabel('Amount received').fill(amount);
+	await dialog.getByRole('button', { name: 'Mark received' }).click();
+	await expect(dialog).toBeHidden();
+}
+
+export async function finishPayday(page: Page): Promise<void> {
 	await page.getByRole('link', { name: 'Salary, note and finish' }).click();
 	const dialog = sheet(page, 'This payday');
-	await dialog.getByRole('button', { name: 'Finish payday cycle' }).click();
+	await dialog.getByRole('button', { name: 'Finish payday' }).click();
 	await dialog.getByRole('button', { name: 'Yes, finish it' }).click();
-	await expect(page.getByRole('heading', { name: 'Start a payday' })).toBeVisible();
+	await expect(dialog).toBeHidden();
+}
+
+export async function clearToasts(page: Page): Promise<void> {
+	await page
+		.locator('.toaster')
+		.evaluate((node) => {
+			node.replaceChildren();
+		})
+		.catch(() => undefined);
 }

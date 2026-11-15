@@ -1,11 +1,8 @@
 import { expect, test } from '@playwright/test';
-import { signIn, startCycle } from './support/app.ts';
+import { signIn } from './support/app.ts';
 
 test('uses the navigation and editor style that fits the viewport', async ({ page }, info) => {
 	await signIn(page);
-	if (await page.getByRole('heading', { name: 'Start a payday' }).isVisible()) {
-		await startCycle(page, `Layout ${info.project.name}`);
-	}
 	const navBox = await page.getByRole('navigation', { name: 'Main' }).boundingBox();
 	const viewport = page.viewportSize();
 	if (!navBox || !viewport) throw new Error('missing layout boxes');

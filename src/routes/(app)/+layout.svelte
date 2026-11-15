@@ -27,7 +27,7 @@
 <svelte:window onkeydown={onKeydown} />
 
 <div class="shell">
-	<AppNav version={data.version} />
+	<AppNav version={data.version} paydays={data.openPaydays} />
 	<main class="content">
 		{@render children()}
 	</main>

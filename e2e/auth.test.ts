@@ -28,12 +28,12 @@ test('signs in with a strict, HTTP-only session cookie and logs out', async ({ p
 });
 
 test('blocks cross-site form posts and unauthenticated actions', async ({ page, request }) => {
-	const anonymous = await request.post('/?/start', { form: { title: 'x' } });
+	const anonymous = await request.post('/?/other', { form: { title: 'x', date: '2026-11-20' } });
 	expect(anonymous.status()).toBe(401);
 
 	await signIn(page);
-	const crossSite = await page.request.post('/?/start', {
-		form: { title: 'x' },
+	const crossSite = await page.request.post('/?/other', {
+		form: { title: 'x', date: '2026-11-20' },
 		headers: { origin: 'https://evil.example' }
 	});
 	expect(crossSite.status()).toBe(403);
