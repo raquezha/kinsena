@@ -24,5 +24,9 @@ describe('template assignment', () => {
 		expect(dueDateForPayday({ fundFrom: 'BEFORE_DUE', dueDay: 30 }, end)).toBe('2026-11-30');
 		expect(dueDateForPayday({ fundFrom: 'BEFORE_DUE', dueDay: null }, mid)).toBeNull();
 		expect(dueDateForPayday({ fundFrom: 'MID_MONTH', dueDay: 18 }, mid)).toBe('2026-11-18');
+		expect(dueDateForPayday({ fundFrom: 'EVERY', dueDay: null }, mid)).toBeNull();
+		expect(dueDateForPayday({ fundFrom: 'EVERY', dueDay: 15 }, mid)).toBe('2026-11-15');
+		expect(dueDateForPayday({ fundFrom: 'MID_MONTH', dueDay: 18 }, end)).toBeNull();
+		expect(dueDateForPayday({ fundFrom: 'EVERY', dueDay: 20 }, other)).toBeNull();
 	});
 });

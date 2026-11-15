@@ -5,8 +5,8 @@ export type Decision = (typeof DECISIONS)[number];
 
 export const DECISION_LABELS: Record<Decision, string> = {
 	PENDING: 'Pending',
-	FULL: 'Full',
-	MINIMUM: 'Min',
+	FULL: 'Pay full',
+	MINIMUM: 'Minimum',
 	CUSTOM: 'Custom',
 	SKIPPED: 'Skip'
 };

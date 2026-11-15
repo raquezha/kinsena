@@ -3,7 +3,6 @@ import {
 	compareIsoDate,
 	dueDateInMonth,
 	formatPaydayTitle,
-	formatRouteSign,
 	fromIsoDate,
 	fundPaydayDate,
 	inferCadence,
@@ -44,8 +43,6 @@ describe('calendar dates', () => {
 		expect(inferCadence('2026-11-14')).toBe('OTHER');
 		expect(formatPaydayTitle('2026-11-15')).toBe('November 15');
 		expect(formatPaydayTitle('2026-11-30')).toBe('November 30');
-		expect(formatRouteSign('2026-11-15')).toBe('NOV 15');
-		expect(formatRouteSign('2026-11-30')).toBe('NOV 30');
 	});
 
 	it('finds the next 15th and last day of the month', () => {

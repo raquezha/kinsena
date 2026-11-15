@@ -7,11 +7,11 @@
 
 	let { item }: { item: RouteItem } = $props();
 
-	const chips: { decision: Decision; label: string; spoken: string }[] = [
-		{ decision: 'FULL', label: 'Bayad', spoken: DECISION_LABELS.FULL },
-		{ decision: 'MINIMUM', label: 'Min', spoken: DECISION_LABELS.MINIMUM },
-		{ decision: 'CUSTOM', label: 'Custom', spoken: DECISION_LABELS.CUSTOM },
-		{ decision: 'SKIPPED', label: 'Para muna', spoken: DECISION_LABELS.SKIPPED }
+	const chips: { decision: Decision; label: string }[] = [
+		{ decision: 'FULL', label: DECISION_LABELS.FULL },
+		{ decision: 'MINIMUM', label: DECISION_LABELS.MINIMUM },
+		{ decision: 'CUSTOM', label: DECISION_LABELS.CUSTOM },
+		{ decision: 'SKIPPED', label: DECISION_LABELS.SKIPPED }
 	];
 
 	function onCustomOrSkip(event: MouseEvent, decision: Decision) {
@@ -36,7 +36,6 @@
 				class:active={item.decision === chip.decision}
 				class:skip={chip.decision === 'SKIPPED'}
 				type="submit"
-				aria-label={chip.spoken}
 				onclick={(event) => onCustomOrSkip(event, chip.decision)}
 			>
 				{chip.label}
@@ -55,26 +54,23 @@
 	.chip {
 		min-height: 44px;
 		padding: 0 var(--space-3);
-		border-radius: 2px;
-		border: 2px solid var(--border);
+		border-radius: var(--radius-sm);
+		border: 1px solid var(--border);
 		background: var(--surface-sunken);
 		color: var(--text-muted);
-		font-family: var(--font-display);
-		font-size: 0.95rem;
-		letter-spacing: 0.06em;
-		text-transform: uppercase;
-		font-weight: 400;
+		font-size: var(--text-sm);
+		font-weight: 700;
 	}
 
 	.chip.active {
 		background: var(--accent);
-		border-color: var(--accent-ink);
+		border-color: var(--accent);
 		color: var(--accent-ink);
 	}
 
 	.chip.skip.active {
-		background: var(--brand-red);
-		border-color: var(--accent-ink);
-		color: var(--brand-red-ink);
+		background: var(--danger-soft);
+		border-color: rgb(243 170 164 / 0.25);
+		color: var(--danger);
 	}
 </style>

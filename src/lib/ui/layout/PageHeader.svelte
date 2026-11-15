@@ -23,7 +23,9 @@
 	}
 
 	h1 {
-		font-size: 2.1rem;
+		font-size: 1.75rem;
+		font-weight: 800;
+		letter-spacing: -0.02em;
 	}
 
 	p {

@@ -30,9 +30,6 @@
 </script>
 
 <section class="wallet" aria-label="Payday summary">
-	<div class="stripes" aria-hidden="true">
-		<span></span><span></span><span></span><span></span>
-	</div>
 	<header>
 		<ChipEmblem />
 		<span class="eyebrow">
@@ -105,48 +102,19 @@
 		overflow: hidden;
 		display: grid;
 		gap: var(--space-4);
-		padding: 0 0 var(--space-5);
-		border-radius: var(--radius-md);
-		border: 2px solid var(--border);
-		background: var(--surface);
+		padding: var(--space-5);
+		border-radius: var(--radius-lg);
+		border: 1px solid rgb(181 216 193 / 0.16);
+		background:
+			radial-gradient(circle at 100% 0%, rgb(181 216 193 / 0.14), transparent 55%),
+			linear-gradient(140deg, #1a241e 0%, #0f1612 60%, #0b100d 100%);
 		box-shadow: var(--shadow-card);
-	}
-
-	.stripes {
-		display: grid;
-		grid-template-columns: 2fr 2fr 1fr 1fr;
-		height: 10px;
-	}
-
-	.stripes span:nth-child(1) {
-		background: var(--brand-red);
-	}
-
-	.stripes span:nth-child(2) {
-		background: var(--accent);
-	}
-
-	.stripes span:nth-child(3) {
-		background: var(--brand-blue);
-	}
-
-	.stripes span:nth-child(4) {
-		background: var(--brand-green);
-	}
-
-	header,
-	.hero,
-	.progress,
-	.stats,
-	.warning {
-		margin-inline: var(--space-5);
 	}
 
 	header {
 		display: flex;
 		align-items: center;
 		gap: var(--space-3);
-		margin-top: var(--space-4);
 	}
 
 	.eyebrow {
@@ -166,17 +134,16 @@
 	}
 
 	.progress {
-		height: 8px;
-		border-radius: 0;
-		background: var(--surface-sunken);
+		height: 6px;
+		border-radius: 999px;
+		background: rgb(255 255 255 / 0.07);
 		overflow: hidden;
-		border: 1px solid var(--border);
 	}
 
 	.progress span {
 		display: block;
 		height: 100%;
-		background: var(--accent);
+		background: linear-gradient(90deg, var(--accent), var(--accent-strong));
 		transform-origin: left;
 		transition: transform var(--duration-slow) var(--ease-out);
 	}

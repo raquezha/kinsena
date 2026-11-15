@@ -20,32 +20,19 @@ body {
 	overscroll-behavior-y: none;
 }
 
-h1,
-h2,
-.display {
-	font-family: var(--font-display);
-	font-weight: 400;
-	letter-spacing: var(--display-tracking);
-	text-transform: uppercase;
-	line-height: 1;
-}
-
 body.scroll-locked {
 	overflow: hidden;
 }
 
+h1,
+h2,
 h3,
 p {
 	margin: 0;
 }
 
-h1,
-h2 {
-	margin: 0;
-}
-
 a {
-	color: var(--link);
+	color: var(--accent);
 }
 
 button,
@@ -72,6 +59,10 @@ button {
 	overflow: hidden;
 	clip-path: inset(50%);
 	white-space: nowrap;
+}
+
+.tabular {
+	font-variant-numeric: tabular-nums;
 }
 
 /* Page transitions between tabs (View Transitions API) */
@@ -102,32 +93,5 @@ button {
 	::view-transition-old(*),
 	::view-transition-new(*) {
 		animation: none !important;
-	}
-}
-
-.chrome-stripe {
-	height: var(--stripe);
-	background: var(--chrome);
-	border-block: 1px solid var(--chrome-strong);
-}
-
-.tabular {
-	font-variant-numeric: tabular-nums;
-	font-feature-settings: 'tnum' 1;
-}
-
-@keyframes pop {
-	0% {
-		transform: scale(0.7);
-	}
-	60% {
-		transform: scale(1.15);
-	}
-}
-
-@keyframes tick-in {
-	from {
-		transform: scale(0.4);
-		opacity: 0;
 	}
 }

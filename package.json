@@ -24,13 +24,11 @@
 		"test": "vitest run",
 		"test:coverage": "vitest run --coverage",
 		"test:e2e": "vite build && playwright test --project=mobile --project=tablet --project=desktop",
-		"screenshots": "vite build && playwright test --project=screenshots",
+		"screenshots": "vite build && playwright test --project=screenshots e2e/screenshots.test.ts",
 		"icons": "sh scripts/generate-icons.sh",
 		"db:generate": "drizzle-kit generate"
 	},
 	"dependencies": {
-		"@fontsource/bebas-neue": "^5.3.0",
-		"@fontsource/ibm-plex-sans": "^5.3.0",
 		"better-sqlite3": "^13.2.0",
 		"drizzle-orm": "^0.45.4",
 		"zod": "^4.6.7"

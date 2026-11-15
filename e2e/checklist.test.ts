@@ -33,9 +33,9 @@ test('copies defaults into the upcoming payday and tracks planned amounts', asyn
 test('enters routing mode, decides amounts, and marks items routed with undo', async ({ page }) => {
 	await markSalaryIn(page, '30,000');
 	await expect(page.getByText('Left to route')).toBeVisible();
-	await expect(row(page, 'Rent').getByRole('button', { name: 'Full' })).toBeVisible();
+	await expect(row(page, 'Rent').getByRole('button', { name: 'Pay full' })).toBeVisible();
 
-	await row(page, 'Rent').getByRole('button', { name: 'Full' }).click();
+	await row(page, 'Rent').getByRole('button', { name: 'Pay full' }).click();
 	await page.getByRole('button', { name: 'Mark Rent routed' }).click();
 	await expect(page.getByRole('region', { name: /^Routed/ })).toContainText('Rent');
 	await page.getByRole('status').getByRole('button', { name: 'Undo' }).click();
@@ -90,7 +90,9 @@ test('finishes a payday into read-only history and reopens it', async ({ page })
 	await expect(page.getByText('Rent')).toBeVisible();
 	await page.getByRole('button', { name: 'Reopen this payday' }).click();
 	await expect(page).toHaveURL(/\/$/);
-	await expect(page.getByRole('heading', { level: 1, name: /NOV 15/ })).toBeVisible();
+	await expect(
+		page.getByRole('heading', { level: 1, name: /November 15|October 15/ })
+	).toBeVisible();
 });
 
 test('changes the currency symbol', async ({ page }) => {

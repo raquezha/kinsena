@@ -1,8 +1,8 @@
 <script lang="ts">
 	import { page } from '$app/state';
 	import { paydayHref } from '../../client/sheet-route.ts';
-	import { formatRouteSign } from '../../domain/calendar.ts';
 	import { isReceived, type Payday } from '../../domain/models.ts';
+	import { formatShortDate } from '../checklist/dates.ts';
 
 	let { paydays }: { paydays: Payday[] } = $props();
 
@@ -21,8 +21,8 @@
 						href={paydayHref(payday.id)}
 						title={payday.title}
 					>
-						<span class="day">{formatRouteSign(payday.scheduledDate)}</span>
-						<span class="payday-title">{formatRouteSign(payday.scheduledDate)}</span>
+						<span class="day">{formatShortDate(payday.scheduledDate)}</span>
+						<span class="payday-title">{payday.title}</span>
 						<span class="status">{isReceived(payday) ? 'Received' : 'Upcoming'}</span>
 					</a>
 				</li>
@@ -65,26 +65,23 @@
 			width: 64px;
 			min-height: 44px;
 			margin: 0 auto var(--space-1);
-			border-radius: 2px;
-			border: 2px solid var(--chrome);
+			border-radius: var(--radius-sm);
+			border: 1px solid var(--border);
 			color: var(--text-muted);
-			font-family: var(--font-display);
-			font-size: 0.95rem;
-			letter-spacing: 0.04em;
-			text-transform: uppercase;
-			font-weight: 400;
+			font-size: var(--text-xs);
+			font-weight: 700;
 			text-align: center;
 		}
 
 		.payday.current {
-			background: var(--accent);
-			color: var(--accent-ink);
-			border-color: var(--accent-ink);
+			background: var(--accent-soft);
+			color: var(--accent);
+			border-color: var(--accent);
 		}
 
 		.payday.current .day,
 		.payday.current .status {
-			color: var(--accent-ink);
+			color: var(--accent);
 		}
 	}
 
@@ -121,20 +118,17 @@
 		}
 
 		.payday-title {
-			font-size: 1.15rem;
+			font-size: var(--text-sm);
 		}
 
 		.status {
 			color: var(--text-dim);
-			font-family: var(--font-ui);
 			font-size: var(--text-xs);
-			letter-spacing: 0.04em;
-			text-transform: uppercase;
-			font-weight: 700;
+			font-weight: 600;
 		}
 
 		.payday.current .status {
-			color: var(--accent-ink);
+			color: var(--accent);
 		}
 	}
 </style>

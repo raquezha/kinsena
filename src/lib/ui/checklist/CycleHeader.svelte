@@ -1,8 +1,6 @@
 <script lang="ts">
 	import { openSheet, sheetHref } from '../../client/sheet-route.ts';
-	import { formatRouteSign } from '../../domain/calendar.ts';
 	import { isReceived, type Payday } from '../../domain/models.ts';
-	import Motif from '../brand/Motif.svelte';
 	import Icon from '../icons/Icon.svelte';
 
 	let { payday }: { payday: Payday } = $props();
@@ -20,12 +18,7 @@
 <header class="cycle-header" class:has-receive={!received}>
 	<div class="titles">
 		<p class="date">{received ? 'Received' : 'Upcoming'}</p>
-		<h1>
-			<span class="sign">{formatRouteSign(payday.scheduledDate)}</span>
-			<span class="arrow" aria-hidden="true">→</span>
-			<span class="dest">{received ? 'Bayad' : 'Bills'}</span>
-			<span class="star" aria-hidden="true"><Motif kind="star" size={14} /></span>
-		</h1>
+		<h1>{payday.title}</h1>
 		{#if payday.note}
 			<p class="note"><Icon name="note" size={14} /> {payday.note}</p>
 		{/if}
@@ -68,49 +61,19 @@
 	.titles {
 		min-width: 0;
 		display: grid;
-		gap: 6px;
+		gap: 2px;
 	}
 
 	.date {
 		color: var(--text-dim);
-		font-size: var(--text-xs);
-		font-weight: 700;
-		letter-spacing: 0.08em;
-		text-transform: uppercase;
+		font-size: var(--text-sm);
+		font-weight: 600;
 	}
 
 	h1 {
-		display: flex;
-		align-items: baseline;
-		flex-wrap: wrap;
-		gap: var(--space-2);
-		font-size: clamp(2rem, 8vw, 2.75rem);
-	}
-
-	.sign,
-	.dest {
-		padding: 0.08em 0.22em 0;
-		line-height: 0.9;
-	}
-
-	.sign {
-		background: var(--accent);
-		color: var(--accent-ink);
-	}
-
-	.dest {
-		background: var(--brand-red);
-		color: var(--brand-red-ink);
-	}
-
-	.arrow {
-		color: var(--chrome-strong);
-		font-size: 0.7em;
-	}
-
-	.star {
-		color: var(--accent-text);
-		align-self: center;
+		font-size: var(--text-xl);
+		font-weight: 800;
+		letter-spacing: -0.02em;
 	}
 
 	.note {
@@ -160,6 +123,10 @@
 	@media (min-width: 640px) {
 		.add {
 			display: inline-flex;
+		}
+
+		h1 {
+			font-size: 1.75rem;
 		}
 	}
 

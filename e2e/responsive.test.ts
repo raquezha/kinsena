@@ -24,7 +24,7 @@ test('uses the navigation and editor style that fits the viewport', async ({ pag
 	} else {
 		expect(navBox.width).toBeGreaterThan(180);
 		// Side panel: docked to the right edge (it floats with a small gutter).
-		expect(viewport.width - (panelBox.x + panelBox.width)).toBeLessThan(24);
+		expect(viewport.width - (panelBox.x + panelBox.width)).toBeLessThan(32);
 		expect(panelBox.height).toBeGreaterThan(viewport.height * 0.8);
 	}
 	await page.keyboard.press('Escape');

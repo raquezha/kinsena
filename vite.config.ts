@@ -38,7 +38,7 @@ export default defineConfig({
 				'src/lib/server/data/schema.ts'
 			],
 			reporter: ['text', 'text-summary', 'html'],
-			thresholds: { lines: 90, functions: 90, statements: 90, branches: 85 }
+			thresholds: { lines: 97, functions: 97, statements: 97, branches: 97 }
 		}
 	}
 });

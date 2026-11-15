@@ -85,6 +85,8 @@ describe.each([
 		expect(paydays.listOpen()).toEqual([]);
 		expect(paydays.listClosed()[0]).toMatchObject({ id, note: 'done' });
 		expect(paydays.findById(9999)).toBeNull();
+		expect(paydays.update(9999, { note: 'missing' })).toBe(false);
+		expect(paydays.findByScheduledDate('1999-01-01')).toBeNull();
 		expect(
 			paydays.create({ ...newPayday, scheduledDate: '2026-11-15', title: 'November 15' })
 		).toBeGreaterThan(id);
@@ -99,6 +101,7 @@ describe.each([
 		items.add(item('Water', 7, paydayId));
 		const inboxId = items.add(item('Unassigned', 0, null));
 		expect(items.maxSortOrder(paydayId)).toBe(7);
+		expect(items.maxSortOrder(null)).toBe(0);
 		expect(items.listInbox().map((entry) => entry.id)).toEqual([inboxId]);
 		expect(
 			items.update(id, { isDone: true, fullAmount: 5, fullAmountExpr: '0.05', decision: 'FULL' })
@@ -119,7 +122,11 @@ describe.each([
 		const gcash = destinations.add({ name: 'GCash', kind: 'ACCOUNT', createdAt: 1 });
 		destinations.add({ name: 'Meralco', kind: 'BILLER', createdAt: 1 });
 		expect(destinations.listActive().map((entry) => entry.name)).toEqual(['GCash', 'Meralco']);
+		expect(destinations.findById(gcash)?.name).toBe('GCash');
+		expect(destinations.findById(9999)).toBeNull();
 		expect(destinations.update(gcash, { name: 'Maya' })).toBe(true);
+		expect(destinations.update(gcash, {})).toBe(false);
+		expect(destinations.update(9999, { name: 'Nope' })).toBe(false);
 		expect(destinations.archive(gcash)).toBe(true);
 		expect(destinations.archive(gcash)).toBe(false);
 		expect(destinations.listActive()).toHaveLength(1);
@@ -131,5 +138,24 @@ describe.each([
 			midMonthSalary: 7_500_000,
 			monthEndSalary: 8_000_000
 		});
+	});
+});
+
+describe('sqlite settings fallbacks', () => {
+	it('falls back when settings are missing or the currency is unknown', () => {
+		const handle = openDatabase(':memory:');
+		migrateDatabase(handle, resolve('drizzle'));
+		const { settings } = createSqliteRepositories(handle.db);
+		handle.sqlite.exec('DELETE FROM settings');
+		expect(settings.get()).toEqual({
+			currency: 'PHP',
+			midMonthSalary: null,
+			monthEndSalary: null
+		});
+		handle.sqlite.exec(
+			"INSERT INTO settings (id, currency, mid_month_salary, month_end_salary) VALUES (1, 'XXX', NULL, NULL)"
+		);
+		expect(settings.get().currency).toBe('PHP');
+		handle.close();
 	});
 });

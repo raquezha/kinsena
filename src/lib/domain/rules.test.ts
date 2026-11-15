@@ -48,6 +48,7 @@ describe('rules', () => {
 		expect(normalizeDate('2026-11-15')).toBe('2026-11-15');
 		expect(() => normalizeDate('2026-11-31', 'due date')).toThrow('Enter a valid due date');
 		expect(normalizeOptionalDate('  ')).toBeNull();
+		expect(normalizeOptionalDate(null)).toBeNull();
 		expect(normalizeOptionalDate('2026-11-30')).toBe('2026-11-30');
 		expect(normalizeDueDay(null)).toBeNull();
 		expect(normalizeDueDay(31)).toBe(31);

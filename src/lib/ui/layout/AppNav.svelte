@@ -40,8 +40,9 @@
 		inset: auto 0 0 0;
 		height: calc(var(--nav-height) + var(--safe-bottom));
 		padding: 0 var(--space-2) var(--safe-bottom);
-		background: var(--surface);
-		border-top: 2px solid var(--chrome);
+		background: rgb(10 14 12 / 0.86);
+		backdrop-filter: blur(18px) saturate(1.4);
+		border-top: 1px solid var(--border-subtle);
 		view-transition-name: nav;
 	}
 
@@ -79,8 +80,8 @@
 	}
 
 	li a[aria-current='page'] {
-		color: var(--accent-ink);
-		background: var(--accent);
+		color: var(--accent);
+		background: var(--accent-soft);
 	}
 
 	.icon {
@@ -104,6 +105,7 @@
 		}
 	}
 
+	/* Tablet: a slim icon rail on the left */
 	@media (min-width: 640px) {
 		.nav {
 			inset: 0 auto 0 0;
@@ -140,6 +142,7 @@
 		}
 	}
 
+	/* Desktop: a full sidebar with labels and shortcut hints */
 	@media (min-width: 1100px) {
 		.nav {
 			width: var(--sidebar-width);
@@ -155,11 +158,9 @@
 
 		.brand-name {
 			display: inline;
-			font-family: var(--font-display);
-			font-size: 1.7rem;
-			font-weight: 400;
-			letter-spacing: var(--display-tracking);
-			text-transform: uppercase;
+			font-size: var(--text-xl);
+			font-weight: 800;
+			letter-spacing: -0.02em;
 		}
 
 		li a {

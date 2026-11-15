@@ -1,20 +1,5 @@
 /** Pure calendar rules for Filipino kinsenas: the 15th and month-end. */
 
-const MONTHS_SHORT = [
-	'JAN',
-	'FEB',
-	'MAR',
-	'APR',
-	'MAY',
-	'JUN',
-	'JUL',
-	'AUG',
-	'SEP',
-	'OCT',
-	'NOV',
-	'DEC'
-] as const;
-
 const MONTHS = [
 	'January',
 	'February',
@@ -159,12 +144,6 @@ export function fundPaydayDate(due: string): string {
 export function formatPaydayTitle(iso: string): string {
 	const { month, day } = fromIsoDate(iso);
 	return `${MONTHS[month - 1]} ${day}`;
-}
-
-/** Jeepney route-board shorthand: "NOV 15". */
-export function formatRouteSign(iso: string): string {
-	const { month, day } = fromIsoDate(iso);
-	return `${MONTHS_SHORT[month - 1]} ${day}`;
 }
 
 export function compareIsoDate(left: string, right: string): number {

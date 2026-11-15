@@ -48,8 +48,8 @@ test('captures plan, routing and skip views', async ({ page }) => {
 	await page.screenshot({ path: `${BOX}/mobile-plan.png` });
 
 	await markSalaryIn(page, '38,500');
-	await row(page, 'Rent').getByRole('button', { name: 'Full' }).click();
-	await row(page, 'Savings').getByRole('button', { name: 'Full' }).click();
+	await row(page, 'Rent').getByRole('button', { name: 'Pay full' }).click();
+	await row(page, 'Savings').getByRole('button', { name: 'Pay full' }).click();
 	await page.getByRole('button', { name: 'Mark Savings routed' }).click();
 	await clearToasts(page);
 	await page.evaluate(() => window.scrollTo(0, 0));
@@ -88,6 +88,7 @@ test('captures plan, routing and skip views', async ({ page }) => {
 	await expect(sheet(page, 'Electricity')).toBeVisible();
 	await page.waitForTimeout(400);
 	await page.screenshot({ path: `${OUT}/mobile-editor.png` });
+	await page.screenshot({ path: `${BOX}/mobile-editor.png` });
 	await page.keyboard.press('Escape');
 
 	await page.setViewportSize(LAYOUTS[1]);
@@ -96,4 +97,5 @@ test('captures plan, routing and skip views', async ({ page }) => {
 	await expect(sheet(page, 'Electricity')).toBeVisible();
 	await page.waitForTimeout(400);
 	await page.screenshot({ path: `${OUT}/tablet-editor.png` });
+	await page.screenshot({ path: `${BOX}/tablet-editor.png` });
 });

@@ -15,13 +15,13 @@
 
 <span class="meta">
 	{#if destination}
-		<span class="placard">{destination.name}</span>
+		<span>{destination.name}</span>
 	{/if}
 	{#if dueDate}
 		<span>Due {formatShortDate(dueDate)}</span>
 	{/if}
 	{#if isDone}
-		<span class="bayad">Bayad na</span>
+		<span class="paid-label">Paid</span>
 	{/if}
 	{#if !destination && !dueDate && !isDone}&nbsp;{/if}
 </span>
@@ -37,40 +37,20 @@
 		font-weight: 600;
 	}
 
-	.placard {
-		display: inline-block;
-		padding: 0 6px 1px;
-		border: 1px solid var(--chrome);
-		background: var(--surface-sunken);
-		color: var(--text);
-		font-family: var(--font-display);
-		font-size: 0.8rem;
-		letter-spacing: 0.06em;
-		text-transform: uppercase;
-		font-weight: 400;
+	.paid-label {
+		color: var(--accent);
+		animation: paid-in 420ms var(--ease-spring);
 	}
 
-	.bayad {
-		color: var(--brand-green);
-		font-family: var(--font-display);
-		font-size: 0.85rem;
-		letter-spacing: 0.06em;
-		text-transform: uppercase;
-		animation: bayad-in 420ms var(--ease-spring);
-	}
-
-	@keyframes bayad-in {
-		0% {
-			transform: scale(0.6) rotate(-6deg);
+	@keyframes paid-in {
+		from {
+			transform: scale(0.85);
 			opacity: 0;
-		}
-		70% {
-			transform: scale(1.12) rotate(2deg);
 		}
 	}
 
 	@media (prefers-reduced-motion: reduce) {
-		.bayad {
+		.paid-label {
 			animation: none;
 		}
 	}

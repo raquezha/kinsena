@@ -146,7 +146,8 @@
 	.backdrop {
 		position: absolute;
 		inset: 0;
-		background: color-mix(in srgb, var(--scrim) 72%, transparent);
+		background: var(--scrim);
+		backdrop-filter: blur(6px);
 		opacity: clamp(0, var(--t), 1);
 	}
 
@@ -160,8 +161,7 @@
 		border: 1px solid var(--border);
 		border-bottom: 0;
 		border-radius: var(--radius-xl) var(--radius-xl) 0 0;
-		box-shadow: none;
-		border-top: 2px solid var(--chrome);
+		box-shadow: 0 -16px 48px rgb(0 0 0 / 0.55);
 		padding-bottom: var(--safe-bottom);
 		transform: translateY(calc((1 - var(--t)) * 100%));
 		will-change: transform;
@@ -194,7 +194,8 @@
 	}
 
 	h2 {
-		font-size: 1.6rem;
+		font-size: var(--text-lg);
+		font-weight: 750;
 	}
 
 	.description {
@@ -248,11 +249,6 @@
 
 	/* Desktop: a side panel that slides in from the right */
 	@media (min-width: 1100px) {
-		.panel {
-			box-shadow: none;
-			border-radius: var(--radius-md);
-			border: 2px solid var(--chrome);
-		}
 		.sheet-layer {
 			justify-content: flex-end;
 			align-items: stretch;
@@ -268,7 +264,8 @@
 		}
 
 		.backdrop {
-			background: color-mix(in srgb, var(--scrim) 55%, transparent);
+			backdrop-filter: none;
+			background: rgb(2 5 3 / 0.45);
 		}
 	}
 </style>

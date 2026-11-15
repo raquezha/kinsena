@@ -3,6 +3,7 @@ import { DomainError } from '../../domain/errors.ts';
 import { createTestClock } from '../testing/clock.ts';
 import { createMemoryRepositories } from '../testing/memory-repositories.ts';
 import { createServices, type Services } from '../container.ts';
+import { applyTemplateToUpcoming } from './payday-service.ts';
 
 describe('payday service', () => {
 	let services: Services;
@@ -139,5 +140,85 @@ describe('payday service', () => {
 		expect(services.paydays.history()).toEqual({ paydays: [], reopenableId: null });
 		expect(() => services.paydays.reopen(1)).toThrow('Only the most recent');
 		expect(() => services.paydays.view(999)).toThrow('Unknown payday');
+	});
+
+	it('returns null from findNext when no later payday is already open', () => {
+		services.paydays.ensureUpcoming();
+		const end = services.paydays.listOpen().find((payday) => payday.cadence === 'MONTH_END')!;
+		expect(services.paydays.findNext(end.id)).toBeNull();
+	});
+
+	it('creates a mid-month payday on the 15th and skips a closed month-end', () => {
+		services.paydays.ensureUpcoming();
+		const mid = services.paydays.listOpen().find((payday) => payday.cadence === 'MID_MONTH')!;
+		const end = services.paydays.listOpen().find((payday) => payday.cadence === 'MONTH_END')!;
+		services.paydays.close(end.id);
+		const next = services.paydays.nextAfter(mid.id);
+		expect(next.scheduledDate).toBe('2026-11-30');
+		const laterMid = services.paydays.createOther({
+			title: '',
+			date: '2026-12-15',
+			salary: '10,000'
+		});
+		expect(services.paydays.view(laterMid).payday.cadence).toBe('MID_MONTH');
+	});
+});
+
+describe('applyTemplateToUpcoming', () => {
+	it('skips received, already-copied, and non-matching paydays', () => {
+		const repos = createMemoryRepositories();
+		const services = createServices(repos, 'test-passphrase-16c', createTestClock());
+		services.paydays.ensureUpcoming();
+		const mid = services.paydays.active()!.payday;
+		const end = services.paydays.listOpen().find((payday) => payday.cadence === 'MONTH_END')!;
+		const midOnlyId = services.templates.add({
+			name: 'Mid-only bill',
+			amount: '200',
+			minimum: '',
+			dueDay: '',
+			fundFrom: 'MID_MONTH',
+			destinationId: null
+		});
+		expect(services.paydays.view(mid.id).items.some((item) => item.templateId === midOnlyId)).toBe(
+			true
+		);
+		expect(services.paydays.view(end.id).items.some((item) => item.templateId === midOnlyId)).toBe(
+			false
+		);
+		services.paydays.receive(mid.id, '75,000');
+
+		const monthEndId = services.templates.add({
+			name: 'Bonus savings',
+			amount: '1,000',
+			minimum: '',
+			dueDay: '',
+			fundFrom: 'MONTH_END',
+			destinationId: null
+		});
+		expect(services.paydays.view(mid.id).items.some((item) => item.name === 'Bonus savings')).toBe(
+			false
+		);
+		expect(services.paydays.view(end.id).items.some((item) => item.name === 'Bonus savings')).toBe(
+			true
+		);
+
+		const saved = repos.templates.findById(monthEndId);
+		expect(saved).not.toBeNull();
+		applyTemplateToUpcoming(repos, saved!);
+		expect(
+			services.paydays.view(end.id).items.filter((item) => item.templateId === monthEndId)
+		).toHaveLength(1);
+
+		const closed: typeof mid = { ...end, isClosed: true };
+		const add = () => {
+			throw new Error('closed payday should be skipped');
+		};
+		applyTemplateToUpcoming(
+			{
+				paydays: { listOpen: () => [closed] },
+				items: { hasTemplate: () => false, maxSortOrder: () => 0, add }
+			} as unknown as Parameters<typeof applyTemplateToUpcoming>[0],
+			saved!
+		);
 	});
 });

@@ -93,10 +93,10 @@
 <style>
 	.swipe {
 		position: relative;
-		border-radius: var(--radius-sm);
+		border-radius: var(--radius-md);
 		overflow: hidden;
 		background: var(--surface);
-		border: 2px solid var(--border-subtle);
+		border: 1px solid var(--border-subtle);
 	}
 
 	.behind {
@@ -108,7 +108,7 @@
 		gap: var(--space-2);
 		padding-right: var(--space-5);
 		background: var(--danger-solid);
-		color: var(--brand-red-ink);
+		color: var(--danger);
 		font-weight: 700;
 		opacity: calc(0.4 + var(--swipe) * 0.6);
 	}
@@ -184,10 +184,12 @@
 		overflow: hidden;
 		text-overflow: ellipsis;
 		white-space: nowrap;
+		transition: color var(--duration-base);
 	}
 
 	.amount {
 		font-weight: 700;
+		color: var(--text);
 	}
 
 	.amount.missing {
@@ -204,13 +206,16 @@
 
 	.paid .name {
 		text-decoration: line-through;
-		text-decoration-color: var(--chrome);
+		text-decoration-color: rgb(170 182 174 / 0.5);
 	}
 
 	.chevron {
 		display: grid;
 		color: var(--text-dim);
 		opacity: 0.6;
+		transition:
+			transform var(--duration-fast),
+			opacity var(--duration-fast);
 	}
 
 	.decisions {
@@ -231,8 +236,29 @@
 			background: var(--surface-hover);
 		}
 
+		.row:hover .chevron {
+			opacity: 1;
+			transform: translateX(2px);
+		}
+
 		.check:hover::before {
 			border-color: var(--accent);
+		}
+	}
+
+	@keyframes pop {
+		0% {
+			transform: scale(0.7);
+		}
+		60% {
+			transform: scale(1.15);
+		}
+	}
+
+	@keyframes tick-in {
+		from {
+			transform: scale(0.4);
+			opacity: 0;
 		}
 	}
 

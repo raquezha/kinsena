@@ -96,6 +96,15 @@ describe('sortForChecklist', () => {
 		]);
 		expect(sorted.map((entry) => entry.id)).toEqual([3, 2, 4, 1, 5]);
 	});
+
+	it('breaks ties by sort order, then by id', () => {
+		const sorted = sortForChecklist([
+			item({ id: 8, dueDate: '2026-11-10', sortOrder: 2 }),
+			item({ id: 7, dueDate: '2026-11-10', sortOrder: 2 }),
+			item({ id: 9, dueDate: '2026-11-10', sortOrder: 1 })
+		]);
+		expect(sorted.map((entry) => entry.id)).toEqual([9, 7, 8]);
+	});
 });
 
 describe('skipPastDueWarning', () => {

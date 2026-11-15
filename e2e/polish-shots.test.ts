@@ -130,14 +130,14 @@ test('captures every screen and state for visual review', async ({ page }) => {
 	await resize(page, LAYOUTS[0]);
 	await page.goto('/');
 	await markSalaryIn(page, '38,500');
-	await row(page, 'Rent').getByRole('button', { name: 'Full' }).click();
+	await row(page, 'Rent').getByRole('button', { name: 'Pay full' }).click();
 	await page.getByRole('button', { name: 'Mark Rent routed' }).click();
 	await clearToasts(page);
 
 	await capture(page, '09-routing-bayad', async () => {
 		await page.goto('/');
 		const rent = row(page, 'Rent');
-		await expect(rent).toContainText('Bayad na');
+		await expect(rent).toContainText('Paid');
 		await rent.scrollIntoViewIfNeeded();
 	});
 

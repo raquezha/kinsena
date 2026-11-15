@@ -1,10 +1,27 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" width="512" height="512">
-  <!-- Full-bleed variant: the K sits inside the 80% maskable safe zone. Flat color. -->
-  <rect width="512" height="512" fill="#0b1528"/>
-  <g transform="translate(256 256) scale(0.9) translate(-251 -251)">
-    <rect x="112" y="112" width="128" height="128" fill="#d31c23"/>
-    <path d="M302 112H390V200A40 40 0 0 1 350 240H302A40 40 0 0 1 262 200V152A40 40 0 0 1 302 112Z" fill="#f5c400"/>
-    <rect x="112" y="262" width="128" height="128" fill="#1a8f4a"/>
-    <path d="M302 262H350A40 40 0 0 1 390 302V390H302A40 40 0 0 1 262 350V302A40 40 0 0 1 302 262Z" fill="#1e4ba8"/>
+  <!-- Full-bleed variant: the K sits inside the 80% maskable safe zone. -->
+  <defs>
+    <radialGradient id="canvas" cx="50%" cy="35%" r="70%">
+      <stop offset="0" stop-color="#191610"/>
+      <stop offset="0.6" stop-color="#0a0907"/>
+      <stop offset="1" stop-color="#040403"/>
+    </radialGradient>
+    <linearGradient id="gold" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#fff6e2"/>
+      <stop offset="0.25" stop-color="#ecd39d"/>
+      <stop offset="0.65" stop-color="#cda863"/>
+      <stop offset="1" stop-color="#9a7637"/>
+    </linearGradient>
+    <filter id="lift" x="-20%" y="-20%" width="140%" height="140%">
+      <feDropShadow dx="0" dy="12" stdDeviation="14" flood-color="#000" flood-opacity="0.7"/>
+      <feDropShadow dx="0" dy="3" stdDeviation="6" flood-color="#cda863" flood-opacity="0.22"/>
+    </filter>
+  </defs>
+  <rect width="512" height="512" fill="url(#canvas)"/>
+  <g fill="url(#gold)" filter="url(#lift)" transform="translate(256 256) scale(0.9) translate(-251 -251)">
+    <rect x="112" y="112" width="128" height="128"/>
+    <path d="M302 112H390V200A40 40 0 0 1 350 240H302A40 40 0 0 1 262 200V152A40 40 0 0 1 302 112Z"/>
+    <rect x="112" y="262" width="128" height="128"/>
+    <path d="M302 262H350A40 40 0 0 1 390 302V390H302A40 40 0 0 1 262 350V302A40 40 0 0 1 302 262Z"/>
   </g>
 </svg>
