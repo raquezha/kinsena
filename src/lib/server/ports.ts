@@ -68,6 +68,7 @@ export type RouteItemPatch = Partial<
 		| 'minimumAmount'
 		| 'chosenAmount'
 		| 'decision'
+		| 'decisionReason'
 		| 'dueDate'
 		| 'isDone'
 		| 'sortOrder'

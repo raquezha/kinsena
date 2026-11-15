@@ -1,7 +1,7 @@
 <script lang="ts">
 	import { enhance } from '$app/forms';
 	import { FormState } from '../../client/form-state.svelte.ts';
-	import { closeSheet } from '../../client/sheet-route.ts';
+	import { closeSheet, openSheet } from '../../client/sheet-route.ts';
 	import type { CurrencyCode } from '../../domain/currency.ts';
 	import type { Payday } from '../../domain/models.ts';
 	import { formatEdit, formatMoney } from '../../domain/money.ts';
@@ -24,7 +24,11 @@
 		method="POST"
 		action="?/receive"
 		class="stack"
-		use:enhance={form.enhance({ success: 'Salary marked as received' })}
+		use:enhance={form.enhance({
+			success: 'Salary marked as received',
+			close: false,
+			onsuccess: () => void openSheet('plan', { replace: true })
+		})}
 	>
 		<input type="hidden" name="paydayId" value={payday.id} />
 		<label class="field">

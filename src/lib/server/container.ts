@@ -12,6 +12,7 @@ import {
 	type DestinationService
 } from './services/destination-service.ts';
 import { createPaydayService, type PaydayService } from './services/payday-service.ts';
+import { createPlanService, type PlanService } from './services/plan-service.ts';
 import { createRouteService, type RouteService } from './services/route-service.ts';
 import { createSettingsService, type SettingsService } from './services/settings-service.ts';
 import { createTemplateService, type TemplateService } from './services/template-service.ts';
@@ -20,6 +21,7 @@ export interface Services {
 	auth: AuthService;
 	paydays: PaydayService;
 	items: RouteService;
+	plans: PlanService;
 	templates: TemplateService;
 	destinations: DestinationService;
 	settings: SettingsService;
@@ -46,6 +48,7 @@ export function createServices(repos: Repositories, passphrase: string, clock: C
 		}),
 		paydays,
 		items: createRouteService(repos, paydays),
+		plans: createPlanService(repos, paydays),
 		templates: createTemplateService(repos, clock),
 		destinations: createDestinationService(repos.destinations, clock),
 		settings: createSettingsService(repos.settings)

@@ -75,7 +75,12 @@
 		<a class="open" href={sheetHref(sheet)} onclick={onOpen} data-sveltekit-noscroll>
 			<span class="text">
 				<span class="name">{item.name}</span>
-				<ItemMeta {destination} dueDate={item.dueDate} isDone={item.isDone} />
+				<ItemMeta
+					{destination}
+					dueDate={item.dueDate}
+					isDone={item.isDone}
+					reason={item.decisionReason}
+				/>
 			</span>
 			{#if amount !== null}
 				<span class="amount tabular">{formatMoney(amount, currency)}</span>

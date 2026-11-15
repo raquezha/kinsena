@@ -1,14 +1,14 @@
-import { expect, test } from '@playwright/test';
-import {
-	addDefault,
-	addItem,
-	finishPayday,
-	markSalaryIn,
-	nav,
-	row,
-	sheet,
-	signIn
-} from './support/app.ts';
+import AxeBuilder from '@axe-core/playwright';
+import { expect, test, type Page } from '@playwright/test';
+import { addDefault, addItem, markSalaryIn, nav, row, sheet, signIn } from './support/app.ts';
+
+async function expectNoSeriousViolations(page: Page, where: string): Promise<void> {
+	const results = await new AxeBuilder({ page }).analyze();
+	const serious = results.violations.filter(
+		(violation) => violation.impact === 'critical' || violation.impact === 'serious'
+	);
+	expect(serious, where).toEqual([]);
+}
 
 test.describe.configure({ mode: 'serial' });
 
@@ -31,15 +31,44 @@ test('copies defaults into the upcoming payday and tracks planned amounts', asyn
 });
 
 test('enters routing mode, decides amounts, and marks items routed with undo', async ({ page }) => {
-	await markSalaryIn(page, '30,000');
-	await expect(page.getByText('Left to route')).toBeVisible();
-	await expect(row(page, 'Rent').getByRole('button', { name: 'Pay full' })).toBeVisible();
+	test.setTimeout(60_000);
+	const plan = await markSalaryIn(page, '30,000', { reviewPlan: true });
+	await expect(plan.getByText(/Full:|Minimum:|Skip:/).first()).toBeVisible();
+	for (const scheme of ['light', 'dark'] as const) {
+		await page.emulateMedia({ colorScheme: scheme });
+		await expectNoSeriousViolations(page, `proposed split (${scheme})`);
+	}
+	const rentChoices = plan.getByRole('group', { name: 'Decision for Rent' });
+	await rentChoices.getByRole('button', { name: 'Skip' }).click();
+	await expect(plan.getByText('Skip: set by you')).toBeVisible();
+	await rentChoices.getByRole('button', { name: 'Pay full' }).click();
+	await expect(plan.getByText('Full: set by you')).toBeVisible();
+	await plan.getByRole('button', { name: 'Approve all' }).click();
+	await expect(plan).toBeHidden();
+	await expect(page.getByRole('status')).toContainText('Plan approved');
+	await expect(row(page, 'Rent')).toContainText('Full: set by you');
+	await expect(page.getByRole('region', { name: 'Payday summary' })).toContainText(/remaining/i);
+	await expect(
+		page.getByRole('region', { name: 'Payday summary' }).getByText('Left to route')
+	).toBeVisible();
+	if (test.info().project.name !== 'desktop') {
+		const progress = page.getByLabel('Routing progress');
+		await expect(progress).toBeVisible();
+		await expect(progress).toContainText(/remaining/i);
+		await expect(progress).toContainText('Left to route');
+	}
 
-	await row(page, 'Rent').getByRole('button', { name: 'Pay full' }).click();
 	await page.getByRole('button', { name: 'Mark Rent routed' }).click();
 	await expect(page.getByRole('region', { name: /^Routed/ })).toContainText('Rent');
-	await page.getByRole('status').getByRole('button', { name: 'Undo' }).click();
+	await page.getByRole('status').getByRole('button', { name: 'Undo' }).last().click();
 	await expect(page.getByRole('button', { name: 'Mark Rent routed' })).toBeVisible();
+
+	if (!test.info().project.use.hasTouch) {
+		await page.getByRole('button', { name: 'Mark Rent routed' }).click();
+		await expect(page.getByRole('region', { name: /^Routed/ })).toContainText('Rent');
+		await page.keyboard.press('Control+z');
+		await expect(page.getByRole('button', { name: 'Mark Rent routed' })).toBeVisible();
+	}
 
 	await row(page, 'Electricity').getByRole('link').click();
 	const dialog = sheet(page, 'Electricity');
@@ -76,14 +105,29 @@ test('deletes an item and restores it with undo', async ({ page }) => {
 	await row(page, 'Electricity').getByRole('link').click();
 	await sheet(page, 'Electricity').getByRole('button', { name: 'Delete' }).click();
 	await expect(row(page, 'Electricity')).toHaveCount(0);
-	await page.getByRole('status').getByRole('button', { name: 'Undo' }).click();
+	await page.getByRole('status').getByRole('button', { name: 'Undo' }).last().click();
 	await expect(row(page, 'Electricity')).toContainText('₱2,450.50');
 	await page.reload();
 	await expect(row(page, 'Electricity')).toBeVisible();
 });
 
 test('finishes a payday into read-only history and reopens it', async ({ page }) => {
-	await finishPayday(page);
+	test.setTimeout(60_000);
+	await page.getByRole('link', { name: 'Salary, note and finish' }).click();
+	const cycle = sheet(page, 'This payday');
+	await cycle.getByRole('button', { name: 'Finish payday' }).click();
+	const review = sheet(page, 'Before you finish');
+	await expect(review).toBeVisible();
+	await expect(cycle).toBeHidden();
+	await expect(review.getByText('Groceries')).toBeVisible();
+	await expect(review.getByRole('button', { name: 'Move to next payday' }).first()).toBeVisible();
+	for (const scheme of ['light', 'dark'] as const) {
+		await page.emulateMedia({ colorScheme: scheme });
+		await expectNoSeriousViolations(page, `finish check (${scheme})`);
+	}
+	await review.getByRole('button', { name: 'Finish anyway' }).click();
+	await review.getByRole('button', { name: 'Yes, finish anyway' }).click();
+	await expect(review).toBeHidden();
 	await nav(page, 'History').click();
 	const card = page.getByRole('button', { name: /November 15|October 15/ });
 	await card.click();

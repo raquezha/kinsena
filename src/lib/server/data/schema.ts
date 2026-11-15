@@ -57,6 +57,7 @@ export const routeItems = sqliteTable(
 		minimumAmount: integer('minimum_amount'),
 		chosenAmount: integer('chosen_amount').notNull().default(0),
 		decision: text('decision', { length: 32 }).$type<Decision>().notNull().default('PENDING'),
+		decisionReason: text('decision_reason', { length: 280 }),
 		dueDate: text('due_date', { length: 32 }),
 		isDone: integer('is_done', { mode: 'boolean' }).notNull().default(false),
 		sortOrder: integer('sort_order').notNull().default(0),

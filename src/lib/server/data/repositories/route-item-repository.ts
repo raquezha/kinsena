@@ -14,6 +14,7 @@ const columns = {
 	minimumAmount: routeItems.minimumAmount,
 	chosenAmount: routeItems.chosenAmount,
 	decision: routeItems.decision,
+	decisionReason: routeItems.decisionReason,
 	dueDate: routeItems.dueDate,
 	isDone: routeItems.isDone,
 	sortOrder: routeItems.sortOrder,

@@ -19,7 +19,8 @@ class Toasts {
 
 	show(message: string, options: { tone?: Toast['tone']; action?: ToastAction } = {}) {
 		const toast: Toast = { id: this.#nextId++, message, tone: options.tone ?? 'info', ...options };
-		this.items = [...this.items.slice(-2), toast];
+		const kept = options.action ? this.items.filter((item) => !item.action) : this.items;
+		this.items = [...kept.slice(-2), toast];
 		this.#timers.set(
 			toast.id,
 			setTimeout(() => this.dismiss(toast.id), DISMISS_AFTER_MS)

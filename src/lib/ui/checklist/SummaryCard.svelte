@@ -85,6 +85,10 @@
 			<dt>Done</dt>
 			<dd class="tabular">{summary.doneCount} of {summary.itemCount}</dd>
 		</div>
+		<div>
+			<dt>Remaining</dt>
+			<dd class="tabular">{summary.itemCount - summary.doneCount - summary.skippedCount}</dd>
+		</div>
 	</dl>
 
 	{#if summary.missingCount > 0}

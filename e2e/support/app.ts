@@ -62,7 +62,11 @@ export async function addDestination(page: Page, name: string, kind = 'Account')
 	await expect(dialog).toBeHidden();
 }
 
-export async function markSalaryIn(page: Page, amount = ''): Promise<void> {
+export async function markSalaryIn(
+	page: Page,
+	amount = '',
+	options: { reviewPlan?: boolean } = {}
+): Promise<Locator> {
 	await page
 		.getByRole('link', { name: /Salary in/ })
 		.first()
@@ -71,22 +75,39 @@ export async function markSalaryIn(page: Page, amount = ''): Promise<void> {
 	await expect(dialog).toBeVisible();
 	if (amount) await dialog.getByLabel('Amount received').fill(amount);
 	await dialog.getByRole('button', { name: 'Mark received' }).click();
+	const plan = sheet(page, 'Proposed split');
+	await expect(plan).toBeVisible();
 	await expect(dialog).toBeHidden();
+	if (!options.reviewPlan) {
+		await plan.getByRole('button', { name: /^(Reject|Close)$/ }).click();
+		await expect(plan).toBeHidden();
+	}
+	return plan;
 }
 
 export async function finishPayday(page: Page): Promise<void> {
 	await page.getByRole('link', { name: 'Salary, note and finish' }).click();
 	const dialog = sheet(page, 'This payday');
 	await dialog.getByRole('button', { name: 'Finish payday' }).click();
-	await dialog.getByRole('button', { name: 'Yes, finish it' }).click();
+	const review = sheet(page, 'Before you finish');
+	const confirm = dialog.getByRole('button', { name: 'Yes, finish it' });
+	await expect(review.or(confirm)).toBeVisible();
+	if (await review.isVisible()) {
+		await review.getByRole('button', { name: 'Finish anyway' }).click();
+		await review.getByRole('button', { name: 'Yes, finish anyway' }).click();
+		await expect(review).toBeHidden();
+		return;
+	}
+	await confirm.click();
 	await expect(dialog).toBeHidden();
 }
 
 export async function clearToasts(page: Page): Promise<void> {
 	await page
-		.locator('.toaster')
-		.evaluate((node) => {
-			node.replaceChildren();
+		.evaluate(() => {
+			document.querySelectorAll('.toaster button.dismiss').forEach((button) => {
+				(button as HTMLButtonElement).click();
+			});
 		})
 		.catch(() => undefined);
 }

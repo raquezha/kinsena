@@ -5,11 +5,13 @@
 	let {
 		destination,
 		dueDate,
-		isDone
+		isDone,
+		reason = null
 	}: {
 		destination: Destination | null;
 		dueDate: string | null;
 		isDone: boolean;
+		reason?: string | null;
 	} = $props();
 </script>
 
@@ -23,7 +25,10 @@
 	{#if isDone}
 		<span class="paid-label">Paid</span>
 	{/if}
-	{#if !destination && !dueDate && !isDone}&nbsp;{/if}
+	{#if reason}
+		<span class="reason">{reason}</span>
+	{/if}
+	{#if !destination && !dueDate && !isDone && !reason}&nbsp;{/if}
 </span>
 
 <style>
@@ -40,6 +45,12 @@
 	.paid-label {
 		color: var(--accent);
 		animation: paid-in 420ms var(--ease-spring);
+	}
+
+	.reason {
+		flex: 1 1 100%;
+		color: var(--text-dim);
+		font-weight: 500;
 	}
 
 	@keyframes paid-in {

@@ -13,6 +13,7 @@ const item = (id: number, isDone = false): RouteItem => ({
 	minimumAmount: null,
 	chosenAmount: 0,
 	decision: 'PENDING',
+	decisionReason: null,
 	dueDate: null,
 	isDone,
 	sortOrder: id,

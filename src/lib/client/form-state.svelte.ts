@@ -2,6 +2,7 @@ import type { SubmitFunction } from '$app/forms';
 import { failureMessage } from './actions.ts';
 import { closeSheet } from './sheet-route.ts';
 import { toasts } from './toasts.svelte.ts';
+import { undoStack } from './undo.svelte.ts';
 
 interface Options {
 	/** Toast shown after a successful save. */
@@ -25,7 +26,11 @@ export class FormState {
 				if (!this.error) {
 					await update({ reset: true, navigate: false });
 					if (options.close !== false) closeSheet();
-					if (options.success) toasts.show(options.success);
+					if (options.success) {
+						const undo = result.type === 'success' ? result.data?.undo : undefined;
+						if (undo) undoStack.push(undo, options.success);
+						else toasts.show(options.success);
+					}
 					options.onsuccess?.();
 				}
 				this.busy = false;

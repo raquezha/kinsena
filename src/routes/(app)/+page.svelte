@@ -17,6 +17,8 @@
 			destinations={data.destinations}
 			paydays={data.openPaydays}
 			nextScheduledDate={data.nextScheduledDate}
+			plan={data.plan}
+			finishIssues={data.finishIssues}
 		/>
 	{/key}
 {:else}

@@ -33,8 +33,13 @@ export function sheetHref(name: string): string {
 	return withParams((params) => params.set('sheet', name));
 }
 
-export function openSheet(name: string): Promise<void> {
-	return goto(sheetHref(name), { shallow: true, state: { sheet: name, pushed: true } });
+export function openSheet(name: string, options: { replace?: boolean } = {}): Promise<void> {
+	const replace = options.replace === true;
+	return goto(sheetHref(name), {
+		shallow: true,
+		replace,
+		state: { sheet: name, pushed: !replace }
+	});
 }
 
 export function closeSheet(): void {

@@ -2,6 +2,7 @@ import { describe, expect, it } from 'vitest';
 import {
 	compareIsoDate,
 	dueDateInMonth,
+	formatPaydayShort,
 	formatPaydayTitle,
 	fromIsoDate,
 	fundPaydayDate,
@@ -43,6 +44,8 @@ describe('calendar dates', () => {
 		expect(inferCadence('2026-11-14')).toBe('OTHER');
 		expect(formatPaydayTitle('2026-11-15')).toBe('November 15');
 		expect(formatPaydayTitle('2026-11-30')).toBe('November 30');
+		expect(formatPaydayShort('2026-11-15')).toBe('Nov 15');
+		expect(formatPaydayShort('2026-12-02')).toBe('Dec 2');
 	});
 
 	it('finds the next 15th and last day of the month', () => {

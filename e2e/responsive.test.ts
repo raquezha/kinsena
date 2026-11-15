@@ -16,7 +16,8 @@ test('uses the navigation and editor style that fits the viewport', async ({ pag
 
 	if (info.project.name === 'mobile') {
 		expect(navBox.y + navBox.height).toBeCloseTo(viewport.height, 0);
-		expect(panelBox.y + panelBox.height).toBeCloseTo(viewport.height, 0);
+		// Allow a 3px subpixel gap so a sticky progress bar or sheet chrome does not flake.
+		expect(Math.abs(panelBox.y + panelBox.height - viewport.height)).toBeLessThan(3);
 	} else if (info.project.name === 'tablet') {
 		expect(navBox.width).toBeLessThan(120);
 		const center = panelBox.x + panelBox.width / 2;

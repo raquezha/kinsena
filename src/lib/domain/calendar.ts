@@ -146,6 +146,27 @@ export function formatPaydayTitle(iso: string): string {
 	return `${MONTHS[month - 1]} ${day}`;
 }
 
+const MONTHS_SHORT = [
+	'Jan',
+	'Feb',
+	'Mar',
+	'Apr',
+	'May',
+	'Jun',
+	'Jul',
+	'Aug',
+	'Sep',
+	'Oct',
+	'Nov',
+	'Dec'
+] as const;
+
+/** "Nov 15", "Nov 30" — short enough for plan reasons. */
+export function formatPaydayShort(iso: string): string {
+	const { month, day } = fromIsoDate(iso);
+	return `${MONTHS_SHORT[month - 1]} ${day}`;
+}
+
 export function compareIsoDate(left: string, right: string): number {
 	return left < right ? -1 : left > right ? 1 : 0;
 }

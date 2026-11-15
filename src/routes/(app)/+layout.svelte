@@ -2,6 +2,7 @@
 	import { goto } from '$app/navigation';
 	import { openSheet } from '#lib/client/sheet-route.ts';
 	import { shortcutFor } from '#lib/client/shortcuts.ts';
+	import { undoStack } from '#lib/client/undo.svelte.ts';
 	import AppNav from '#lib/ui/layout/AppNav.svelte';
 	import Toaster from '#lib/ui/layout/Toaster.svelte';
 	import type { LayoutProps } from './$types';
@@ -10,6 +11,18 @@
 
 	function onKeydown(event: KeyboardEvent) {
 		const target = event.target as HTMLElement;
+		const typing =
+			target.isContentEditable || ['INPUT', 'TEXTAREA', 'SELECT'].includes(target.tagName);
+		if (
+			!typing &&
+			(event.metaKey || event.ctrlKey) &&
+			event.key.toLowerCase() === 'z' &&
+			!event.shiftKey
+		) {
+			event.preventDefault();
+			void undoStack.undo();
+			return;
+		}
 		const shortcut = shortcutFor({
 			key: event.key,
 			metaKey: event.metaKey,

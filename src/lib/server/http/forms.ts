@@ -52,6 +52,16 @@ export const fields = {
 				throw new DomainError('Check the form and try again');
 			}
 			return cents;
+		}),
+	json: z
+		.string()
+		.max(20_000)
+		.transform((value) => {
+			try {
+				return JSON.parse(value) as unknown;
+			} catch {
+				throw new DomainError('Check the form and try again');
+			}
 		})
 };
 

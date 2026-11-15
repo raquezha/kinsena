@@ -1,5 +1,6 @@
 <script lang="ts">
 	import { enhance } from '$app/forms';
+	import { undoEnhance } from '../../client/undo.svelte.ts';
 	import { openSheet } from '../../client/sheet-route.ts';
 	import type { Decision } from '../../domain/decision.ts';
 	import { DECISION_LABELS } from '../../domain/decision.ts';
@@ -23,7 +24,7 @@
 
 <div class="chips" role="group" aria-label="Routing decision for {item.name}">
 	{#each chips as chip (chip.decision)}
-		<form method="POST" action="?/decide" use:enhance>
+		<form method="POST" action="?/decide" use:enhance={undoEnhance('Decision saved')}>
 			<input type="hidden" name="itemId" value={item.id} />
 			<input type="hidden" name="decision" value={chip.decision} />
 			<button

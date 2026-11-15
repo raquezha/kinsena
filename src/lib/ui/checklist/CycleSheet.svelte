@@ -1,7 +1,7 @@
 <script lang="ts">
 	import { enhance } from '$app/forms';
 	import { FormState } from '../../client/form-state.svelte.ts';
-	import { closeSheet } from '../../client/sheet-route.ts';
+	import { closeSheet, openSheet } from '../../client/sheet-route.ts';
 	import { isReceived, type Payday } from '../../domain/models.ts';
 	import { formatEdit } from '../../domain/money.ts';
 	import Sheet from '../overlay/Sheet.svelte';
@@ -11,12 +11,14 @@
 		open,
 		payday,
 		unpaidCount,
-		missingCount
+		missingCount,
+		issuesCount = 0
 	}: {
 		open: boolean;
 		payday: Payday;
 		unpaidCount: number;
 		missingCount: number;
+		issuesCount?: number;
 	} = $props();
 
 	const expected = new FormState();
@@ -95,14 +97,24 @@
 
 		<div class="stack danger-zone">
 			<p class="hint">{finishHint}</p>
-			<ConfirmButton
-				action="?/finish"
-				fields={{ paydayId: payday.id }}
-				confirm="Yes, finish it"
-				onsubmit={finish.enhance({ success: 'Payday finished. It is in History.' })}
-			>
-				Finish payday
-			</ConfirmButton>
+			{#if issuesCount > 0}
+				<button
+					class="button danger block"
+					type="button"
+					onclick={() => void openSheet('finish-check', { replace: true })}
+				>
+					Finish payday
+				</button>
+			{:else}
+				<ConfirmButton
+					action="?/finish"
+					fields={{ paydayId: payday.id }}
+					confirm="Yes, finish it"
+					onsubmit={finish.enhance({ success: 'Payday finished. It is in History.' })}
+				>
+					Finish payday
+				</ConfirmButton>
+			{/if}
 			{#if finish.error}
 				<p class="form-error" role="alert">{finish.error}</p>
 			{/if}

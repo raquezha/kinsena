@@ -12,7 +12,10 @@
 	import CycleHeader from './CycleHeader.svelte';
 	import CycleSheet from './CycleSheet.svelte';
 	import ItemSheet from './ItemSheet.svelte';
+	import FinishCheckSheet from './FinishCheckSheet.svelte';
 	import OtherPaydaySheet from './OtherPaydaySheet.svelte';
+	import PlanSheet from './PlanSheet.svelte';
+	import ProgressBar from './ProgressBar.svelte';
 	import ReceiveSheet from './ReceiveSheet.svelte';
 	import SkipSheet from './SkipSheet.svelte';
 	import SummaryCard from './SummaryCard.svelte';
@@ -22,13 +25,17 @@
 		currency,
 		destinations,
 		paydays,
-		nextScheduledDate
+		nextScheduledDate,
+		plan,
+		finishIssues
 	}: {
 		view: PaydayView;
 		currency: CurrencyCode;
 		destinations: Destination[];
 		paydays: import('../../domain/models.ts').Payday[];
 		nextScheduledDate: string | null;
+		plan: import('../../domain/planner.ts').PlanProposal | null;
+		finishIssues: import('../../domain/finish.ts').FinishIssue[];
 	} = $props();
 
 	const checklist = new ChecklistState({
@@ -61,7 +68,12 @@
 	<div class="summary">
 		<SummaryCard payday={view.payday} summary={checklist.summary} {currency} />
 	</div>
-	<div class="list"><Checklist {checklist} {currency} {destinations} /></div>
+	<div class="list">
+		{#if checklist.routing}
+			<ProgressBar summary={checklist.summary} {currency} />
+		{/if}
+		<Checklist {checklist} {currency} {destinations} />
+	</div>
 </div>
 
 <AddFab />
@@ -72,7 +84,10 @@
 	payday={view.payday}
 	unpaidCount={checklist.unpaid.length}
 	missingCount={checklist.summary.missingCount}
+	issuesCount={finishIssues.length}
 />
+<PlanSheet open={sheet === 'plan'} paydayId={view.payday.id} {plan} {currency} />
+<FinishCheckSheet open={sheet === 'finish-check'} paydayId={view.payday.id} issues={finishIssues} />
 <ItemSheet item={editing} {destinations} ondelete={(item) => checklist.remove(item)} />
 <OtherPaydaySheet open={sheet === 'other'} />
 <SkipSheet item={skipping} {nextScheduledDate} />

@@ -13,6 +13,7 @@ function item(overrides: Partial<RouteItem>): RouteItem {
 		minimumAmount: null,
 		chosenAmount: 0,
 		decision: 'PENDING',
+		decisionReason: null,
 		dueDate: null,
 		isDone: false,
 		sortOrder: 0,

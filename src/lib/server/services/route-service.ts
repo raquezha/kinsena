@@ -33,6 +33,7 @@ export type RemovedItem = Pick<
 	| 'minimumAmount'
 	| 'chosenAmount'
 	| 'decision'
+	| 'decisionReason'
 	| 'dueDate'
 	| 'isDone'
 	| 'sortOrder'
@@ -89,6 +90,7 @@ export function createRouteService(repos: Deps, paydaysService: PaydayService): 
 			minimumAmount: item.minimumAmount,
 			chosenAmount: item.chosenAmount,
 			decision: item.decision,
+			decisionReason: item.decisionReason ?? null,
 			dueDate: item.dueDate,
 			isDone: item.isDone,
 			sortOrder: item.sortOrder,
@@ -109,6 +111,7 @@ export function createRouteService(repos: Deps, paydaysService: PaydayService): 
 				minimumAmount: minimum,
 				chosenAmount: 0,
 				decision: 'PENDING',
+				decisionReason: null,
 				dueDate: normalizeOptionalDate(input.dueDate, 'due date'),
 				isDone: false,
 				sortOrder: items.maxSortOrder(input.paydayId) + 1,
@@ -155,7 +158,12 @@ export function createRouteService(repos: Deps, paydaysService: PaydayService): 
 		skip(itemId, moveToNext) {
 			const item = requireActiveItem(paydays, items, itemId);
 			if (!moveToNext) {
-				items.update(itemId, { decision: 'SKIPPED', chosenAmount: 0, isDone: false });
+				items.update(itemId, {
+					decision: 'SKIPPED',
+					chosenAmount: 0,
+					decisionReason: null,
+					isDone: false
+				});
 				return;
 			}
 			ensure(item.paydayId !== null, 'Assign this item to a payday first');
@@ -191,6 +199,7 @@ export function createRouteService(repos: Deps, paydaysService: PaydayService): 
 				minimumAmount,
 				chosenAmount,
 				decision,
+				decisionReason,
 				dueDate,
 				isDone,
 				sortOrder,
@@ -204,6 +213,7 @@ export function createRouteService(repos: Deps, paydaysService: PaydayService): 
 				minimumAmount,
 				chosenAmount,
 				decision,
+				decisionReason,
 				dueDate,
 				isDone,
 				sortOrder,

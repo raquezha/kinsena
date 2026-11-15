@@ -51,6 +51,8 @@ export interface RouteItem {
 	minimumAmount: Cents | null;
 	chosenAmount: Cents;
 	decision: Decision;
+	/** Why the current decision was suggested or chosen, if known. */
+	decisionReason: string | null;
 	dueDate: string | null;
 	isDone: boolean;
 	sortOrder: number;

@@ -100,6 +100,15 @@ describe('forms', () => {
 			name: 'Rent'
 		});
 	});
+
+	it('parses JSON or rejects a broken payload', async () => {
+		expect(await readForm(post({ plan: '{"ok":true}' }), { plan: fields.json })).toEqual({
+			plan: { ok: true }
+		});
+		await expect(readForm(post({ plan: 'not-json' }), { plan: fields.json })).rejects.toThrow(
+			DomainError
+		);
+	});
 });
 
 describe('attempt', () => {

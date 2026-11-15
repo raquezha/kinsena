@@ -33,6 +33,7 @@ const item = (name: string, sortOrder: number, paydayId: number | null = 1): New
 	minimumAmount: null,
 	chosenAmount: 0,
 	decision: 'PENDING',
+	decisionReason: null,
 	dueDate: null,
 	isDone: false,
 	sortOrder,

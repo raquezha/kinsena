@@ -7,6 +7,7 @@ import { failureMessage, postAction } from './actions.ts';
 import { hide, NO_CHANGES, setPaid, settle, withPending } from './optimistic.ts';
 import type { PendingChanges } from './optimistic.ts';
 import { toasts } from './toasts.svelte.ts';
+import { undoStack } from './undo.svelte.ts';
 
 interface Source {
 	items: () => RouteItem[];
@@ -53,15 +54,12 @@ export class Checklist {
 				if (!error) await update({ reset: false, navigate: false });
 				this.#settle(item.id);
 				if (error) toasts.error(error);
-				else if (done) this.#offerUndoDone(item);
+				else {
+					const undo = result.type === 'success' ? result.data?.undo : undefined;
+					undoStack.push(undo, done ? `${item.name} routed` : `${item.name} unmarked`);
+				}
 			};
 		};
-	}
-
-	#offerUndoDone(item: RouteItem) {
-		toasts.show(`${item.name} routed`, {
-			action: { label: 'Undo', run: () => this.#send('?/toggle', { itemId: item.id }) }
-		});
 	}
 
 	async remove(item: RouteItem): Promise<void> {
@@ -74,15 +72,7 @@ export class Checklist {
 			toasts.error(error);
 			return;
 		}
-		const removed = result.type === 'success' ? result.data?.removed : undefined;
-		toasts.show(`Deleted ${item.name}`, {
-			action: { label: 'Undo', run: () => this.#send('?/restore', { ...removed }) }
-		});
-	}
-
-	async #send(action: string, fields: Record<string, string | number | boolean | null>) {
-		const error = failureMessage(await postAction(action, fields));
-		if (error) toasts.error(error);
-		await refreshAll();
+		const undo = result.type === 'success' ? result.data?.undo : undefined;
+		undoStack.push(undo, `Deleted ${item.name}`);
 	}
 }

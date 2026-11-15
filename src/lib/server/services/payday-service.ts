@@ -67,6 +67,7 @@ function fromTemplate(
 		minimumAmount: template.minimumAmount,
 		chosenAmount: 0,
 		decision: 'PENDING',
+		decisionReason: null,
 		dueDate,
 		isDone: false,
 		sortOrder,
