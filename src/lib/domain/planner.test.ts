@@ -240,4 +240,28 @@ describe('proposePlan', () => {
 		expect(line(result, 'Third').decision).toBe('SKIPPED');
 		expect(line(result, 'Second').decision).toBe('SKIPPED');
 	});
+
+	it('keeps higher manual rank when an earlier due date would have won before', () => {
+		const laterRanked = item({
+			id: 1,
+			name: 'Later due, higher rank',
+			dueDate: '2026-11-28',
+			fullAmount: 500_000,
+			hasKnownFull: true,
+			minimumAmount: 500_000,
+			sortOrder: 0
+		});
+		const soonerRanked = item({
+			id: 2,
+			name: 'Sooner due, lower rank',
+			dueDate: '2026-11-16',
+			fullAmount: 500_000,
+			hasKnownFull: true,
+			minimumAmount: 500_000,
+			sortOrder: 1
+		});
+		const result = plan({ items: [soonerRanked, laterRanked], salary: 500_000 });
+		expect(line(result, 'Later due, higher rank').decision).toBe('FULL');
+		expect(line(result, 'Sooner due, lower rank').decision).toBe('SKIPPED');
+	});
 });

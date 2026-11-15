@@ -1,5 +1,5 @@
 import { parseAmount, parseOptionalAmount } from '../../domain/amount-parser.ts';
-import { isRoutedDecision, type Decision } from '../../domain/decision.ts';
+import { isRoutedDecision, isSkipped, type Decision } from '../../domain/decision.ts';
 import { ensure } from '../../domain/errors.ts';
 import { hasKnownAmount, type RouteItem } from '../../domain/models.ts';
 import { ensureMoney, normalizeName, normalizeOptionalDate } from '../../domain/rules.ts';
@@ -47,6 +47,8 @@ export interface RouteService {
 	skip(itemId: number, moveToNext: boolean): void;
 	toggleDone(itemId: number): boolean;
 	assign(itemId: number, paydayId: number | null): void;
+	/** Rewrite sortOrder for open (not done / not skipped) items only. */
+	reorder(paydayId: number, orderedOpenIds: number[]): void;
 	remove(itemId: number): RemovedItem;
 	restore(removed: RemovedItem): number;
 }
@@ -187,6 +189,22 @@ export function createRouteService(repos: Deps, paydaysService: PaydayService): 
 			requireActiveItem(paydays, items, itemId);
 			if (paydayId !== null) requireOpenPayday(paydays, paydayId);
 			items.update(itemId, { paydayId });
+		},
+		reorder(paydayId, orderedOpenIds) {
+			requireOpenPayday(paydays, paydayId);
+			const open = items
+				.listByPayday(paydayId)
+				.filter((item) => !item.isDone && !isSkipped(item.decision));
+			ensure(
+				orderedOpenIds.length === open.length &&
+					new Set(orderedOpenIds).size === orderedOpenIds.length,
+				'Checklist order is out of date — refresh and try again'
+			);
+			const openIds = new Set(open.map((item) => item.id));
+			for (const id of orderedOpenIds) {
+				ensure(openIds.has(id), 'Only open items can be reordered');
+			}
+			orderedOpenIds.forEach((id, index) => items.update(id, { sortOrder: index }));
 		},
 		remove(itemId) {
 			const item = requireActiveItem(paydays, items, itemId);

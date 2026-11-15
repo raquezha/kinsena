@@ -44,7 +44,7 @@ describe('proposePlan undated items', () => {
 		expect(line(result, 'Savings').reason).toBe('Full: on this payday');
 	});
 
-	it('breaks ties between items without due dates by sort order', () => {
+	it('keeps higher manual rank over a sooner due date when salary is tight', () => {
 		const alpha = item({
 			id: 21,
 			name: 'Alpha',
@@ -68,9 +68,10 @@ describe('proposePlan undated items', () => {
 			sortOrder: 0
 		});
 		const result = plan({ items: [beta, dated, alpha], salary: 400_000 });
-		expect(line(result, 'Alpha').decision).toBe('FULL');
+		expect(line(result, 'Dated').decision).toBe('FULL');
+		expect(line(result, 'Alpha').decision).toBe('SKIPPED');
 		expect(line(result, 'Beta').decision).toBe('SKIPPED');
-		expect(line(result, 'Dated').decision).toBe('SKIPPED');
+		expect(result.lines.map((entry) => entry.name)).toEqual(['Dated', 'Alpha', 'Beta']);
 	});
 
 	it('returns an empty plan when there are no items', () => {

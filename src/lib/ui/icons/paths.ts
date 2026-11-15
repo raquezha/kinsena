@@ -17,6 +17,8 @@ export const ICON_SVG = {
 	more: '<circle cx="12" cy="12" r="1" /><circle cx="19" cy="12" r="1" /><circle cx="5" cy="12" r="1" />',
 	undo: '<path d="M9 14 4 9l5-5" /><path d="M4 9h10.5a5.5 5.5 0 0 1 5.5 5.5a5.5 5.5 0 0 1-5.5 5.5H11" />',
 	chevron: '<path d="m9 18 6-6-6-6" />',
+	chevronUp: '<path d="m18 15-6-6-6 6" />',
+	chevronDown: '<path d="m6 9 6 6 6-6" />',
 	logout:
 		'<path d="m16 17 5-5-5-5" /><path d="M21 12H9" /><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4" />',
 	wallet:

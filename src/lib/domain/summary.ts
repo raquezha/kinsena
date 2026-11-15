@@ -1,4 +1,4 @@
-import { compareIsoDate, formatPaydayTitle } from './calendar.ts';
+import { formatPaydayTitle } from './calendar.ts';
 import { isSkipped } from './decision.ts';
 import { hasKnownAmount, isReceived, type Cents, type Payday, type RouteItem } from './models.ts';
 
@@ -53,19 +53,13 @@ export function summarize(
 	};
 }
 
-function dueSortKey(item: RouteItem): string {
-	return item.dueDate ?? '9999-99-99';
-}
-
-/** Open items first, then due date, then the order they were added. Skipped last. */
+/** Open items first by manual rank, then done, skipped last. Due date is not a sort key. */
 export function sortForChecklist(items: RouteItem[]): RouteItem[] {
 	return [...items].sort((a, b) => {
 		const skip = Number(isSkipped(a.decision)) - Number(isSkipped(b.decision));
 		if (skip !== 0) return skip;
 		const done = Number(a.isDone) - Number(b.isDone);
 		if (done !== 0) return done;
-		const due = compareIsoDate(dueSortKey(a), dueSortKey(b));
-		if (due !== 0) return due;
 		return a.sortOrder - b.sortOrder || a.id - b.id;
 	});
 }

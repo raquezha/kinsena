@@ -72,7 +72,7 @@
 		{#if checklist.routing}
 			<ProgressBar summary={checklist.summary} {currency} />
 		{/if}
-		<Checklist {checklist} {currency} {destinations} />
+		<Checklist {checklist} paydayId={view.payday.id} {currency} {destinations} />
 	</div>
 </div>
 

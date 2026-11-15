@@ -54,7 +54,10 @@ interface Draft {
 
 /** Draft a split that never totals more than salary. */
 export function proposePlan(input: ProposePlanInput): PlanProposal {
-	const drafts = input.items.map((item) => initialDraft(item, input.salary, input.nextPaydayDate));
+	const ranked = [...input.items].sort(
+		(a, b) => a.sortOrder - b.sortOrder || a.id - b.id
+	);
+	const drafts = ranked.map((item) => initialDraft(item, input.salary, input.nextPaydayDate));
 	if (input.salary !== null) tightenToSalary(drafts, input.salary, input.nextPaydayDate);
 	const lines = drafts.map((draft) => toLine(draft, input));
 	const total = sumAllocated(drafts);
@@ -158,26 +161,17 @@ function skipPriority(nextPaydayDate: string | null) {
 	return (left: Draft, right: Draft): number => {
 		const rank = urgencyRank(right.item, nextPaydayDate) - urgencyRank(left.item, nextPaydayDate);
 		if (rank !== 0) return rank;
-		const due = compareDue(right.item.dueDate, left.item.dueDate);
-		if (due !== 0) return due;
 		return right.item.sortOrder - left.item.sortOrder || right.item.id - left.item.id;
 	};
 }
 
-/** Higher means skip or degrade first: after the next payday, then later dates. */
+/** Higher means skip or degrade first: due after the next payday. */
 function urgencyRank(item: PlannerItem, nextPaydayDate: string | null): number {
 	return dueAfterNext(item.dueDate, nextPaydayDate) ? 1 : 0;
 }
 
 export function dueAfterNext(dueDate: string | null, nextPaydayDate: string | null): boolean {
 	return dueDate !== null && nextPaydayDate !== null && compareIsoDate(dueDate, nextPaydayDate) > 0;
-}
-
-function compareDue(left: string | null, right: string | null): number {
-	if (left === null && right === null) return 0;
-	if (left === null) return -1;
-	if (right === null) return 1;
-	return compareIsoDate(left, right);
 }
 
 function sumAllocated(drafts: Draft[]): number {

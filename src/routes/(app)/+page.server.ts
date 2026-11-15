@@ -1,5 +1,6 @@
 import { formAction } from '#lib/server/http/actions.ts';
 import { fields } from '#lib/server/http/forms.ts';
+import { ensure } from '#lib/domain/errors.ts';
 import { isReceived } from '#lib/domain/models.ts';
 import { parseApprovedLines, parseUndoPayload } from '#lib/server/services/plan-service.ts';
 import type { Actions, PageServerLoad } from './$types';
@@ -76,6 +77,14 @@ export const actions: Actions = {
 		const undo = plans.capture([form.itemId]);
 		items.assign(form.itemId, form.paydayId);
 		return { undo };
+	}),
+	reorder: formAction({ paydayId, orderedIds: fields.json }, (form, { items }) => {
+		ensure(
+			Array.isArray(form.orderedIds) &&
+				form.orderedIds.every((id) => typeof id === 'number' && Number.isInteger(id) && id > 0),
+			'Checklist order is out of date — refresh and try again'
+		);
+		items.reorder(form.paydayId, form.orderedIds);
 	}),
 	remove: formAction({ itemId }, (form, { items }) => {
 		const removed = items.remove(form.itemId);

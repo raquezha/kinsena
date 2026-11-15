@@ -87,15 +87,23 @@ describe('summarize', () => {
 });
 
 describe('sortForChecklist', () => {
-	it('puts open items first, then by due date, and skipped last', () => {
+	it('puts open items first by sort order, then done, skipped last', () => {
 		const sorted = sortForChecklist([
 			item({ id: 1, isDone: true, dueDate: '2026-11-01', sortOrder: 0 }),
-			item({ id: 2, dueDate: '2026-11-20', sortOrder: 0 }),
-			item({ id: 3, dueDate: '2026-11-10', sortOrder: 0 }),
+			item({ id: 2, dueDate: '2026-11-20', sortOrder: 2 }),
+			item({ id: 3, dueDate: '2026-11-10', sortOrder: 1 }),
 			item({ id: 4, dueDate: null, sortOrder: 0 }),
 			item({ id: 5, decision: 'SKIPPED', dueDate: '2026-11-05', sortOrder: 0 })
 		]);
-		expect(sorted.map((entry) => entry.id)).toEqual([3, 2, 4, 1, 5]);
+		expect(sorted.map((entry) => entry.id)).toEqual([4, 3, 2, 1, 5]);
+	});
+
+	it('ignores due date among open items', () => {
+		const sorted = sortForChecklist([
+			item({ id: 1, dueDate: '2026-11-01', sortOrder: 2 }),
+			item({ id: 2, dueDate: '2026-12-01', sortOrder: 1 })
+		]);
+		expect(sorted.map((entry) => entry.id)).toEqual([2, 1]);
 	});
 
 	it('breaks ties by sort order, then by id', () => {

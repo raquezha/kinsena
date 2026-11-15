@@ -145,4 +145,43 @@ describe('route service', () => {
 		services.items.assign(id, paydayId);
 		expect(services.paydays.view(paydayId).items[0]?.name).toBe('Inbox bill');
 	});
+
+	it('reorders open items by manual rank and rejects done or skipped ids', () => {
+		const first = services.items.add({
+			paydayId,
+			name: 'First',
+			amount: '100',
+			minimum: '',
+			dueDate: '2026-11-01',
+			destinationId: null
+		});
+		const second = services.items.add({
+			paydayId,
+			name: 'Second',
+			amount: '100',
+			minimum: '',
+			dueDate: '2026-10-01',
+			destinationId: null
+		});
+		services.items.reorder(paydayId, [second, first]);
+		expect(services.paydays.view(paydayId).items.map((item) => item.id)).toEqual([second, first]);
+
+		services.items.decide(first, 'FULL');
+		services.items.toggleDone(first);
+		expect(() => services.items.reorder(paydayId, [first])).toThrow(/open items/i);
+
+		services.items.skip(second, false);
+		const third = services.items.add({
+			paydayId,
+			name: 'Third',
+			amount: '50',
+			minimum: '',
+			dueDate: '',
+			destinationId: null
+		});
+		services.items.reorder(paydayId, [third]);
+		expect(services.paydays.view(paydayId).items.find((item) => item.id === third)?.sortOrder).toBe(
+			0
+		);
+	});
 });
