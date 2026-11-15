@@ -120,14 +120,14 @@ textarea.input {
 
 .stack {
 	display: grid;
-	gap: var(--space-4);
+	gap: var(--space-5);
 }
 
 .card {
 	background: var(--surface);
 	border: 1px solid var(--border-subtle);
 	border-radius: var(--radius-lg);
-	padding: var(--space-5);
+	padding: var(--space-6);
 }
 
 .kbd {

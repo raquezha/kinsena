@@ -15,7 +15,7 @@ export const load: PageServerLoad = ({ locals, url }) => {
 			? locals.services.plans.build(active.payday.id, currency)
 			: null;
 	const finishIssues = active ? locals.services.plans.finishIssues(active.payday.id) : [];
-	return { active, nextScheduledDate: next?.scheduledDate ?? null, plan, finishIssues };
+	return { active, nextScheduledDate: next?.payDate ?? null, plan, finishIssues };
 };
 
 const paydayId = fields.id;
@@ -37,6 +37,9 @@ export const actions: Actions = {
 	),
 	payDate: formAction({ paydayId, payDate: fields.date }, (form, { paydays }) =>
 		paydays.setPayDate(form.paydayId, form.payDate)
+	),
+	resetPayDate: formAction({ paydayId }, (form, { paydays }) =>
+		paydays.resetPayDate(form.paydayId)
 	),
 	note: formAction({ paydayId, note: fields.note }, (form, { paydays }) =>
 		paydays.setNote(form.paydayId, form.note)

@@ -106,7 +106,7 @@
 		overflow: hidden;
 		display: grid;
 		gap: var(--space-4);
-		padding: var(--space-5);
+		padding: var(--space-6);
 		border-radius: var(--radius-lg);
 		border: 1px solid rgb(181 216 193 / 0.16);
 		background:

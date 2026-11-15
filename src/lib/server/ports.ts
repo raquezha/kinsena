@@ -5,11 +5,13 @@ import type { FundFrom } from '../domain/fund-from.ts';
 import type {
 	Cents,
 	Destination,
+	Holiday,
 	Payday,
 	RouteItem,
 	Settings,
 	TemplateItem
 } from '../domain/models.ts';
+import type { PayRule } from '../domain/pay-rule.ts';
 
 export interface NewTemplate {
 	name: string;
@@ -105,6 +107,23 @@ export interface SettingsRepository {
 	get(): Settings;
 	setCurrency(currency: CurrencyCode): void;
 	setSalaries(midMonth: Cents | null, monthEnd: Cents | null): void;
+	setPayRule(rule: PayRule): void;
+}
+
+export type NewHoliday = Omit<Holiday, 'id'> & { createdAt: number };
+
+export interface HolidayRepository {
+	list(): Holiday[];
+	findById(id: number): Holiday | null;
+	add(holiday: NewHoliday): number;
+	remove(id: number): boolean;
+}
+
+export interface PayOverrideRepository {
+	all(): Record<string, string>;
+	get(scheduledDate: string): string | null;
+	set(scheduledDate: string, payDate: string): void;
+	remove(scheduledDate: string): boolean;
 }
 
 export interface Repositories {
@@ -113,6 +132,8 @@ export interface Repositories {
 	items: RouteItemRepository;
 	destinations: DestinationRepository;
 	settings: SettingsRepository;
+	holidays: HolidayRepository;
+	payOverrides: PayOverrideRepository;
 }
 
 export interface Clock {

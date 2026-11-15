@@ -19,11 +19,21 @@
 						class="payday"
 						class:current={payday.id === activeId && page.url.pathname === '/'}
 						href={paydayHref(payday.id)}
-						title={payday.title}
+						title={payday.payDate !== payday.scheduledDate
+							? `Arrives ${formatShortDate(payday.payDate)} · ${payday.title}`
+							: payday.title}
 					>
-						<span class="day">{formatShortDate(payday.scheduledDate)}</span>
+						<span class="day">{formatShortDate(payday.payDate)}</span>
 						<span class="payday-title">{payday.title}</span>
-						<span class="status">{isReceived(payday) ? 'Received' : 'Upcoming'}</span>
+						<span class="status">
+							{#if isReceived(payday)}
+								Received
+							{:else if payday.payDate !== payday.scheduledDate}
+								Arrives {formatShortDate(payday.payDate)}
+							{:else}
+								Upcoming
+							{/if}
+						</span>
 					</a>
 				</li>
 			{/each}

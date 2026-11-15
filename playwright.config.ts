@@ -28,7 +28,12 @@ export default defineConfig({
 	projects: [
 		...layouts.map(({ name, port, viewport, touch }) => ({
 			name,
-			testIgnore: ['**/screenshots.test.ts', '**/polish-shots.test.ts', '**/step1-shots.test.ts'],
+			testIgnore: [
+				'**/screenshots.test.ts',
+				'**/polish-shots.test.ts',
+				'**/step1-shots.test.ts',
+				'**/step2-shots.test.ts'
+			],
 			use: {
 				...devices['Desktop Chrome'],
 				baseURL: `http://127.0.0.1:${port}`,
@@ -38,7 +43,12 @@ export default defineConfig({
 		})),
 		{
 			name: 'screenshots',
-			testMatch: ['**/screenshots.test.ts', '**/polish-shots.test.ts', '**/step1-shots.test.ts'],
+			testMatch: [
+				'**/screenshots.test.ts',
+				'**/polish-shots.test.ts',
+				'**/step1-shots.test.ts',
+				'**/step2-shots.test.ts'
+			],
 			use: {
 				...devices['Desktop Chrome'],
 				baseURL: `http://127.0.0.1:${SCREENSHOT_PORT}`,

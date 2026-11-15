@@ -27,7 +27,7 @@ export interface Payday {
 	id: number;
 	title: string;
 	cadence: PaydayCadence;
-	/** The 15th, last day, or a custom date. YYYY-MM-DD. */
+	/** Scheduled pay day (15th or 30th by default). YYYY-MM-DD. */
 	scheduledDate: string;
 	/** When the money is expected to arrive. YYYY-MM-DD. */
 	payDate: string;
@@ -67,8 +67,16 @@ export function isReceived(payday: Pick<Payday, 'receivedAt'>): boolean {
 	return payday.receivedAt !== null;
 }
 
+export interface Holiday {
+	id: number;
+	date: string;
+	name: string;
+	kind: import('./pay-rule.ts').HolidayKind;
+}
+
 export interface Settings {
 	currency: import('./currency.ts').CurrencyCode;
 	midMonthSalary: Cents | null;
 	monthEndSalary: Cents | null;
+	payRule: import('./pay-rule.ts').PayRule;
 }

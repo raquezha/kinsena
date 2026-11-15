@@ -57,7 +57,7 @@
 		width: 100%;
 		max-width: var(--content-max);
 		margin: 0 auto;
-		padding: calc(var(--safe-top) + var(--space-5)) var(--space-4)
+		padding: calc(var(--safe-top) + var(--space-6)) var(--space-5)
 			calc(var(--nav-height) + var(--safe-bottom) + 96px);
 	}
 
@@ -71,8 +71,10 @@
 	@media (min-width: 1100px) {
 		.content {
 			max-width: calc(var(--content-max) + var(--sidebar-width));
-			padding-left: calc(var(--sidebar-width) + 40px);
-			padding-right: 40px;
+			padding-left: calc(var(--sidebar-width) + var(--space-10));
+			padding-right: var(--space-10);
+			padding-top: var(--space-10);
+			padding-bottom: var(--space-12);
 		}
 	}
 </style>

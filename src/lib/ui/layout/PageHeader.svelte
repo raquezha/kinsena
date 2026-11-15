@@ -19,7 +19,7 @@
 		align-items: flex-start;
 		justify-content: space-between;
 		gap: var(--space-4);
-		margin-bottom: var(--space-5);
+		margin-bottom: var(--space-6);
 	}
 
 	h1 {

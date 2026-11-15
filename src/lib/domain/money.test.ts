@@ -21,8 +21,8 @@ describe('money formatting', () => {
 		expect(formatMoney(-100, 'HKD')).toBe('-HK$1.00');
 	});
 
-	it('formats edit values without grouping', () => {
-		expect(formatEdit(7_500_000)).toBe('75000.00');
+	it('formats edit values with grouped thousands', () => {
+		expect(formatEdit(7_500_000)).toBe('75,000.00');
 		expect(formatEdit(29)).toBe('0.29');
 		expect(formatEdit(5)).toBe('0.05');
 	});

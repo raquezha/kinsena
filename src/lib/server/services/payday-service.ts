@@ -1,22 +1,26 @@
 import { parseOptionalAmount } from '../../domain/amount-parser.ts';
 import type { PaydayCadence, ScheduledCadence } from '../../domain/cadence.ts';
-import {
-	formatPaydayTitle,
-	inferCadence,
-	midMonthAfter,
-	monthEndAfter,
-	nextPaydayDate,
-	paydayAfter
-} from '../../domain/calendar.ts';
+import { formatPaydayTitle } from '../../domain/calendar.ts';
 import { localIsoDate } from '../../domain/dates.ts';
+import {
+	inferSlotCadence,
+	nextScheduledAfter,
+	nextScheduledOnOrAfter
+} from '../../domain/payday-calendar.ts';
 import { ensure } from '../../domain/errors.ts';
 import { dueDateForPayday, templateFitsPayday } from '../../domain/fund-from.ts';
-import { isReceived, type Payday, type TemplateItem } from '../../domain/models.ts';
-import { formatEdit } from '../../domain/money.ts';
+import { isReceived, type Payday } from '../../domain/models.ts';
 import { ensureMoney, normalizeDate, normalizeNote, normalizeTitle } from '../../domain/rules.ts';
 import { sortForChecklist, summarize, type PaydayView } from '../../domain/summary.ts';
-import type { Clock, NewRouteItem, Repositories } from '../ports.ts';
+import type { Clock, Repositories } from '../ports.ts';
 import { requireOpenPayday, requirePayday } from './guards.ts';
+import { itemFromTemplate } from './template-apply.ts';
+import {
+	arrivalNoteFor,
+	isLockedPayday,
+	recomputeOpenPayDates,
+	resolvePayDate
+} from './schedule-support.ts';
 
 export interface NewOtherPayday {
 	title: string;
@@ -47,40 +51,26 @@ export interface PaydayService {
 	findNext(paydayId: number): Payday | null;
 	/** The next open payday after this one, creating it if needed. */
 	nextAfter(paydayId: number): Payday;
+	/** Drop a manual pay-date override and restore the computed date. */
+	resetPayDate(paydayId: number): void;
 }
 
-type Deps = Pick<Repositories, 'paydays' | 'items' | 'templates' | 'settings'>;
-
-function fromTemplate(
-	template: TemplateItem,
-	paydayId: number,
-	dueDate: string | null,
-	sortOrder: number
-): NewRouteItem {
-	const amount = template.defaultAmount;
-	return {
-		paydayId,
-		destinationId: template.destinationId,
-		name: template.name,
-		fullAmount: amount ?? 0,
-		fullAmountExpr: amount === null ? '' : formatEdit(amount),
-		minimumAmount: template.minimumAmount,
-		chosenAmount: 0,
-		decision: 'PENDING',
-		decisionReason: null,
-		dueDate,
-		isDone: false,
-		sortOrder,
-		templateId: template.id
-	};
-}
+type Deps = Pick<
+	Repositories,
+	'paydays' | 'items' | 'templates' | 'settings' | 'holidays' | 'payOverrides'
+>;
 
 export function createPaydayService(repos: Deps, clock: Clock): PaydayService {
 	const { paydays, items, templates, settings } = repos;
 
 	const viewOf = (payday: Payday): PaydayView => {
 		const routeItems = sortForChecklist(items.listByPayday(payday.id));
-		return { payday, items: routeItems, summary: summarize(payday, routeItems) };
+		return {
+			payday,
+			items: routeItems,
+			summary: summarize(payday, routeItems),
+			arrivalNote: arrivalNoteFor(repos, payday)
+		};
 	};
 
 	const applyTemplates = (payday: Payday) => {
@@ -89,7 +79,7 @@ export function createPaydayService(repos: Deps, clock: Clock): PaydayService {
 			if (items.hasTemplate(payday.id, template.id)) continue;
 			if (!templateFitsPayday(template, payday)) continue;
 			const dueDate = dueDateForPayday(template, payday);
-			items.add(fromTemplate(template, payday.id, dueDate, ++order));
+			items.add(itemFromTemplate(template, payday.id, dueDate, ++order));
 		}
 	};
 
@@ -101,7 +91,7 @@ export function createPaydayService(repos: Deps, clock: Clock): PaydayService {
 			title: formatPaydayTitle(date),
 			cadence,
 			scheduledDate: date,
-			payDate: date,
+			payDate: resolvePayDate(repos, date),
 			expectedAmount: expected,
 			receivedAmount: null,
 			receivedAt: null,
@@ -119,7 +109,7 @@ export function createPaydayService(repos: Deps, clock: Clock): PaydayService {
 		for (;;) {
 			const existing = paydays.findByScheduledDate(current);
 			if (existing?.isClosed) {
-				current = paydayAfter(current, cadence);
+				current = nextScheduledAfter(current, cadence, settings.get().payRule);
 				continue;
 			}
 			if (existing) return existing;
@@ -129,9 +119,11 @@ export function createPaydayService(repos: Deps, clock: Clock): PaydayService {
 
 	const service: PaydayService = {
 		ensureUpcoming() {
+			recomputeOpenPayDates(repos);
 			const today = localIsoDate(clock.now());
-			ensureDate(nextPaydayDate(today, 'MID_MONTH'), 'MID_MONTH');
-			ensureDate(nextPaydayDate(today, 'MONTH_END'), 'MONTH_END');
+			const rule = settings.get().payRule;
+			ensureDate(nextScheduledOnOrAfter(today, 'MID_MONTH', rule), 'MID_MONTH');
+			ensureDate(nextScheduledOnOrAfter(today, 'MONTH_END', rule), 'MONTH_END');
 		},
 		listOpen: () => paydays.listOpen(),
 		view(paydayId) {
@@ -157,7 +149,7 @@ export function createPaydayService(repos: Deps, clock: Clock): PaydayService {
 			);
 			const expected = parseOptionalAmount(input.salary);
 			ensureMoney(expected, 'salary');
-			const cadence: PaydayCadence = inferCadence(scheduledDate);
+			const cadence: PaydayCadence = inferSlotCadence(scheduledDate, settings.get().payRule);
 			return paydays.create({
 				title: normalizeTitle(input.title, scheduledDate),
 				cadence: cadence === 'OTHER' ? 'OTHER' : cadence,
@@ -176,8 +168,17 @@ export function createPaydayService(repos: Deps, clock: Clock): PaydayService {
 			paydays.update(paydayId, { expectedAmount: amount });
 		},
 		setPayDate(paydayId, payDate) {
-			requireOpenPayday(paydays, paydayId);
-			paydays.update(paydayId, { payDate: normalizeDate(payDate, 'pay date') });
+			const payday = requireOpenPayday(paydays, paydayId);
+			ensure(!isLockedPayday(payday), 'Received or finished paydays cannot move');
+			const next = normalizeDate(payDate, 'pay date');
+			repos.payOverrides.set(payday.scheduledDate, next);
+			paydays.update(paydayId, { payDate: next });
+		},
+		resetPayDate(paydayId) {
+			const payday = requireOpenPayday(paydays, paydayId);
+			ensure(!isLockedPayday(payday), 'Received or finished paydays cannot move');
+			repos.payOverrides.remove(payday.scheduledDate);
+			paydays.update(paydayId, { payDate: resolvePayDate(repos, payday.scheduledDate) });
 		},
 		setNote(paydayId, note) {
 			requireOpenPayday(paydays, paydayId);
@@ -222,27 +223,14 @@ export function createPaydayService(repos: Deps, clock: Clock): PaydayService {
 			const later = service.findNext(paydayId);
 			if (later) return later;
 			const payday = requirePayday(paydays, paydayId);
-			const mid = midMonthAfter(payday.scheduledDate);
-			const end = monthEndAfter(payday.scheduledDate);
+			const rule = settings.get().payRule;
+			const mid = nextScheduledAfter(payday.scheduledDate, 'MID_MONTH', rule);
+			const end = nextScheduledAfter(payday.scheduledDate, 'MONTH_END', rule);
 			const nextDate = mid < end ? mid : end;
-			const cadence = inferCadence(nextDate);
+			const cadence = inferSlotCadence(nextDate, rule);
 			ensure(cadence !== 'OTHER', 'Could not find the next payday');
 			return ensureDate(nextDate, cadence);
 		}
 	};
 	return service;
-}
-
-export function applyTemplateToUpcoming(
-	repos: Pick<Repositories, 'paydays' | 'items'>,
-	template: TemplateItem
-): void {
-	for (const payday of repos.paydays.listOpen()) {
-		if (isReceived(payday) || payday.isClosed) continue;
-		if (repos.items.hasTemplate(payday.id, template.id)) continue;
-		if (!templateFitsPayday(template, payday)) continue;
-		const dueDate = dueDateForPayday(template, payday);
-		const sortOrder = repos.items.maxSortOrder(payday.id) + 1;
-		repos.items.add(fromTemplate(template, payday.id, dueDate, sortOrder));
-	}
 }

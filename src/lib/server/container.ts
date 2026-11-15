@@ -14,6 +14,7 @@ import {
 import { createPaydayService, type PaydayService } from './services/payday-service.ts';
 import { createPlanService, type PlanService } from './services/plan-service.ts';
 import { createRouteService, type RouteService } from './services/route-service.ts';
+import { createScheduleService, type ScheduleService } from './services/schedule-service.ts';
 import { createSettingsService, type SettingsService } from './services/settings-service.ts';
 import { createTemplateService, type TemplateService } from './services/template-service.ts';
 
@@ -25,6 +26,7 @@ export interface Services {
 	templates: TemplateService;
 	destinations: DestinationService;
 	settings: SettingsService;
+	schedule: ScheduleService;
 }
 
 export const systemClock: Clock = { now: () => new Date() };
@@ -40,6 +42,7 @@ export function createServices(repos: Repositories, passphrase: string, clock: C
 		clock
 	});
 	const paydays = createPaydayService(repos, clock);
+	const schedule = createScheduleService(repos, clock);
 	return {
 		auth: createAuthService({
 			verify: createPassphraseVerifier(passphrase),
@@ -51,7 +54,8 @@ export function createServices(repos: Repositories, passphrase: string, clock: C
 		plans: createPlanService(repos, paydays),
 		templates: createTemplateService(repos, clock),
 		destinations: createDestinationService(repos.destinations, clock),
-		settings: createSettingsService(repos.settings)
+		settings: createSettingsService(repos.settings),
+		schedule
 	};
 }
 

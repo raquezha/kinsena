@@ -24,11 +24,9 @@ export function formatMoney(cents: Cents, currency: CurrencyCode): string {
 	return `${sign}${currencySymbol(currency)}${formatPlain(Math.abs(cents))}`;
 }
 
-/** "75000.00" — locale-stable value for edit fields; parses back to the same cents. */
+/** "75,000.00" — grouped thousands for edit fields; parses back to the same cents. */
 export function formatEdit(cents: Cents): string {
-	const whole = Math.trunc(cents / 100);
-	const fraction = String(cents % 100).padStart(2, '0');
-	return `${whole}.${fraction}`;
+	return formatPlain(cents);
 }
 
 /** Splits "56,499.50" into "56,499" and "50" so the cents can be styled smaller. */

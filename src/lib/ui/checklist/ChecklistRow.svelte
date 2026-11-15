@@ -122,9 +122,9 @@
 		position: relative;
 		display: flex;
 		align-items: center;
-		gap: var(--space-2);
-		min-height: 64px;
-		padding-left: var(--space-2);
+		gap: var(--space-3);
+		min-height: 72px;
+		padding-left: var(--space-3);
 		background: var(--surface);
 		touch-action: pan-y;
 	}

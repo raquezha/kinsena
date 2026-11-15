@@ -1,9 +1,10 @@
-import { index, integer, sqliteTable, text } from 'drizzle-orm/sqlite-core';
+import { index, integer, sqliteTable, text, uniqueIndex } from 'drizzle-orm/sqlite-core';
 import type { PaydayCadence } from '../../domain/cadence.ts';
 import type { CurrencyCode } from '../../domain/currency.ts';
 import type { Decision } from '../../domain/decision.ts';
 import type { DestinationKind } from '../../domain/destination.ts';
 import type { FundFrom } from '../../domain/fund-from.ts';
+import type { HolidayKind, PayRule } from '../../domain/pay-rule.ts';
 
 // template_items and settings keep the names from Kinsena 0.1 so existing
 // databases can be altered in place. cycles / cycle_items are migrated
@@ -70,5 +71,23 @@ export const settings = sqliteTable('settings', {
 	id: integer('id').primaryKey(),
 	currency: text('currency', { length: 3 }).$type<CurrencyCode>().notNull().default('PHP'),
 	midMonthSalary: integer('mid_month_salary'),
-	monthEndSalary: integer('month_end_salary')
+	monthEndSalary: integer('month_end_salary'),
+	payRule: text('pay_rule', { mode: 'json' }).$type<PayRule>()
+});
+
+export const holidays = sqliteTable(
+	'holidays',
+	{
+		id: integer('id').primaryKey({ autoIncrement: true }),
+		date: text('date', { length: 32 }).notNull(),
+		name: text('name', { length: 128 }).notNull(),
+		kind: text('kind', { length: 32 }).$type<HolidayKind>().notNull(),
+		createdAt: integer('created_at').notNull()
+	},
+	(table) => [uniqueIndex('holidays_date_name_idx').on(table.date, table.name)]
+);
+
+export const payDateOverrides = sqliteTable('pay_date_overrides', {
+	scheduledDate: text('scheduled_date', { length: 32 }).primaryKey(),
+	payDate: text('pay_date', { length: 32 }).notNull()
 });

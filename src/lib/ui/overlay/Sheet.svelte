@@ -215,7 +215,7 @@
 	}
 
 	.body {
-		padding: var(--space-3) var(--space-5) var(--space-6);
+		padding: var(--space-5) var(--space-6) var(--space-8);
 		overflow-y: auto;
 		overscroll-behavior: contain;
 	}

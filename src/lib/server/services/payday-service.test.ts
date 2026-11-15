@@ -3,7 +3,7 @@ import { DomainError } from '../../domain/errors.ts';
 import { createTestClock } from '../testing/clock.ts';
 import { createMemoryRepositories } from '../testing/memory-repositories.ts';
 import { createServices, type Services } from '../container.ts';
-import { applyTemplateToUpcoming } from './payday-service.ts';
+import { applyTemplateToUpcoming } from './template-apply.ts';
 
 describe('payday service', () => {
 	let services: Services;
@@ -51,7 +51,7 @@ describe('payday service', () => {
 		expect(mid?.items.find((item) => item.name === 'Electric')?.dueDate).toBe('2026-10-20');
 
 		const end = services.paydays.listOpen().find((payday) => payday.cadence === 'MONTH_END');
-		expect(end).toMatchObject({ title: 'October 31', expectedAmount: 8_000_000 });
+		expect(end).toMatchObject({ title: 'October 30', expectedAmount: 8_000_000 });
 		const endView = services.paydays.view(end!.id);
 		expect(endView.items.map((item) => item.name).sort()).toEqual(['Rent']);
 	});
@@ -69,7 +69,7 @@ describe('payday service', () => {
 		services.paydays.close(mid.id);
 		services.paydays.ensureUpcoming();
 		expect(services.paydays.listOpen().map((payday) => payday.scheduledDate)).toEqual([
-			'2026-10-31',
+			'2026-10-30',
 			'2026-11-15'
 		]);
 	});

@@ -20,7 +20,7 @@ test('login and signed-in pages meet axe serious contrast and a11y checks', asyn
 		await signIn(page);
 		await expect(page.getByRole('heading', { level: 1 })).toBeVisible();
 
-		for (const path of ['/', '/history', '/defaults', '/settings']) {
+		for (const path of ['/', '/history', '/defaults', '/settings', '/calendar']) {
 			await page.goto(path);
 			await expect(page.getByRole('navigation', { name: 'Main' })).toBeVisible();
 			await expectNoSeriousViolations(page, `${path} (${scheme})`);

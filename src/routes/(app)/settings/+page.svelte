@@ -6,6 +6,8 @@
 	import Icon from '#lib/ui/icons/Icon.svelte';
 	import PageHeader from '#lib/ui/layout/PageHeader.svelte';
 	import CurrencyPicker from '#lib/ui/settings/CurrencyPicker.svelte';
+	import HolidayList from '#lib/ui/settings/HolidayList.svelte';
+	import PayRuleForm from '#lib/ui/settings/PayRuleForm.svelte';
 	import type { PageProps } from './$types';
 
 	let { data }: PageProps = $props();
@@ -35,6 +37,10 @@
 
 <div class="settings">
 	<section class="card"><CurrencyPicker current={data.currency} /></section>
+
+	<PayRuleForm rule={data.settings.payRule} />
+
+	<HolidayList holidays={data.holidays} />
 
 	<section class="card">
 		<h2>Default salaries</h2>
@@ -99,7 +105,7 @@
 <style>
 	.settings {
 		display: grid;
-		gap: var(--space-4);
+		gap: var(--space-6);
 	}
 
 	h2 {
@@ -141,12 +147,13 @@
 
 	@media (min-width: 1100px) {
 		.settings {
-			grid-template-columns: 2fr 1fr;
+			grid-template-columns: 1fr 1fr;
 			align-items: start;
 		}
 
-		.settings > :first-child {
-			grid-row: span 2;
+		.settings > :global(.card:nth-child(2)),
+		.settings > :global(.card:nth-child(3)) {
+			grid-column: 1 / -1;
 		}
 
 		.shortcuts {

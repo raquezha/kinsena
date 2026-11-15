@@ -1,6 +1,7 @@
 import { parseOptionalAmount } from '../../domain/amount-parser.ts';
 import type { CurrencyCode } from '../../domain/currency.ts';
 import type { Settings } from '../../domain/models.ts';
+import type { PayRule } from '../../domain/pay-rule.ts';
 import { ensureMoney } from '../../domain/rules.ts';
 import type { SettingsRepository } from '../ports.ts';
 
@@ -9,6 +10,7 @@ export interface SettingsService {
 	currency(): CurrencyCode;
 	setCurrency(currency: CurrencyCode): void;
 	setSalaries(midMonth: string, monthEnd: string): void;
+	setPayRule(rule: PayRule): void;
 }
 
 export function createSettingsService(settings: SettingsRepository): SettingsService {
@@ -22,6 +24,7 @@ export function createSettingsService(settings: SettingsRepository): SettingsSer
 			ensureMoney(mid, 'mid-month salary');
 			ensureMoney(end, 'month-end salary');
 			settings.setSalaries(mid, end);
-		}
+		},
+		setPayRule: (rule) => settings.setPayRule(rule)
 	};
 }

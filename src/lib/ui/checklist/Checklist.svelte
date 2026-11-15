@@ -107,7 +107,7 @@
 		margin: 0;
 		padding: 0;
 		display: grid;
-		gap: var(--space-2);
+		gap: var(--space-3);
 	}
 
 	.empty {

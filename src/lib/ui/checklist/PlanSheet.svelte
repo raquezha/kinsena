@@ -178,11 +178,11 @@
 		margin: 0;
 		padding: 0;
 		display: grid;
-		gap: var(--space-4);
+		gap: var(--space-5);
 	}
 
 	.line {
-		padding-bottom: var(--space-4);
+		padding-bottom: var(--space-5);
 		border-bottom: 1px solid var(--border-subtle);
 	}
 

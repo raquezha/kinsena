@@ -69,7 +69,7 @@ describe('calendar dates', () => {
 		expect(fundPaydayDate('2026-11-20')).toBe('2026-11-15');
 		expect(fundPaydayDate('2026-11-15')).toBe('2026-11-15');
 		expect(fundPaydayDate('2026-11-30')).toBe('2026-11-30');
-		expect(fundPaydayDate('2026-11-05')).toBe('2026-10-31');
+		expect(fundPaydayDate('2026-11-05')).toBe('2026-10-30');
 		expect(fundPaydayDate('2026-12-01')).toBe('2026-11-30');
 		expect(fundPaydayDate('2026-02-28')).toBe('2026-02-28');
 		expect(fundPaydayDate('2028-02-29')).toBe('2028-02-29');

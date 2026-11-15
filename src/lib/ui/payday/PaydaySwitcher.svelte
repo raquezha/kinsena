@@ -1,6 +1,7 @@
 <script lang="ts">
 	import { paydayHref } from '../../client/sheet-route.ts';
 	import { isReceived, type Payday } from '../../domain/models.ts';
+	import { formatShortDate } from '../checklist/dates.ts';
 
 	let {
 		paydays,
@@ -21,7 +22,15 @@
 				aria-current={payday.id === activeId ? 'page' : undefined}
 			>
 				<span class="title">{payday.title}</span>
-				<span class="meta">{isReceived(payday) ? 'Received' : 'Upcoming'}</span>
+				<span class="meta">
+					{#if isReceived(payday)}
+						Received
+					{:else if payday.payDate !== payday.scheduledDate}
+						Arrives {formatShortDate(payday.payDate)}
+					{:else}
+						Upcoming
+					{/if}
+				</span>
 			</a>
 		{/each}
 	</nav>

@@ -23,6 +23,7 @@
 
 	const expected = new FormState();
 	const payDate = new FormState();
+	const resetPay = new FormState();
 	const note = new FormState();
 	const finish = new FormState();
 	const received = $derived(isReceived(payday));
@@ -61,20 +62,35 @@
 			</form>
 		{/if}
 
-		<form
-			method="POST"
-			action="?/payDate"
-			class="stack"
-			use:enhance={payDate.enhance({ success: 'Pay date saved' })}
-		>
-			<input type="hidden" name="paydayId" value={payday.id} />
-			<label class="field">
-				<span>Pay date</span>
-				<input class="input" name="payDate" type="date" value={payday.payDate} />
-			</label>
-			{#if payDate.error}<p class="form-error" role="alert">{payDate.error}</p>{/if}
-			<button class="button block" type="submit" disabled={payDate.busy}>Save pay date</button>
-		</form>
+		{#if received}
+			<p class="hint">Arrived {payday.payDate}. Received paydays cannot move.</p>
+		{:else}
+			<form
+				method="POST"
+				action="?/payDate"
+				class="stack"
+				use:enhance={payDate.enhance({ success: 'Pay date saved' })}
+			>
+				<input type="hidden" name="paydayId" value={payday.id} />
+				<label class="field">
+					<span>Pay date</span>
+					<input class="input" name="payDate" type="date" value={payday.payDate} />
+				</label>
+				{#if payDate.error}<p class="form-error" role="alert">{payDate.error}</p>{/if}
+				<button class="button block" type="submit" disabled={payDate.busy}>Save pay date</button>
+			</form>
+			<form
+				method="POST"
+				action="?/resetPayDate"
+				use:enhance={resetPay.enhance({ success: 'Pay date reset to the computed day' })}
+			>
+				<input type="hidden" name="paydayId" value={payday.id} />
+				{#if resetPay.error}<p class="form-error" role="alert">{resetPay.error}</p>{/if}
+				<button class="button block" type="submit" disabled={resetPay.busy}>
+					Reset to computed date
+				</button>
+			</form>
+		{/if}
 
 		<form
 			method="POST"

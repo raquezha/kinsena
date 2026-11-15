@@ -118,7 +118,7 @@ export function createPlanService(repos: Repositories, paydays: PaydayService): 
 			return proposePlan({
 				salary: isReceived(view.payday) ? (view.payday.receivedAmount ?? null) : null,
 				items: plannerItems,
-				nextPaydayDate: next?.scheduledDate ?? null,
+				nextPaydayDate: next?.payDate ?? null,
 				currency
 			});
 		},

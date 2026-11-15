@@ -3,7 +3,7 @@
 	import { isReceived, type Payday } from '../../domain/models.ts';
 	import Icon from '../icons/Icon.svelte';
 
-	let { payday }: { payday: Payday } = $props();
+	let { payday, arrivalNote = null }: { payday: Payday; arrivalNote?: string | null } = $props();
 
 	const received = $derived(isReceived(payday));
 
@@ -19,6 +19,9 @@
 	<div class="titles">
 		<p class="date">{received ? 'Received' : 'Upcoming'}</p>
 		<h1>{payday.title}</h1>
+		{#if arrivalNote}
+			<p class="arrival">{arrivalNote}</p>
+		{/if}
 		{#if payday.note}
 			<p class="note"><Icon name="note" size={14} /> {payday.note}</p>
 		{/if}
@@ -61,7 +64,7 @@
 	.titles {
 		min-width: 0;
 		display: grid;
-		gap: 2px;
+		gap: var(--space-1);
 	}
 
 	.date {
@@ -76,6 +79,7 @@
 		letter-spacing: -0.02em;
 	}
 
+	.arrival,
 	.note {
 		display: flex;
 		align-items: center;
@@ -83,6 +87,12 @@
 		margin-top: var(--space-1);
 		color: var(--text-muted);
 		font-size: var(--text-sm);
+	}
+
+	.arrival {
+		color: var(--notice);
+		line-height: 1.45;
+		max-width: 42ch;
 	}
 
 	.actions {

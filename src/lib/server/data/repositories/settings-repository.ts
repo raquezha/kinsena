@@ -1,6 +1,7 @@
 import { eq } from 'drizzle-orm';
 import { DEFAULT_CURRENCY, isCurrencyCode, type CurrencyCode } from '../../../domain/currency.ts';
 import type { Settings } from '../../../domain/models.ts';
+import { DEFAULT_PAY_RULE, normalizePayRule, type PayRule } from '../../../domain/pay-rule.ts';
 import type { SettingsRepository } from '../../ports.ts';
 import type { Db } from '../database.ts';
 import { settings } from '../schema.ts';
@@ -10,7 +11,8 @@ const SETTINGS_ID = 1;
 const empty: Settings = {
 	currency: DEFAULT_CURRENCY,
 	midMonthSalary: null,
-	monthEndSalary: null
+	monthEndSalary: null,
+	payRule: DEFAULT_PAY_RULE
 };
 
 export function createSettingsRepository(db: Db): SettingsRepository {
@@ -20,7 +22,8 @@ export function createSettingsRepository(db: Db): SettingsRepository {
 		return {
 			currency: isCurrencyCode(row.currency) ? row.currency : DEFAULT_CURRENCY,
 			midMonthSalary: row.midMonthSalary,
-			monthEndSalary: row.monthEndSalary
+			monthEndSalary: row.monthEndSalary,
+			payRule: normalizePayRule(row.payRule)
 		};
 	};
 
@@ -36,6 +39,7 @@ export function createSettingsRepository(db: Db): SettingsRepository {
 	return {
 		get: read,
 		setCurrency: (currency: CurrencyCode) => upsert({ currency }),
-		setSalaries: (midMonthSalary, monthEndSalary) => upsert({ midMonthSalary, monthEndSalary })
+		setSalaries: (midMonthSalary, monthEndSalary) => upsert({ midMonthSalary, monthEndSalary }),
+		setPayRule: (payRule: PayRule) => upsert({ payRule: normalizePayRule(payRule) })
 	};
 }

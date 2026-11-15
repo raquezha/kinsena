@@ -71,11 +71,12 @@ export function dueDateInMonth(year: number, month: number, dueDay: number): str
 
 export type PaydayCadence = 'MID_MONTH' | 'MONTH_END' | 'OTHER';
 
-/** 15th is mid-month, last day is month-end, anything else is OTHER. */
+/** 15th is mid-month, the 30th (or last day if shorter) is month-end. */
 export function inferCadence(iso: string): PaydayCadence {
 	const { year, month, day } = fromIsoDate(iso);
 	if (day === 15) return 'MID_MONTH';
-	if (day === lastDayOfMonth(year, month)) return 'MONTH_END';
+	const endDay = Math.min(30, lastDayOfMonth(year, month));
+	if (day === endDay) return 'MONTH_END';
 	return 'OTHER';
 }
 
@@ -124,19 +125,20 @@ export function paydayAfter(iso: string, cadence: 'MID_MONTH' | 'MONTH_END'): st
 
 /**
  * The kinsena that funds a due date: that month's 15th if the due date is
- * after the 15th and before month-end, that month-end if it falls on the
- * last day, or the previous month-end if it falls before the 15th.
+ * on or after the 15th and before the 30th (or last day if shorter), that
+ * month-end if it falls on or after the 30th, or the previous month-end
+ * if it falls before the 15th.
  */
 export function fundPaydayDate(due: string): string {
 	const { year, month, day } = fromIsoDate(due);
-	const last = lastDayOfMonth(year, month);
-	if (day === last) return toIsoDate({ year, month, day: last });
+	const endDay = Math.min(30, lastDayOfMonth(year, month));
+	if (day >= endDay) return toIsoDate({ year, month, day: endDay });
 	if (day >= 15) return toIsoDate({ year, month, day: 15 });
 	const prev = addMonths(year, month, -1);
 	return toIsoDate({
 		year: prev.year,
 		month: prev.month,
-		day: lastDayOfMonth(prev.year, prev.month)
+		day: Math.min(30, lastDayOfMonth(prev.year, prev.month))
 	});
 }
 

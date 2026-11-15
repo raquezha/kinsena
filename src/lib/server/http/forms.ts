@@ -5,6 +5,7 @@ import { DECISIONS } from '../../domain/decision.ts';
 import { DESTINATION_KINDS } from '../../domain/destination.ts';
 import { DomainError } from '../../domain/errors.ts';
 import { FUND_FROMS } from '../../domain/fund-from.ts';
+import { HOLIDAY_KINDS, SHIFT_DIRECTIONS } from '../../domain/pay-rule.ts';
 import { MAX_EXPRESSION_LENGTH } from '../../domain/amount-parser.ts';
 
 const text = (max: number) =>
@@ -40,6 +41,9 @@ export const fields = {
 	decision: z.enum(DECISIONS),
 	kind: z.enum(DESTINATION_KINDS),
 	currency: z.enum(CURRENCY_CODES as [string, ...string[]]),
+	shift: z.enum(SHIFT_DIRECTIONS),
+	holidayKind: z.enum(HOLIDAY_KINDS),
+	year: z.coerce.number().int().min(2000).max(2100),
 	flag: z.enum(['true', 'false']).transform((value) => value === 'true'),
 	cents: z
 		.string()

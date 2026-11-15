@@ -4,7 +4,7 @@ import type { FundFrom } from '../../domain/fund-from.ts';
 import type { TemplateItem } from '../../domain/models.ts';
 import { ensureMoney, normalizeDueDay, normalizeName } from '../../domain/rules.ts';
 import type { Clock, Repositories } from '../ports.ts';
-import { applyTemplateToUpcoming } from './payday-service.ts';
+import { applyTemplateToUpcoming } from './template-apply.ts';
 
 export interface TemplateInput {
 	name: string;

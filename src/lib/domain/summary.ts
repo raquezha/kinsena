@@ -74,6 +74,8 @@ export interface PaydayView {
 	payday: Payday;
 	items: RouteItem[];
 	summary: PaydaySummary;
+	/** Arrival explanation when payDate differs from the scheduled day. */
+	arrivalNote: string | null;
 }
 
 /** Next payday is after this item's due date, so skipping would miss the due date. */

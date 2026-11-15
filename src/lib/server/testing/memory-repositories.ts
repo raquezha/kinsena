@@ -1,14 +1,18 @@
 import { DEFAULT_CURRENCY, type CurrencyCode } from '../../domain/currency.ts';
 import type {
 	Destination,
+	Holiday,
 	Payday,
 	RouteItem,
 	Settings,
 	TemplateItem
 } from '../../domain/models.ts';
+import { DEFAULT_PAY_RULE, normalizePayRule, type PayRule } from '../../domain/pay-rule.ts';
 import type {
 	DestinationRepository,
+	HolidayRepository,
 	PaydayRepository,
+	PayOverrideRepository,
 	Repositories,
 	RouteItemRepository,
 	SettingsRepository,
@@ -192,16 +196,52 @@ function memorySettings(): SettingsRepository {
 	let state: Settings = {
 		currency: DEFAULT_CURRENCY,
 		midMonthSalary: null,
-		monthEndSalary: null
+		monthEndSalary: null,
+		payRule: DEFAULT_PAY_RULE
 	};
 	return {
-		get: () => ({ ...state }),
+		get: () => ({ ...state, payRule: { ...state.payRule } }),
 		setCurrency: (currency: CurrencyCode) => {
 			state = { ...state, currency };
 		},
 		setSalaries: (midMonthSalary, monthEndSalary) => {
 			state = { ...state, midMonthSalary, monthEndSalary };
+		},
+		setPayRule: (payRule: PayRule) => {
+			state = { ...state, payRule: normalizePayRule(payRule) };
 		}
+	};
+}
+
+function memoryHolidays(): HolidayRepository {
+	const rows: Holiday[] = [];
+	let nextId = 1;
+	return {
+		list: () => rows.map((row) => ({ ...row })),
+		findById: (id) => copy(rows.find((row) => row.id === id)),
+		add(holiday) {
+			const id = nextId++;
+			rows.push({ id, date: holiday.date, name: holiday.name, kind: holiday.kind });
+			return id;
+		},
+		remove: (id) => {
+			const index = rows.findIndex((row) => row.id === id);
+			if (index < 0) return false;
+			rows.splice(index, 1);
+			return true;
+		}
+	};
+}
+
+function memoryPayOverrides(): PayOverrideRepository {
+	const rows = new Map<string, string>();
+	return {
+		all: () => Object.fromEntries(rows),
+		get: (scheduledDate) => rows.get(scheduledDate) ?? null,
+		set: (scheduledDate, payDate) => {
+			rows.set(scheduledDate, payDate);
+		},
+		remove: (scheduledDate) => rows.delete(scheduledDate)
 	};
 }
 
@@ -211,6 +251,8 @@ export function createMemoryRepositories(): Repositories {
 		templates: memoryTemplates(),
 		destinations: memoryDestinations(),
 		...memoryPaydaysAndItems(),
-		settings: memorySettings()
+		settings: memorySettings(),
+		holidays: memoryHolidays(),
+		payOverrides: memoryPayOverrides()
 	};
 }

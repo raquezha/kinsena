@@ -64,7 +64,7 @@
 <PaydaySwitcher {paydays} activeId={view.payday.id} />
 
 <div class="active">
-	<div class="header"><CycleHeader payday={view.payday} /></div>
+	<div class="header"><CycleHeader payday={view.payday} arrivalNote={view.arrivalNote} /></div>
 	<div class="summary">
 		<SummaryCard payday={view.payday} summary={checklist.summary} {currency} />
 	</div>
@@ -96,7 +96,7 @@
 <style>
 	.active {
 		display: grid;
-		gap: var(--space-5);
+		gap: var(--space-6);
 		grid-template-areas: 'header' 'summary' 'list';
 	}
 
