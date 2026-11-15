@@ -16,7 +16,10 @@
 >
 	<fieldset>
 		<legend>Currency</legend>
-		<p class="hint">Changes the symbol only. It does not convert existing amounts.</p>
+		<p class="hint">
+			New amounts use the Philippine peso unless you pick another currency. Changing the symbol does
+			not convert existing amounts.
+		</p>
 		<div class="options">
 			{#each CURRENCY_CODES as code (code)}
 				<label class="option">
@@ -28,7 +31,10 @@
 						onchange={() => formElement?.requestSubmit()}
 					/>
 					<span class="symbol">{CURRENCIES[code].symbol}</span>
-					<span class="label">{CURRENCIES[code].label}</span>
+					<span class="label">
+						{CURRENCIES[code].label}
+						{#if code === 'PHP'}<span class="default-badge">Default</span>{/if}
+					</span>
 					<span class="code">{code}</span>
 				</label>
 			{/each}
@@ -66,7 +72,7 @@
 		display: flex;
 		align-items: center;
 		gap: var(--space-3);
-		min-height: 52px;
+		min-height: var(--tap);
 		padding: 0 var(--space-4);
 		border-radius: var(--radius-md);
 		border: 1px solid var(--border-subtle);
@@ -102,7 +108,22 @@
 
 	.label {
 		flex: 1;
+		display: flex;
+		flex-wrap: wrap;
+		align-items: center;
+		gap: var(--space-2);
 		font-weight: 600;
+	}
+
+	.default-badge {
+		padding: 1px 7px;
+		border-radius: 999px;
+		background: var(--accent-soft);
+		color: var(--accent);
+		font-size: var(--text-xs);
+		font-weight: 700;
+		letter-spacing: 0.04em;
+		text-transform: uppercase;
 	}
 
 	.code {

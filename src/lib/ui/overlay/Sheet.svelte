@@ -215,7 +215,7 @@
 	}
 
 	.body {
-		padding: var(--space-5) var(--space-6) var(--space-8);
+		padding: var(--space-6) var(--space-8) var(--space-10);
 		overflow-y: auto;
 		overscroll-behavior: contain;
 	}
@@ -224,7 +224,7 @@
 	@media (min-width: 640px) {
 		.sheet-layer {
 			align-items: center;
-			padding: var(--space-6);
+			padding: var(--space-8);
 		}
 
 		.panel {

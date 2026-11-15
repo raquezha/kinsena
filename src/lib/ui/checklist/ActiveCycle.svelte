@@ -96,7 +96,7 @@
 <style>
 	.active {
 		display: grid;
-		gap: var(--space-6);
+		gap: var(--space-8);
 		grid-template-areas: 'header' 'summary' 'list';
 	}
 

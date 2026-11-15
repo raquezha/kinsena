@@ -83,12 +83,12 @@
 <style>
 	.checklist {
 		display: grid;
-		gap: var(--space-6);
+		gap: var(--space-8);
 	}
 
 	.group {
 		display: grid;
-		gap: var(--space-3);
+		gap: var(--space-5);
 	}
 
 	h2 {
@@ -107,7 +107,7 @@
 		margin: 0;
 		padding: 0;
 		display: grid;
-		gap: var(--space-3);
+		gap: var(--space-5);
 	}
 
 	.empty {

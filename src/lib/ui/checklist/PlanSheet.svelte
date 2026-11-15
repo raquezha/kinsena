@@ -125,10 +125,10 @@
 						</div>
 						<p class="reason">{line.reason}</p>
 						<div class="edit">
-							<div class="choices" role="group" aria-label="Decision for {line.name}">
+							<div class="segmented cols-3" role="group" aria-label="Decision for {line.name}">
 								{#each choices as decision (decision)}
 									<button
-										class="chip"
+										class="segment"
 										class:active={line.decision === decision}
 										class:skip={decision === 'SKIPPED'}
 										type="button"
@@ -208,35 +208,6 @@
 		flex-wrap: wrap;
 		gap: var(--space-2);
 		align-items: center;
-	}
-
-	.choices {
-		display: flex;
-		flex-wrap: wrap;
-		gap: var(--space-1);
-	}
-
-	.chip {
-		min-height: 44px;
-		padding: 0 var(--space-3);
-		border-radius: var(--radius-sm);
-		border: 1px solid var(--border);
-		background: var(--surface-sunken);
-		color: var(--text-muted);
-		font-size: var(--text-sm);
-		font-weight: 700;
-	}
-
-	.chip.active {
-		background: var(--accent);
-		border-color: var(--accent);
-		color: var(--accent-ink);
-	}
-
-	.chip.skip.active {
-		background: var(--danger-soft);
-		border-color: rgb(243 170 164 / 0.25);
-		color: var(--danger);
 	}
 
 	.amount {

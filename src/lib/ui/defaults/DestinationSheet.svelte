@@ -6,6 +6,7 @@
 	import type { Destination } from '../../domain/models.ts';
 	import ConfirmButton from '../checklist/ConfirmButton.svelte';
 	import Sheet from '../overlay/Sheet.svelte';
+	import ChoiceGroup from '../forms/ChoiceGroup.svelte';
 
 	let { destination }: { destination: Destination | undefined } = $props();
 	const form = new FormState();
@@ -35,16 +36,15 @@
 					<span>Name</span>
 					<input class="input" name="name" required maxlength="128" value={shown.name} />
 				</label>
-				<label class="field">
-					<span>Kind</span>
-					<select class="input" name="kind">
-						{#each DESTINATION_KINDS as kind (kind)}
-							<option value={kind} selected={kind === shown.kind}
-								>{DESTINATION_KIND_LABELS[kind]}</option
-							>
-						{/each}
-					</select>
-				</label>
+				<ChoiceGroup
+					name="kind"
+					legend="Kind"
+					value={shown.kind}
+					options={DESTINATION_KINDS.map((kind) => ({
+						value: kind,
+						label: DESTINATION_KIND_LABELS[kind]
+					}))}
+				/>
 				{#if form.error}<p class="form-error" role="alert">{form.error}</p>{/if}
 				<button class="button primary block" type="submit" disabled={form.busy}>Save</button>
 			</form>

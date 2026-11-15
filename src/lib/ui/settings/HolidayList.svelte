@@ -4,6 +4,7 @@
 	import { formatPaydayTitle } from '../../domain/calendar.ts';
 	import type { Holiday } from '../../domain/models.ts';
 	import { HOLIDAY_KINDS } from '../../domain/pay-rule.ts';
+	import ChoiceGroup from '../forms/ChoiceGroup.svelte';
 
 	let { holidays }: { holidays: Holiday[] } = $props();
 
@@ -41,16 +42,15 @@
 			<span>Name</span>
 			<input class="input" name="name" maxlength="128" required />
 		</label>
-		<label class="field">
-			<span>Kind</span>
-			<select class="input" name="kind">
-				{#each HOLIDAY_KINDS as kind (kind)}
-					<option value={kind} selected={kind === 'LOCAL'}
-						>{kind === 'LOCAL' ? 'Local' : 'National'}</option
-					>
-				{/each}
-			</select>
-		</label>
+		<ChoiceGroup
+			name="kind"
+			legend="Kind"
+			value="LOCAL"
+			options={HOLIDAY_KINDS.map((kind) => ({
+				value: kind,
+				label: kind === 'LOCAL' ? 'Local' : 'National'
+			}))}
+		/>
 		<button class="button primary" type="submit" disabled={add.busy}>Add holiday</button>
 		{#if add.error}<p class="form-error" role="alert">{add.error}</p>{/if}
 	</form>
@@ -99,12 +99,12 @@
 		color: var(--text-muted);
 		font-size: var(--text-sm);
 		margin-bottom: var(--space-4);
-		line-height: 1.55;
+		line-height: var(--line);
 	}
 
 	.add {
 		display: grid;
-		gap: var(--space-3);
+		gap: var(--space-4);
 	}
 
 	ul {
@@ -144,8 +144,12 @@
 
 	@media (min-width: 640px) {
 		.add {
-			grid-template-columns: 10rem 1fr 8rem auto;
+			grid-template-columns: 10rem 1fr auto;
 			align-items: end;
+		}
+
+		.add :global(.choice-group) {
+			grid-column: 1 / -1;
 		}
 
 		.add .form-error {

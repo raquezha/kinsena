@@ -68,7 +68,7 @@
 	}
 
 	.toast.error {
-		border-color: rgb(243 170 164 / 0.4);
+		border-color: rgb(240 168 160 / 0.4);
 		color: var(--danger);
 	}
 

@@ -48,7 +48,7 @@
 			title="Salary, note and finish (c)"
 			data-sveltekit-noscroll
 		>
-			<Icon name="wallet" size={20} />
+			<Icon name="salary" size={20} />
 		</a>
 	</div>
 </header>

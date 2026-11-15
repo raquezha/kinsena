@@ -1,5 +1,5 @@
 <script lang="ts">
-	import { ICON_PATHS, type IconName } from './paths.ts';
+	import { ICON_SVG, type IconName } from './paths.ts';
 
 	let {
 		name,
@@ -20,5 +20,7 @@
 	aria-hidden="true"
 	focusable="false"
 >
-	<path d={ICON_PATHS[name]} />
+	<!-- Trusted Lucide path markup from ICON_SVG; never user input. -->
+	<!-- eslint-disable-next-line svelte/no-at-html-tags -->
+	{@html ICON_SVG[name]}
 </svg>

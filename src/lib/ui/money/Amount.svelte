@@ -44,7 +44,7 @@
 
 	.symbol {
 		font-size: 0.5em;
-		color: var(--text-muted);
+		color: var(--accent);
 		margin-right: 4px;
 	}
 

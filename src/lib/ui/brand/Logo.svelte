@@ -24,13 +24,13 @@
 		<radialGradient id="{id}-canvas" cx="50%" cy="35%" r="70%">
 			<stop offset="0" stop-color="#191610" />
 			<stop offset="0.6" stop-color="#0a0907" />
-			<stop offset="1" stop-color="#040403" />
+			<stop offset="1" stop-color="#12110e" />
 		</radialGradient>
 		<linearGradient id="{id}-gold" x1="0" y1="0" x2="1" y2="1">
-			<stop offset="0" stop-color="#fff6e2" />
-			<stop offset="0.25" stop-color="#ecd39d" />
-			<stop offset="0.65" stop-color="#cda863" />
-			<stop offset="1" stop-color="#9a7637" />
+			<stop offset="0" stop-color="#f8edd4" />
+			<stop offset="0.25" stop-color="#f0d9a8" />
+			<stop offset="0.65" stop-color="#e0c48a" />
+			<stop offset="1" stop-color="#b8945a" />
 		</linearGradient>
 	</defs>
 	<rect width="512" height="512" rx="116" fill="url(#{id}-canvas)" />
@@ -41,7 +41,7 @@
 		height="476"
 		rx="100"
 		fill="none"
-		stroke="#cda863"
+		stroke="#e0c48a"
 		stroke-opacity="0.2"
 		stroke-width="4"
 	/>

@@ -32,7 +32,8 @@ export default defineConfig({
 				'**/screenshots.test.ts',
 				'**/polish-shots.test.ts',
 				'**/step1-shots.test.ts',
-				'**/step2-shots.test.ts'
+				'**/step2-shots.test.ts',
+				'**/step3-shots.test.ts'
 			],
 			use: {
 				...devices['Desktop Chrome'],
@@ -47,7 +48,8 @@ export default defineConfig({
 				'**/screenshots.test.ts',
 				'**/polish-shots.test.ts',
 				'**/step1-shots.test.ts',
-				'**/step2-shots.test.ts'
+				'**/step2-shots.test.ts',
+				'**/step3-shots.test.ts'
 			],
 			use: {
 				...devices['Desktop Chrome'],

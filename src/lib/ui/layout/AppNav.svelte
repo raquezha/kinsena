@@ -40,7 +40,7 @@
 		inset: auto 0 0 0;
 		height: calc(var(--nav-height) + var(--safe-bottom));
 		padding: 0 var(--space-2) var(--safe-bottom);
-		background: rgb(10 14 12 / 0.86);
+		background: var(--nav-bg);
 		backdrop-filter: blur(18px) saturate(1.4);
 		border-top: 1px solid var(--border-subtle);
 		view-transition-name: nav;
@@ -68,7 +68,7 @@
 		align-items: center;
 		justify-content: center;
 		gap: 3px;
-		min-height: 54px;
+		min-height: var(--tap);
 		margin: 0 var(--space-1);
 		border-radius: var(--radius-md);
 		color: var(--text-dim);

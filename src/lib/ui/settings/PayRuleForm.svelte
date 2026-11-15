@@ -1,6 +1,7 @@
 <script lang="ts">
 	import { enhance } from '$app/forms';
 	import { FormState } from '../../client/form-state.svelte.ts';
+	import ChoiceGroup from '../forms/ChoiceGroup.svelte';
 	import {
 		SHIFT_DIRECTIONS,
 		WEEKDAY_INDEXES,
@@ -53,17 +54,15 @@
 			<span class="help">Two days, for example 15, 30.</span>
 		</label>
 
-		<fieldset>
-			<legend>When the day is non-working</legend>
-			<div class="options">
-				{#each SHIFT_DIRECTIONS as direction (direction)}
-					<label class="option">
-						<input type="radio" name="shift" value={direction} checked={rule.shift === direction} />
-						{SHIFT_LABELS[direction]}
-					</label>
-				{/each}
-			</div>
-		</fieldset>
+		<ChoiceGroup
+			name="shift"
+			legend="When the day is non-working"
+			value={rule.shift}
+			options={SHIFT_DIRECTIONS.map((direction) => ({
+				value: direction,
+				label: SHIFT_LABELS[direction]
+			}))}
+		/>
 
 		<fieldset>
 			<legend>Non-working weekdays</legend>

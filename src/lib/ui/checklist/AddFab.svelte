@@ -32,7 +32,7 @@
 		background: var(--accent);
 		color: var(--accent-ink);
 		box-shadow:
-			0 10px 28px rgb(181 216 193 / 0.28),
+			0 10px 28px rgb(224 196 138 / 0.22),
 			0 4px 12px rgb(0 0 0 / 0.5);
 		transition: transform var(--duration-fast) var(--ease-out);
 	}

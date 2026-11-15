@@ -73,12 +73,12 @@ textarea.input {
 	background: var(--accent);
 	border-color: transparent;
 	color: var(--accent-ink);
-	box-shadow: 0 6px 18px rgb(181 216 193 / 0.18);
+	box-shadow: 0 6px 18px rgb(224 196 138 / 0.16);
 }
 
 .button.danger {
 	background: var(--danger-soft);
-	border-color: rgb(243 170 164 / 0.25);
+	border-color: rgb(240 168 160 / 0.28);
 	color: var(--danger);
 }
 
@@ -120,14 +120,14 @@ textarea.input {
 
 .stack {
 	display: grid;
-	gap: var(--space-5);
+	gap: var(--space-6);
 }
 
 .card {
 	background: var(--surface);
 	border: 1px solid var(--border-subtle);
 	border-radius: var(--radius-lg);
-	padding: var(--space-6);
+	padding: var(--space-8);
 }
 
 .kbd {
@@ -137,4 +137,52 @@ textarea.input {
 	border-radius: 6px;
 	border: 1px solid var(--border-strong);
 	color: var(--text-muted);
+}
+
+.segmented {
+	display: grid;
+	grid-template-columns: repeat(2, minmax(0, 1fr));
+	gap: var(--space-2);
+}
+
+.segmented.cols-3 {
+	grid-template-columns: repeat(3, minmax(0, 1fr));
+}
+
+.segmented form {
+	min-width: 0;
+}
+
+.segment {
+	width: 100%;
+	min-height: var(--tap);
+	padding: 0 var(--space-2);
+	border-radius: var(--radius-sm);
+	border: 1px solid var(--border);
+	background: var(--surface-sunken);
+	color: var(--text-muted);
+	font-size: var(--text-sm);
+	font-weight: 700;
+}
+
+.segment.active {
+	background: var(--accent-soft);
+	border-color: var(--accent);
+	color: var(--accent-strong);
+}
+
+.segment.skip.active {
+	background: var(--danger-soft);
+	border-color: rgb(240 168 160 / 0.28);
+	color: var(--danger);
+}
+
+@media (min-width: 640px) {
+	.segmented {
+		grid-template-columns: repeat(4, minmax(0, 1fr));
+	}
+
+	.segmented.cols-3 {
+		grid-template-columns: repeat(3, minmax(0, 1fr));
+	}
 }

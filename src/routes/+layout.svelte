@@ -1,5 +1,6 @@
 <script lang="ts">
 	import { onNavigate } from '$app/navigation';
+	import '@fontsource-variable/inter/wght.css';
 	import '#lib/ui/styles/tokens.css';
 	import '#lib/ui/styles/base.css';
 	import '#lib/ui/styles/controls.css';

@@ -70,7 +70,7 @@
 		position: absolute;
 		inset: -20% -40% auto;
 		height: 70%;
-		background: radial-gradient(circle at 50% 40%, rgb(181 216 193 / 0.16), transparent 60%);
+		background: radial-gradient(circle at 50% 40%, rgb(224 196 138 / 0.14), transparent 60%);
 		animation: breathe 7s ease-in-out infinite alternate;
 	}
 
@@ -81,7 +81,7 @@
 		justify-items: center;
 		gap: var(--space-2);
 		padding: var(--space-8) var(--space-6);
-		background: rgb(19 26 22 / 0.82);
+		background: rgb(27 26 22 / 0.86);
 		border: 1px solid var(--border);
 		border-radius: var(--radius-xl);
 		box-shadow: var(--shadow-card);

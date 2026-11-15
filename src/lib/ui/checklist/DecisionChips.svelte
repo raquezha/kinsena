@@ -22,7 +22,7 @@
 	}
 </script>
 
-<div class="chips" role="group" aria-label="Routing decision for {item.name}">
+<div class="segmented" role="group" aria-label="Routing decision for {item.name}">
 	{#each chips as chip (chip.decision)}
 		<form method="POST" action="?/decide" use:enhance={undoEnhance('Decision saved')}>
 			<input type="hidden" name="itemId" value={item.id} />
@@ -33,7 +33,7 @@
 					: chip.decision === 'MINIMUM'
 						? 'min'
 						: chip.decision.toLowerCase()}-{item.id}"
-				class="chip"
+				class="segment"
 				class:active={item.decision === chip.decision}
 				class:skip={chip.decision === 'SKIPPED'}
 				type="submit"
@@ -44,34 +44,3 @@
 		</form>
 	{/each}
 </div>
-
-<style>
-	.chips {
-		display: flex;
-		flex-wrap: wrap;
-		gap: var(--space-2);
-	}
-
-	.chip {
-		min-height: 44px;
-		padding: 0 var(--space-3);
-		border-radius: var(--radius-sm);
-		border: 1px solid var(--border);
-		background: var(--surface-sunken);
-		color: var(--text-muted);
-		font-size: var(--text-sm);
-		font-weight: 700;
-	}
-
-	.chip.active {
-		background: var(--accent);
-		border-color: var(--accent);
-		color: var(--accent-ink);
-	}
-
-	.chip.skip.active {
-		background: var(--danger-soft);
-		border-color: rgb(243 170 164 / 0.25);
-		color: var(--danger);
-	}
-</style>

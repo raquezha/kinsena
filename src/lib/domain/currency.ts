@@ -14,6 +14,7 @@ export type CurrencyCode = keyof typeof CURRENCIES;
 
 export const CURRENCY_CODES = Object.keys(CURRENCIES) as CurrencyCode[];
 
+/** Philippine peso is the product default. USD and the others stay available. */
 export const DEFAULT_CURRENCY: CurrencyCode = 'PHP';
 
 export function isCurrencyCode(value: string): value is CurrencyCode {

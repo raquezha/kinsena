@@ -57,24 +57,24 @@
 		width: 100%;
 		max-width: var(--content-max);
 		margin: 0 auto;
-		padding: calc(var(--safe-top) + var(--space-6)) var(--space-5)
-			calc(var(--nav-height) + var(--safe-bottom) + 96px);
+		padding: calc(var(--safe-top) + var(--space-8)) var(--space-6)
+			calc(var(--nav-height) + var(--safe-bottom) + var(--space-16));
 	}
 
 	@media (min-width: 640px) {
 		.content {
-			padding: var(--space-8);
-			padding-left: calc(var(--rail-width) + var(--space-8));
+			padding: var(--space-10);
+			padding-left: calc(var(--rail-width) + var(--space-10));
 		}
 	}
 
 	@media (min-width: 1100px) {
 		.content {
 			max-width: calc(var(--content-max) + var(--sidebar-width));
-			padding-left: calc(var(--sidebar-width) + var(--space-10));
-			padding-right: var(--space-10);
-			padding-top: var(--space-10);
-			padding-bottom: var(--space-12);
+			padding-left: calc(var(--sidebar-width) + var(--space-12));
+			padding-right: var(--space-12);
+			padding-top: var(--space-12);
+			padding-bottom: var(--space-16);
 		}
 	}
 </style>

@@ -8,6 +8,7 @@
 	import ConfirmButton from '../checklist/ConfirmButton.svelte';
 	import DestinationSelect from '../checklist/DestinationSelect.svelte';
 	import Sheet from '../overlay/Sheet.svelte';
+	import ChoiceGroup from '../forms/ChoiceGroup.svelte';
 
 	let {
 		template,
@@ -72,14 +73,15 @@
 						value={shown.dueDay ?? ''}
 					/>
 				</label>
-				<label class="field">
-					<span>Fund from</span>
-					<select class="input" name="fundFrom">
-						{#each FUND_FROMS as value (value)}
-							<option {value} selected={value === shown.fundFrom}>{FUND_FROM_LABELS[value]}</option>
-						{/each}
-					</select>
-				</label>
+				<ChoiceGroup
+					name="fundFrom"
+					legend="Fund from"
+					value={shown.fundFrom}
+					options={FUND_FROMS.map((value) => ({
+						value,
+						label: FUND_FROM_LABELS[value]
+					}))}
+				/>
 				<DestinationSelect {destinations} value={shown.destinationId} />
 				{#if form.error}<p class="form-error" role="alert">{form.error}</p>{/if}
 				<button class="button primary block" type="submit" disabled={form.busy}>Save</button>

@@ -4,6 +4,7 @@
 	import { closeSheet } from '../../client/sheet-route.ts';
 	import { DESTINATION_KIND_LABELS, DESTINATION_KINDS } from '../../domain/destination.ts';
 	import Sheet from '../overlay/Sheet.svelte';
+	import ChoiceGroup from '../forms/ChoiceGroup.svelte';
 
 	let { open }: { open: boolean } = $props();
 	const form = new FormState();
@@ -26,14 +27,15 @@
 			<span>Name</span>
 			<input class="input" name="name" required maxlength="128" autocomplete="off" />
 		</label>
-		<label class="field">
-			<span>Kind</span>
-			<select class="input" name="kind">
-				{#each DESTINATION_KINDS as kind (kind)}
-					<option value={kind}>{DESTINATION_KIND_LABELS[kind]}</option>
-				{/each}
-			</select>
-		</label>
+		<ChoiceGroup
+			name="kind"
+			legend="Kind"
+			value="ACCOUNT"
+			options={DESTINATION_KINDS.map((kind) => ({
+				value: kind,
+				label: DESTINATION_KIND_LABELS[kind]
+			}))}
+		/>
 		{#if form.error}<p class="form-error" role="alert">{form.error}</p>{/if}
 		<button class="button primary block" type="submit" disabled={form.busy}>Save destination</button
 		>

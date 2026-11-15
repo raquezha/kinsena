@@ -4,7 +4,7 @@
 	import type { CurrencyCode } from '../../domain/currency.ts';
 	import type { PaydaySummary } from '../../domain/summary.ts';
 	import Amount from '../money/Amount.svelte';
-	import ChipEmblem from '../brand/ChipEmblem.svelte';
+	import Icon from '../icons/Icon.svelte';
 
 	let {
 		payday,
@@ -31,7 +31,7 @@
 
 <section class="wallet" aria-label="Payday summary">
 	<header>
-		<ChipEmblem />
+		<span class="emblem"><Icon name="salary" size={22} /></span>
 		<span class="eyebrow">
 			{#if kept}
 				Kept in full
@@ -105,13 +105,13 @@
 		position: relative;
 		overflow: hidden;
 		display: grid;
-		gap: var(--space-4);
-		padding: var(--space-6);
+		gap: var(--space-5);
+		padding: var(--space-8);
 		border-radius: var(--radius-lg);
-		border: 1px solid rgb(181 216 193 / 0.16);
+		border: 1px solid rgb(224 196 138 / 0.16);
 		background:
-			radial-gradient(circle at 100% 0%, rgb(181 216 193 / 0.14), transparent 55%),
-			linear-gradient(140deg, #1a241e 0%, #0f1612 60%, #0b100d 100%);
+			radial-gradient(circle at 100% 0%, rgb(224 196 138 / 0.12), transparent 55%),
+			linear-gradient(140deg, var(--surface-raised) 0%, var(--surface) 60%, var(--canvas) 100%);
 		box-shadow: var(--shadow-card);
 	}
 
@@ -121,8 +121,14 @@
 		gap: var(--space-3);
 	}
 
+	.emblem {
+		display: grid;
+		place-items: center;
+		color: var(--accent);
+	}
+
 	.eyebrow {
-		color: var(--text-muted);
+		color: var(--accent);
 		font-size: var(--text-xs);
 		font-weight: 700;
 		letter-spacing: 0.08em;

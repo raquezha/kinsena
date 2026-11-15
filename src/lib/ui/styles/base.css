@@ -8,6 +8,7 @@ html {
 	background: var(--canvas);
 	color: var(--text);
 	font-family: var(--font-ui);
+	font-optical-sizing: auto;
 	-webkit-text-size-adjust: 100%;
 	-webkit-tap-highlight-color: transparent;
 }
@@ -61,8 +62,13 @@ button {
 	white-space: nowrap;
 }
 
-.tabular {
-	font-variant-numeric: tabular-nums;
+.tabular,
+.money,
+input.money {
+	font-variant-numeric: tabular-nums lining-nums;
+	font-feature-settings:
+		'tnum' 1,
+		'lnum' 1;
 }
 
 /* Page transitions between tabs (View Transitions API) */

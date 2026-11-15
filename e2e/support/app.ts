@@ -57,7 +57,7 @@ export async function addDestination(page: Page, name: string, kind = 'Account')
 	await page.getByRole('link', { name: 'Add destination' }).click();
 	const dialog = sheet(page, 'New destination');
 	await dialog.getByLabel('Name').fill(name);
-	await dialog.getByLabel('Kind').selectOption({ label: kind });
+	await dialog.getByRole('radio', { name: kind }).check();
 	await dialog.getByRole('button', { name: 'Save destination' }).click();
 	await expect(dialog).toBeHidden();
 }
