@@ -105,7 +105,7 @@ systemctl --user start kinsena-update.service kinsena-backup.service
 systemctl --user status kinsena-update.service kinsena-backup.service
 ```
 
-The updater waits for the container health check and reports failure, but does not roll back on its own. The unit expects Docker at `/usr/bin/docker`. For checks after a reboot without logging in, enable lingering for that user (`loginctl enable-linger "$USER"`, which may need sudo). Compose publishes the container's port 8080 on **host 8081**, bound to loopback and to `HOST_BIND` (your Tailscale IPv4, `100.116.201.64` by default). That leaves a local dev server free on `:8080`. Set `HOST_BIND` in `~/kinsena-deploy/.env` if the Tailscale address changes. Do not set it to `0.0.0.0` on a shared LAN.
+The updater waits for the container health check and reports failure, but does not roll back on its own. The unit expects Docker at `/usr/bin/docker`. For checks after a reboot without logging in, enable lingering for that user (`loginctl enable-linger "$USER"`, which may need sudo). Compose publishes the container's port 8080 on **host 6123**, bound to loopback and to `HOST_BIND` (your Tailscale IPv4, `100.116.201.64` by default). That leaves a local dev server free on `:8080`. Set `HOST_BIND` in `~/kinsena-deploy/.env` if the Tailscale address changes. Do not set it to `0.0.0.0` on a shared LAN.
 
 The daily backup uses SQLite's online backup and an integrity check, writing private timestamped files to `~/kinsena-deploy/backups/` and keeping the 14 most recent copies. **Those are on the same server and are not disaster recovery.** Copy them to another device and test restoring a copy. Run one manually with `sh ~/kinsena-deploy/backup.sh`.
 
