@@ -115,9 +115,11 @@ export async function clearToasts(page: Page): Promise<void> {
 /** Open-list names in visual order under Planned / To route. */
 export async function openRowNames(page: Page): Promise<string[]> {
 	const region = page.getByRole('list', { name: /^(Planned|To route)$/ });
-	return region.locator(':scope > li').evaluateAll((nodes) =>
-		nodes.map((node) => node.getAttribute('aria-label') ?? '').filter(Boolean)
-	);
+	return region
+		.locator(':scope > li')
+		.evaluateAll((nodes) =>
+			nodes.map((node) => node.getAttribute('aria-label') ?? '').filter(Boolean)
+		);
 }
 
 /** Open-list names whose label matches `prefix` (shared e2e DB isolation). */
@@ -151,9 +153,7 @@ export async function ensureEmptyOpenList(page: Page): Promise<void> {
 		await expect(dialog).toBeVisible();
 		await dialog.getByRole('button', { name: 'Delete' }).click();
 		await expect(dialog).toBeHidden();
-		await expect
-			.poll(async () => openRowNames(page), { timeout: 10_000 })
-			.not.toContain(name);
+		await expect.poll(async () => openRowNames(page), { timeout: 10_000 }).not.toContain(name);
 	}
 	await clearToasts(page);
 }
@@ -175,7 +175,12 @@ export async function openRowBoxes(
 	);
 }
 
-async function gripDragBoxes(page: Page, fromName: string, toName: string, place: 'before' | 'after') {
+async function gripDragBoxes(
+	page: Page,
+	fromName: string,
+	toName: string,
+	place: 'before' | 'after'
+) {
 	const fromGrip = row(page, fromName).locator('.grip');
 	const toRow = row(page, toName);
 	await expect(fromGrip).toBeVisible();
@@ -330,4 +335,3 @@ export async function dragOpenItemTouch(
 	await session.detach().catch(() => undefined);
 	await reorder;
 }
-

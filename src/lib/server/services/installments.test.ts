@@ -80,9 +80,9 @@ describe('fixed-N installments', () => {
 				(payday) =>
 					payday.cadence === 'MID_MONTH' && payday.id !== mid.id && payday.id !== nextMid.id
 			)!;
-		expect(
-			services.paydays.view(thirdMid.id).items.some((item) => item.templateId === id)
-		).toBe(false);
+		expect(services.paydays.view(thirdMid.id).items.some((item) => item.templateId === id)).toBe(
+			false
+		);
 	});
 
 	it('spawns at most one EVERY installment per calendar month', () => {

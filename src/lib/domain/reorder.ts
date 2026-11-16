@@ -8,7 +8,9 @@ export function isChecklistOpen(item: Pick<RouteItem, 'isDone' | 'decision'>): b
 	return !item.isDone && !isSkipped(item.decision);
 }
 
-export function openItemIds(items: readonly Pick<RouteItem, 'id' | 'isDone' | 'decision'>[]): number[] {
+export function openItemIds(
+	items: readonly Pick<RouteItem, 'id' | 'isDone' | 'decision'>[]
+): number[] {
 	return items.filter(isChecklistOpen).map((item) => item.id);
 }
 

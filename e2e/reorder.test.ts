@@ -24,11 +24,9 @@ test('grip drag persists after drop and reload without expanding rows', async ({
 	await addItem(page, 'Reorder Gamma', '300');
 
 	await expect(page.getByText('Drag the handle to reorder.')).toBeVisible();
-	await expect.poll(async () => openRowNames(page)).toEqual([
-		'Reorder Alpha',
-		'Reorder Beta',
-		'Reorder Gamma'
-	]);
+	await expect
+		.poll(async () => openRowNames(page))
+		.toEqual(['Reorder Alpha', 'Reorder Beta', 'Reorder Gamma']);
 
 	const before = await openRowBoxes(page);
 	expect(before).toHaveLength(3);
@@ -42,24 +40,25 @@ test('grip drag persists after drop and reload without expanding rows', async ({
 
 	// Layout must settle without growing (grip column must stay reserved during save).
 	await expect
-		.poll(async () => {
-			const after = await openRowBoxes(page);
-			return after.every((entry) => {
-				const prior = beforeByName[entry.name];
-				if (!prior) return false;
-				return (
-					Math.abs(entry.width - prior.width) <= 2 && Math.abs(entry.height - prior.height) <= 2
-				);
-			});
-		}, { timeout: 10_000 })
+		.poll(
+			async () => {
+				const after = await openRowBoxes(page);
+				return after.every((entry) => {
+					const prior = beforeByName[entry.name];
+					if (!prior) return false;
+					return (
+						Math.abs(entry.width - prior.width) <= 2 && Math.abs(entry.height - prior.height) <= 2
+					);
+				});
+			},
+			{ timeout: 10_000 }
+		)
 		.toBe(true);
 
 	await page.reload();
-	await expect.poll(async () => openRowNames(page)).toEqual([
-		'Reorder Beta',
-		'Reorder Gamma',
-		'Reorder Alpha'
-	]);
+	await expect
+		.poll(async () => openRowNames(page))
+		.toEqual(['Reorder Beta', 'Reorder Gamma', 'Reorder Alpha']);
 
 	const reloaded = await openRowBoxes(page);
 	for (const entry of reloaded) {
@@ -77,10 +76,7 @@ test('skipped items leave the open list; single open row has no grip', async ({ 
 	await row(page, 'Reorder Beta').getByRole('button', { name: 'Skip' }).click();
 	await page.getByRole('dialog').getByRole('button', { name: 'Skip this payday' }).click();
 	await expect(page.getByRole('region', { name: /^Skipped/ })).toContainText('Reorder Beta');
-	await expect.poll(async () => openRowNames(page)).toEqual([
-		'Reorder Gamma',
-		'Reorder Alpha'
-	]);
+	await expect.poll(async () => openRowNames(page)).toEqual(['Reorder Gamma', 'Reorder Alpha']);
 	await expect(row(page, 'Reorder Gamma').locator('.grip')).toBeVisible();
 
 	await row(page, 'Reorder Gamma').getByRole('button', { name: 'Skip' }).click();

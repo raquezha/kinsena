@@ -272,4 +272,3 @@ describe('route service', () => {
 		expect(services.paydays.view(paydayId).items.map((item) => item.id)).toEqual(before);
 	});
 });
-

@@ -275,8 +275,9 @@
 		border-radius: 999px;
 		background: rgb(255 255 255 / 0.5);
 		transform: translateX(0.2rem);
-		transition: transform var(--duration-fast) var(--ease-out), background-color var(--duration-fast)
-			var(--ease-out);
+		transition:
+			transform var(--duration-fast) var(--ease-out),
+			background-color var(--duration-fast) var(--ease-out);
 	}
 
 	.toggle.on .thumb {

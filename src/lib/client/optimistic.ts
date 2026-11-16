@@ -41,7 +41,10 @@ export function hide(pending: PendingChanges, id: number): PendingChanges {
 }
 
 /** Contiguous ranks for the open checklist after a successful drag. */
-export function setOrder(pending: PendingChanges, orderedOpenIds: readonly number[]): PendingChanges {
+export function setOrder(
+	pending: PendingChanges,
+	orderedOpenIds: readonly number[]
+): PendingChanges {
 	return {
 		...pending,
 		order: new Map(orderedOpenIds.map((id, index) => [id, index]))

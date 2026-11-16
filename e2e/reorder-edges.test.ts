@@ -26,21 +26,15 @@ test('edge: last→first, reverse twice, cancel drag, and vertical lock', async 
 	await addItem(page, 'Edge B', '20');
 	await addItem(page, 'Edge C', '30');
 	await addItem(page, 'Edge D', '40');
-	await expect.poll(async () => openRowNames(page)).toEqual([
-		'Edge A',
-		'Edge B',
-		'Edge C',
-		'Edge D'
-	]);
+	await expect
+		.poll(async () => openRowNames(page))
+		.toEqual(['Edge A', 'Edge B', 'Edge C', 'Edge D']);
 
 	// Cancel: press grip, tiny wiggle, release — no reorder request.
 	await cancelOpenDrag(page, 'Edge A');
-	await expect.poll(async () => openRowNames(page)).toEqual([
-		'Edge A',
-		'Edge B',
-		'Edge C',
-		'Edge D'
-	]);
+	await expect
+		.poll(async () => openRowNames(page))
+		.toEqual(['Edge A', 'Edge B', 'Edge C', 'Edge D']);
 
 	// Last to first.
 	await dragOpenItem(page, 'Edge D', 'Edge A', 'before');
@@ -61,12 +55,9 @@ test('edge: last→first, reverse twice, cancel drag, and vertical lock', async 
 		.toEqual(['Edge B', 'Edge C', 'Edge A', 'Edge D']);
 
 	await page.reload();
-	await expect.poll(async () => openRowNames(page)).toEqual([
-		'Edge B',
-		'Edge C',
-		'Edge A',
-		'Edge D'
-	]);
+	await expect
+		.poll(async () => openRowNames(page))
+		.toEqual(['Edge B', 'Edge C', 'Edge A', 'Edge D']);
 });
 
 test('edge: failed reorder rolls UI back; touch drag works on touch projects', async ({
@@ -118,11 +109,9 @@ test('edge: failed reorder rolls UI back; touch drag works on touch projects', a
 		.toEqual(['Fail B', 'Fail A', 'Fail C']);
 
 	await page.reload();
-	await expect.poll(async () => openRowNames(page), { timeout: 10_000 }).toEqual([
-		'Fail B',
-		'Fail A',
-		'Fail C'
-	]);
+	await expect
+		.poll(async () => openRowNames(page), { timeout: 10_000 })
+		.toEqual(['Fail B', 'Fail A', 'Fail C']);
 });
 
 test('edge: first→last then neighbor swap; grip stays for 2+ open rows', async ({ page }) => {

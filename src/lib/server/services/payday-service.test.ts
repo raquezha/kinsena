@@ -166,7 +166,11 @@ describe('payday service', () => {
 
 describe('defaults apply-if-missing', () => {
 	it('skips seeding open paydays when applyToOpen is false', () => {
-		const services = createServices(createMemoryRepositories(), 'test-passphrase-16c', createTestClock());
+		const services = createServices(
+			createMemoryRepositories(),
+			'test-passphrase-16c',
+			createTestClock()
+		);
 		services.paydays.ensureUpcoming();
 		const mid = services.paydays.active()!.payday;
 		const before = services.paydays.view(mid.id).items.length;
@@ -192,7 +196,11 @@ describe('defaults apply-if-missing', () => {
 	});
 
 	it('does not add missing defaults after salary is received', () => {
-		const services = createServices(createMemoryRepositories(), 'test-passphrase-16c', createTestClock());
+		const services = createServices(
+			createMemoryRepositories(),
+			'test-passphrase-16c',
+			createTestClock()
+		);
 		services.paydays.ensureUpcoming();
 		const mid = services.paydays.active()!.payday;
 		services.templates.add({
@@ -212,7 +220,11 @@ describe('defaults apply-if-missing', () => {
 	});
 
 	it('skips paused defaults when applying to a payday', () => {
-		const services = createServices(createMemoryRepositories(), 'test-passphrase-16c', createTestClock());
+		const services = createServices(
+			createMemoryRepositories(),
+			'test-passphrase-16c',
+			createTestClock()
+		);
 		services.paydays.ensureUpcoming();
 		const mid = services.paydays.active()!.payday;
 		const id = services.templates.add({

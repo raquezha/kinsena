@@ -71,7 +71,7 @@ export function shouldSpawnTemplate(
 	return true;
 }
 
-/** Copy active defaults onto one payday when missing. Skips received/closed and non-fitting rules. */
+/** Copy active defaults onto one payday when missing (skips locked / non-fitting). */
 export function applyMissingDefaultsToPayday(
 	repos: Pick<Repositories, 'paydays' | 'items' | 'templates'>,
 	payday: Payday

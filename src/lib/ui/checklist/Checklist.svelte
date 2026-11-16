@@ -87,8 +87,7 @@
 		clearZoneMinSize();
 		const next = event.detail.items;
 		const orderedIds = next.map((item) => item.id);
-		const unchanged =
-			orderedIds.join(',') === checklist.unpaid.map((item) => item.id).join(',');
+		const unchanged = orderedIds.join(',') === checklist.unpaid.map((item) => item.id).join(',');
 		// In-flight save: keep posted draft — never clear it from a stale "unchanged" finalize.
 		if (saving) return;
 		// Unchanged drop: drop draft.
@@ -189,11 +188,7 @@
 				onfinalize={onFinalize}
 			>
 				{#each openItems as item (item.id)}
-					<li
-						class="row-wrap"
-						class:has-handles={showHandles}
-						aria-label={item.name}
-					>
+					<li class="row-wrap" class:has-handles={showHandles} aria-label={item.name}>
 						{#if showHandles}
 							<!-- Pointer-only reorder for v1 (swipe-delete owns the row; keyboard DnD later). -->
 							<div class="grip" use:dragHandle aria-hidden="true" tabindex="-1">

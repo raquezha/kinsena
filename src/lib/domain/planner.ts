@@ -54,9 +54,7 @@ interface Draft {
 
 /** Draft a split that never totals more than salary. */
 export function proposePlan(input: ProposePlanInput): PlanProposal {
-	const ranked = [...input.items].sort(
-		(a, b) => a.sortOrder - b.sortOrder || a.id - b.id
-	);
+	const ranked = [...input.items].sort((a, b) => a.sortOrder - b.sortOrder || a.id - b.id);
 	const drafts = ranked.map((item) => initialDraft(item, input.salary, input.nextPaydayDate));
 	if (input.salary !== null) tightenToSalary(drafts, input.salary, input.nextPaydayDate);
 	const lines = drafts.map((draft) => toLine(draft, input));

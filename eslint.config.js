@@ -39,13 +39,15 @@ export default defineConfig(
 			}
 		},
 		rules: {
+			// Recurring cards / checklist chrome need room for markup + scoped CSS together.
+			'max-lines': ['error', { max: 300, skipBlankLines: true, skipComments: true }],
 			'max-lines-per-function': 'off',
 			'svelte/button-has-type': 'error',
 			'svelte/no-at-html-tags': 'error'
 		}
 	},
 	{
-		files: ['**/*.test.ts', 'e2e/**'],
-		rules: { 'max-lines-per-function': 'off', complexity: 'off' }
+		files: ['**/*.test.ts', 'e2e/**', 'src/lib/server/testing/**'],
+		rules: { 'max-lines': 'off', 'max-lines-per-function': 'off', complexity: 'off' }
 	}
 );

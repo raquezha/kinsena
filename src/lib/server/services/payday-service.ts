@@ -13,10 +13,7 @@ import { ensureMoney, normalizeDate, normalizeNote, normalizeTitle } from '../..
 import { sortForChecklist, summarize, type PaydayView } from '../../domain/summary.ts';
 import type { Clock, Repositories } from '../ports.ts';
 import { requireOpenPayday, requirePayday } from './guards.ts';
-import {
-	applyMissingDefaultsToPayday,
-	type ApplyMissingResult
-} from './template-apply.ts';
+import { applyMissingDefaultsToPayday, type ApplyMissingResult } from './template-apply.ts';
 import {
 	arrivalNoteFor,
 	isLockedPayday,
