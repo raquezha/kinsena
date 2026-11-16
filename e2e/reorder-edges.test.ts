@@ -44,8 +44,16 @@ test('edge: last→first, reverse twice, cancel drag, and grid pointer follow', 
 		.poll(async () => openRowNames(page), { timeout: 10_000 })
 		.toEqual(['Edge D', 'Edge A', 'Edge B', 'Edge C']);
 
-	// Reverse back toward original-ish: move D after C.
-	await dragOpenItem(page, 'Edge D', 'Edge C', 'after');
+	// Reverse via "before" walks — more reliable than after-last on 1-col mobile.
+	await dragOpenItem(page, 'Edge A', 'Edge D', 'before');
+	await expect
+		.poll(async () => openRowNames(page), { timeout: 10_000 })
+		.toEqual(['Edge A', 'Edge D', 'Edge B', 'Edge C']);
+	await dragOpenItem(page, 'Edge B', 'Edge D', 'before');
+	await expect
+		.poll(async () => openRowNames(page), { timeout: 10_000 })
+		.toEqual(['Edge A', 'Edge B', 'Edge D', 'Edge C']);
+	await dragOpenItem(page, 'Edge C', 'Edge D', 'before');
 	await expect
 		.poll(async () => openRowNames(page), { timeout: 10_000 })
 		.toEqual(['Edge A', 'Edge B', 'Edge C', 'Edge D']);

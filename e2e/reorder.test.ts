@@ -1,4 +1,4 @@
-import { expect, test } from '@playwright/test';
+import { expect, test, type Page } from '@playwright/test';
 import {
 	addItem,
 	dragOpenItem,
@@ -7,8 +7,19 @@ import {
 	openRowBoxes,
 	openRowNames,
 	row,
+	sheet,
 	signIn
 } from './support/app.ts';
+
+async function skipViaMoreMenu(page: Page, name: string) {
+	const item = row(page, name);
+	await item.getByRole('button', { name: `More routing actions for ${name}` }).click();
+	await item.getByRole('menuitem', { name: 'Skip' }).click();
+	const skipSheet = sheet(page, new RegExp(`Skip ${name}`));
+	await expect(skipSheet).toBeVisible();
+	await skipSheet.getByRole('button', { name: 'Skip this payday' }).click();
+	await expect(skipSheet).toBeHidden();
+}
 
 test.describe.configure({ mode: 'serial' });
 
@@ -23,7 +34,7 @@ test('grip drag persists after drop and reload without expanding rows', async ({
 	await addItem(page, 'Reorder Beta', '200');
 	await addItem(page, 'Reorder Gamma', '300');
 
-	await expect(page.getByText('Drag the handle to reorder.')).toBeVisible();
+	await expect(page.getByText('Drag the handle to reorder across the grid.')).toBeVisible();
 	await expect
 		.poll(async () => openRowNames(page))
 		.toEqual(['Reorder Alpha', 'Reorder Beta', 'Reorder Gamma']);
@@ -73,18 +84,16 @@ test('skipped items leave the open list; single open row has no grip', async ({ 
 	test.setTimeout(90_000);
 	await markSalaryIn(page, '50,000');
 
-	await row(page, 'Reorder Beta').getByRole('button', { name: 'Skip' }).click();
-	await page.getByRole('dialog').getByRole('button', { name: 'Skip this payday' }).click();
+	await skipViaMoreMenu(page, 'Reorder Beta');
 	await expect(page.getByRole('region', { name: /^Skipped/ })).toContainText('Reorder Beta');
 	await expect.poll(async () => openRowNames(page)).toEqual(['Reorder Gamma', 'Reorder Alpha']);
 	await expect(row(page, 'Reorder Gamma').locator('.grip')).toBeVisible();
 
-	await row(page, 'Reorder Gamma').getByRole('button', { name: 'Skip' }).click();
-	await page.getByRole('dialog').getByRole('button', { name: 'Skip this payday' }).click();
+	await skipViaMoreMenu(page, 'Reorder Gamma');
 
 	await expect.poll(async () => openRowNames(page)).toEqual(['Reorder Alpha']);
 	await expect(row(page, 'Reorder Alpha').locator('.grip')).toHaveCount(0);
-	await expect(page.getByText('Drag the handle to reorder.')).toHaveCount(0);
+	await expect(page.getByText('Drag the handle to reorder across the grid.')).toHaveCount(0);
 	await expect(page.getByRole('region', { name: /^Skipped/ })).toContainText('Reorder Beta');
 	await expect(page.getByRole('region', { name: /^Skipped/ })).toContainText('Reorder Gamma');
 
