@@ -23,7 +23,8 @@ export function itemFromTemplate(
 		dueDate,
 		isDone: false,
 		sortOrder,
-		templateId: template.id
+		templateId: template.id,
+		icon: template.icon
 	};
 }
 

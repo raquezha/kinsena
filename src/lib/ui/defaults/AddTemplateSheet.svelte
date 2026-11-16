@@ -7,9 +7,18 @@
 	import DestinationSelect from '../checklist/DestinationSelect.svelte';
 	import Sheet from '../overlay/Sheet.svelte';
 	import ChoiceGroup from '../forms/ChoiceGroup.svelte';
+	import IconPicker from './IconPicker.svelte';
 
 	let { open, destinations }: { open: boolean; destinations: Destination[] } = $props();
 	const form = new FormState();
+	let title = $state('');
+	let icon = $state<string | null>(null);
+	$effect(() => {
+		if (open) {
+			title = '';
+			icon = null;
+		}
+	});
 </script>
 
 <Sheet
@@ -20,10 +29,7 @@
 	onclose={closeSheet}
 >
 	<form method="POST" action="?/add" class="stack" use:enhance={form.enhance({ success: 'Saved' })}>
-		<label class="field">
-			<span>Name</span>
-			<input class="input" name="name" required maxlength="128" autocomplete="off" />
-		</label>
+		<IconPicker bind:title bind:value={icon} />
 		<label class="field">
 			<span>Default amount</span>
 			<input class="input money" name="amount" inputmode="decimal" autocomplete="off" />

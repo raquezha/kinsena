@@ -5,6 +5,7 @@
 	import type { Destination, RouteItem } from '../../domain/models.ts';
 	import { formatEdit } from '../../domain/money.ts';
 	import Icon from '../icons/Icon.svelte';
+	import IconPicker from '../defaults/IconPicker.svelte';
 	import Sheet from '../overlay/Sheet.svelte';
 	import DecisionChips from './DecisionChips.svelte';
 	import DestinationSelect from './DestinationSelect.svelte';
@@ -21,8 +22,14 @@
 
 	const form = new FormState();
 	let shown: RouteItem | undefined = $state();
+	let title = $state('');
+	let icon = $state<string | null>(null);
 	$effect(() => {
-		if (item) shown = item;
+		if (item) {
+			shown = item;
+			title = item.name;
+			icon = item.icon;
+		}
 	});
 
 	function remove() {
@@ -69,10 +76,7 @@
 			use:enhance={form.enhance({ success: 'Item saved' })}
 		>
 			<input type="hidden" name="itemId" value={shown.id} />
-			<label class="field">
-				<span>Name</span>
-				<input class="input" name="name" required maxlength="128" value={shown.name} />
-			</label>
+			<IconPicker bind:title bind:value={icon} />
 			<label class="field">
 				<span>Full amount</span>
 				<input

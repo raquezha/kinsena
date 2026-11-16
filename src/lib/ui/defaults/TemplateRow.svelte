@@ -3,24 +3,28 @@
 	import { openSheet, sheetHref } from '../../client/sheet-route.ts';
 	import type { CurrencyCode } from '../../domain/currency.ts';
 	import { FUND_FROM_LABELS } from '../../domain/fund-from.ts';
+	import type { ResolvedBrandIcon } from '../../domain/brand-icon.ts';
 	import type { Destination, TemplateItem } from '../../domain/models.ts';
 	import { formatMoney } from '../../domain/money.ts';
 	import { getRecurringIcon } from '../../domain/recurring-icon.ts';
+	import type { IconName } from '../icons/paths.ts';
 	import Icon from '../icons/Icon.svelte';
+	import BrandMark from './BrandMark.svelte';
 
 	let {
 		template,
 		currency,
 		destinations
 	}: {
-		template: TemplateItem;
+		template: TemplateItem & { resolvedBrandIcon?: ResolvedBrandIcon | null };
 		currency: CurrencyCode;
 		destinations: Destination[];
 	} = $props();
 
 	const destination = $derived(destinations.find((entry) => entry.id === template.destinationId));
 	const sheet = $derived(`saved-${template.id}`);
-	const icon = $derived(getRecurringIcon(template.name, destination?.kind));
+	const icon = $derived(getRecurringIcon(template.name, destination?.kind, template.icon));
+	const brandIcon = $derived(template.resolvedBrandIcon ?? null);
 	const amountLabel = $derived(
 		template.defaultAmount === null ? 'Varies' : formatMoney(template.defaultAmount, currency)
 	);
@@ -44,20 +48,63 @@
 </script>
 
 <div class="card" class:paused={!active}>
+	<div class="top">
+		<a
+			class="identity"
+			href={sheetHref(sheet)}
+			data-sveltekit-noscroll
+			onclick={openEditor}
+			aria-label={`Edit ${template.name}`}
+		>
+			<span class="glyph" class:brand={Boolean(brandIcon)} aria-hidden="true">
+				{#if brandIcon}
+					<BrandMark {brandIcon} size={14} />
+				{:else}
+					<Icon name={icon as IconName} size={16} />
+				{/if}
+			</span>
+			<span class="name">{template.name}</span>
+		</a>
+		<form
+			class="toggle-form"
+			method="POST"
+			action="?/toggleActive"
+			use:enhance={() => {
+				const next = !active;
+				pendingActive = next;
+				return async ({ result, update }) => {
+					if (result.type === 'success') {
+						await update({ reset: false, navigate: false });
+						pendingActive = null;
+						return;
+					}
+					pendingActive = null;
+				};
+			}}
+		>
+			<input type="hidden" name="templateId" value={template.id} />
+			<button
+				type="submit"
+				class="toggle"
+				class:on={active}
+				role="switch"
+				aria-checked={active}
+				aria-label={active ? `Pause ${template.name}` : `Activate ${template.name}`}
+				onclick={(event) => event.stopPropagation()}
+				onkeydown={(event) => event.stopPropagation()}
+			>
+				<span class="thumb"></span>
+			</button>
+		</form>
+	</div>
+
 	<a
 		class="body"
 		href={sheetHref(sheet)}
 		data-sveltekit-noscroll
 		onclick={openEditor}
-		aria-label={`Edit ${template.name}`}
+		aria-label={`Edit ${template.name} details`}
 	>
-		<div class="top">
-			<span class="identity">
-				<span class="glyph" aria-hidden="true"><Icon name={icon} size={16} /></span>
-				<span class="name">{template.name}</span>
-			</span>
-			<span class="toggle-spacer" aria-hidden="true"></span>
-		</div>
 		<p class="schedule">{scheduleLabel}</p>
 		<div class="divider" aria-hidden="true"></div>
 		<div class="bottom">
@@ -75,38 +122,6 @@
 			<span class="amount tabular">{amountLabel}</span>
 		</div>
 	</a>
-
-	<form
-		class="toggle-form"
-		method="POST"
-		action="?/toggleActive"
-		use:enhance={() => {
-			const next = !active;
-			pendingActive = next;
-			return async ({ result, update }) => {
-				if (result.type === 'success') {
-					await update({ reset: false, navigate: false });
-					pendingActive = null;
-					return;
-				}
-				pendingActive = null;
-			};
-		}}
-	>
-		<input type="hidden" name="templateId" value={template.id} />
-		<button
-			type="submit"
-			class="toggle"
-			class:on={active}
-			role="switch"
-			aria-checked={active}
-			aria-label={active ? `Pause ${template.name}` : `Activate ${template.name}`}
-			onclick={(event) => event.stopPropagation()}
-			onkeydown={(event) => event.stopPropagation()}
-		>
-			<span class="thumb"></span>
-		</button>
-	</form>
 </div>
 
 <style>
@@ -114,8 +129,7 @@
 		position: relative;
 		display: flex;
 		flex-direction: column;
-		justify-content: space-between;
-		height: 100%;
+		padding: 0.875rem 1rem;
 		border-radius: var(--radius-md);
 		border: 1px solid var(--border-subtle);
 		background: var(--surface);
@@ -132,23 +146,11 @@
 		opacity: 0.5;
 	}
 
-	.body {
-		display: flex;
-		flex: 1;
-		flex-direction: column;
-		justify-content: space-between;
-		min-width: 0;
-		padding: var(--space-4);
-		padding-right: calc(var(--space-4) + 2.5rem);
-		color: inherit;
-		text-decoration: none;
-	}
-
 	.top {
 		display: flex;
 		align-items: center;
 		justify-content: space-between;
-		gap: var(--space-3);
+		gap: 0.75rem;
 	}
 
 	.identity {
@@ -156,6 +158,29 @@
 		align-items: center;
 		gap: 10px;
 		min-width: 0;
+		color: inherit;
+		text-decoration: none;
+	}
+
+	.body {
+		display: flex;
+		flex-direction: column;
+		min-width: 0;
+		color: inherit;
+		text-decoration: none;
+	}
+
+	.glyph.brand {
+		display: inline-flex;
+		align-items: center;
+		justify-content: center;
+		width: 1.35rem;
+		height: 1.35rem;
+		border-radius: 0.35rem;
+		background: rgb(255 255 255 / 0.05);
+		border: 1px solid rgb(255 255 255 / 0.06);
+		overflow: hidden;
+		padding: 0.1rem;
 	}
 
 	.glyph {
@@ -177,14 +202,8 @@
 		color: var(--text);
 	}
 
-	.toggle-spacer {
-		flex-shrink: 0;
-		width: 2.25rem;
-		height: 1.25rem;
-	}
-
 	.schedule {
-		margin: 6px 0 0;
+		margin: 0.25rem 0 0;
 		overflow: hidden;
 		text-overflow: ellipsis;
 		white-space: nowrap;
@@ -193,7 +212,7 @@
 	}
 
 	.divider {
-		margin: var(--space-3) 0;
+		margin: 0.625rem 0;
 		border-top: 1px solid rgb(255 255 255 / 0.06);
 	}
 
@@ -243,9 +262,9 @@
 	}
 
 	.toggle-form {
-		position: absolute;
-		top: var(--space-4);
-		right: var(--space-4);
+		display: flex;
+		align-items: center;
+		flex-shrink: 0;
 		margin: 0;
 	}
 

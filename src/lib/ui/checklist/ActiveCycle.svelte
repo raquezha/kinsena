@@ -96,35 +96,10 @@
 <CustomAmountSheet item={custom} />
 
 <style>
+	/* Full-width stack: header → salary hero → Planned grid (no right sidebar). */
 	.active {
 		display: grid;
 		gap: var(--space-8);
-		grid-template-areas: 'header' 'summary' 'list';
-	}
-
-	.header {
-		grid-area: header;
-	}
-
-	.summary {
-		grid-area: summary;
-	}
-
-	.list {
-		grid-area: list;
-	}
-
-	@media (min-width: 1100px) {
-		.active {
-			grid-template-columns: minmax(0, 1fr) 380px;
-			grid-template-areas: 'header header' 'list summary';
-			gap: var(--space-6) var(--space-8);
-			align-items: start;
-		}
-
-		.summary {
-			position: sticky;
-			top: var(--space-8);
-		}
+		grid-template-columns: minmax(0, 1fr);
 	}
 </style>

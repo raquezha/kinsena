@@ -9,6 +9,7 @@
 	import DestinationSelect from '../checklist/DestinationSelect.svelte';
 	import Sheet from '../overlay/Sheet.svelte';
 	import ChoiceGroup from '../forms/ChoiceGroup.svelte';
+	import IconPicker from './IconPicker.svelte';
 
 	let {
 		template,
@@ -18,8 +19,14 @@
 	const form = new FormState();
 	const archive = new FormState();
 	let shown: TemplateItem | undefined = $state();
+	let title = $state('');
+	let icon = $state<string | null>(null);
 	$effect(() => {
-		if (template) shown = template;
+		if (template) {
+			shown = template;
+			title = template.name;
+			icon = template.icon;
+		}
 	});
 </script>
 
@@ -39,10 +46,7 @@
 				use:enhance={form.enhance({ success: 'Saved item updated' })}
 			>
 				<input type="hidden" name="templateId" value={shown.id} />
-				<label class="field">
-					<span>Name</span>
-					<input class="input" name="name" required maxlength="128" value={shown.name} />
-				</label>
+				<IconPicker bind:title bind:value={icon} />
 				<label class="field">
 					<span>Default amount</span>
 					<input

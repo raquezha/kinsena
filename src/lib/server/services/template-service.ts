@@ -3,6 +3,7 @@ import { ensure } from '../../domain/errors.ts';
 import type { FundFrom } from '../../domain/fund-from.ts';
 import type { TemplateItem } from '../../domain/models.ts';
 import { ensureMoney, normalizeDueDay, normalizeName } from '../../domain/rules.ts';
+import { parseStoredIcon } from '../parse-icon.ts';
 import type { Clock, Repositories } from '../ports.ts';
 import { applyTemplateToUpcoming } from './template-apply.ts';
 
@@ -17,6 +18,8 @@ export interface TemplateInput {
 	installmentCount?: string;
 	/** When adding: copy into matching open paydays if missing. Default true. */
 	applyToOpen?: boolean;
+	/** null/auto = keyword inference; category key or brand:<key>. */
+	icon?: string | null;
 }
 
 export interface TemplateService {
@@ -60,7 +63,8 @@ function parsed(input: TemplateInput) {
 		dueDay: parseDueDay(input.dueDay),
 		fundFrom: input.fundFrom,
 		destinationId: input.destinationId,
-		installmentCount
+		installmentCount,
+		icon: parseStoredIcon(input.icon)
 	};
 }
 

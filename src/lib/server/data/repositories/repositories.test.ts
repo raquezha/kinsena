@@ -11,7 +11,7 @@ import { createSqliteRepositories } from './index.ts';
 function sqliteRepositories(): Repositories {
 	const handle = openDatabase(':memory:');
 	migrateDatabase(handle, resolve('drizzle'));
-	return createSqliteRepositories(handle.db);
+	return createSqliteRepositories(handle);
 }
 
 const newPayday: NewPayday = {
@@ -39,7 +39,8 @@ const item = (name: string, sortOrder: number, paydayId: number | null = 1): New
 	dueDate: null,
 	isDone: false,
 	sortOrder,
-	templateId: null
+	templateId: null,
+	icon: null
 });
 
 describe.each([
@@ -58,6 +59,7 @@ describe.each([
 			installmentCount: null,
 			installmentsCompleted: 0,
 			isActive: true,
+			icon: null,
 			createdAt: 1
 		});
 		templates.add({
@@ -70,6 +72,7 @@ describe.each([
 			installmentCount: null,
 			installmentsCompleted: 0,
 			isActive: true,
+			icon: null,
 			createdAt: 1
 		});
 		expect(templates.listActive().map((entry) => entry.name)).toEqual(['Aircon', 'Rent']);
@@ -157,7 +160,7 @@ describe('sqlite settings fallbacks', () => {
 	it('falls back when settings are missing or the currency is unknown', () => {
 		const handle = openDatabase(':memory:');
 		migrateDatabase(handle, resolve('drizzle'));
-		const { settings } = createSqliteRepositories(handle.db);
+		const { settings } = createSqliteRepositories(handle);
 		handle.sqlite.exec('DELETE FROM settings');
 		expect(settings.get()).toEqual({
 			currency: 'PHP',
@@ -177,7 +180,7 @@ describe('sqlite holidays and overrides', () => {
 	it('seeds official 2026 and 2027 national holidays and stores overrides', () => {
 		const handle = openDatabase(':memory:');
 		migrateDatabase(handle, resolve('drizzle'));
-		const { holidays, payOverrides } = createSqliteRepositories(handle.db);
+		const { holidays, payOverrides } = createSqliteRepositories(handle);
 		const rows = holidays.list();
 		expect(rows).toHaveLength(OFFICIAL_NATIONAL_HOLIDAYS.length);
 		expect(rows.map((row) => row.date).sort()).toEqual(

@@ -7,13 +7,18 @@
 	import ConfirmButton from '../checklist/ConfirmButton.svelte';
 	import Sheet from '../overlay/Sheet.svelte';
 	import ChoiceGroup from '../forms/ChoiceGroup.svelte';
+	import DestinationBrandPreview from './DestinationBrandPreview.svelte';
 
 	let { destination }: { destination: Destination | undefined } = $props();
 	const form = new FormState();
 	const archive = new FormState();
 	let shown: Destination | undefined = $state();
+	let name = $state('');
 	$effect(() => {
-		if (destination) shown = destination;
+		if (destination) {
+			shown = destination;
+			name = destination.name;
+		}
 	});
 </script>
 
@@ -34,7 +39,10 @@
 				<input type="hidden" name="destinationId" value={shown.id} />
 				<label class="field">
 					<span>Name</span>
-					<input class="input" name="name" required maxlength="128" value={shown.name} />
+					<span class="name-row">
+						<input class="input" name="name" required maxlength="128" bind:value={name} />
+						<DestinationBrandPreview {name} />
+					</span>
 				</label>
 				<ChoiceGroup
 					name="kind"
@@ -61,3 +69,16 @@
 		</div>
 	{/if}
 </Sheet>
+
+<style>
+	.name-row {
+		display: flex;
+		align-items: center;
+		gap: 0.75rem;
+	}
+
+	.name-row .input {
+		flex: 1;
+		min-width: 0;
+	}
+</style>

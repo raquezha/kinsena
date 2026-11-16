@@ -33,6 +33,10 @@ export const templateItems = sqliteTable('template_items', {
 	installmentsCompleted: integer('installments_completed').notNull().default(0),
 	/** Paused defaults stay on Defaults but do not copy into new paydays. */
 	isActive: integer('is_active', { mode: 'boolean' }).notNull().default(true),
+	/**
+	 * null = Auto (keyword inference). Category key (e.g. "zap") or "brand:<key>".
+	 */
+	icon: text('icon', { length: 64 }),
 	isArchived: integer('is_archived', { mode: 'boolean' }).notNull().default(false),
 	createdAt: integer('created_at').notNull()
 });
@@ -67,7 +71,11 @@ export const routeItems = sqliteTable(
 		dueDate: text('due_date', { length: 32 }),
 		isDone: integer('is_done', { mode: 'boolean' }).notNull().default(false),
 		sortOrder: integer('sort_order').notNull().default(0),
-		templateId: integer('template_id')
+		templateId: integer('template_id'),
+		/**
+		 * null = Auto (keyword / brand from name). Category key or "brand:<key>".
+		 */
+		icon: text('icon', { length: 64 })
 	},
 	(table) => [index('route_items_payday_id_idx').on(table.paydayId)]
 );
@@ -102,3 +110,18 @@ export const sessions = sqliteTable('sessions', {
 	token: text('token', { length: 64 }).primaryKey(),
 	expiresAt: integer('expires_at').notNull()
 });
+
+/** Key payday actions for the History activity feed (Slice D). */
+export const activityEvents = sqliteTable(
+	'activity_events',
+	{
+		id: integer('id').primaryKey({ autoIncrement: true }),
+		createdAt: integer('created_at').notNull(),
+		action: text('action', { length: 32 }).notNull(),
+		paydayId: integer('payday_id'),
+		entityType: text('entity_type', { length: 32 }).notNull(),
+		entityId: integer('entity_id'),
+		summary: text('summary', { length: 280 }).notNull()
+	},
+	(table) => [index('activity_events_created_at_idx').on(table.createdAt)]
+);

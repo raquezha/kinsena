@@ -67,7 +67,7 @@ export function createServices(
 			limiter
 		}),
 		paydays,
-		items: createRouteService(repos, paydays),
+		items: createRouteService(repos, paydays, clock),
 		plans: createPlanService(repos, paydays),
 		templates: createTemplateService(repos, clock),
 		destinations: createDestinationService(repos.destinations, clock),
@@ -83,7 +83,7 @@ export function createAppServices(config: AppConfig): Services {
 	migrateDatabase(database, config.migrationsFolder);
 	const clock = clockFromEnv();
 	return createServices(
-		createSqliteRepositories(database.db),
+		createSqliteRepositories(database),
 		passphrase,
 		clock,
 		createSqliteSessionStore(database.db, clock)

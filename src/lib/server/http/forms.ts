@@ -45,6 +45,12 @@ export const fields = {
 	holidayKind: z.enum(HOLIDAY_KINDS),
 	year: z.coerce.number().int().min(2000).max(2100),
 	flag: z.enum(['true', 'false']).transform((value) => value === 'true'),
+	/** null/auto = Auto; category key or brand:<key> (validated in template service). */
+	icon: text(64).transform((value) => {
+		const trimmed = value.trim();
+		if (trimmed === '' || trimmed.toLowerCase() === 'auto') return null;
+		return trimmed;
+	}),
 	cents: z
 		.string()
 		.default('')

@@ -137,7 +137,7 @@ describe('payday service', () => {
 	});
 
 	it('returns an empty history when nothing is finished', () => {
-		expect(services.paydays.history()).toEqual({ paydays: [], reopenableId: null });
+		expect(services.paydays.history()).toEqual({ paydays: [], reopenableId: null, activity: [] });
 		expect(() => services.paydays.reopen(1)).toThrow('Only the most recent');
 		expect(() => services.paydays.view(999)).toThrow('Unknown payday');
 	});

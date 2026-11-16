@@ -6,6 +6,15 @@
 	import type { PageProps } from './$types';
 
 	let { data }: PageProps = $props();
+
+	function formatWhen(ms: number): string {
+		return new Date(ms).toLocaleString(undefined, {
+			month: 'short',
+			day: 'numeric',
+			hour: 'numeric',
+			minute: '2-digit'
+		});
+	}
 </script>
 
 <svelte:head>
@@ -16,6 +25,20 @@
 	title="History"
 	description="Finished paydays are read-only. Reopen the latest one if you finished it by mistake."
 />
+
+{#if data.activity.length > 0}
+	<section class="activity" aria-labelledby="activity-heading">
+		<h2 id="activity-heading">Activity</h2>
+		<ol class="activity-list">
+			{#each data.activity as event (event.id)}
+				<li>
+					<p class="summary">{event.summary}</p>
+					<time datetime={new Date(event.createdAt).toISOString()}>{formatWhen(event.createdAt)}</time>
+				</li>
+			{/each}
+		</ol>
+	</section>
+{/if}
 
 {#if data.paydays.length === 0}
 	<p class="empty">When you finish a payday it will live here.</p>
@@ -36,6 +59,41 @@
 <style>
 	.empty {
 		color: var(--text-muted);
+	}
+
+	.activity {
+		margin-bottom: var(--space-5);
+	}
+
+	.activity h2 {
+		margin: 0 0 var(--space-2);
+		font-size: var(--text-lg);
+		font-weight: 600;
+	}
+
+	.activity-list {
+		list-style: none;
+		margin: 0;
+		padding: 0;
+		display: grid;
+		gap: var(--space-2);
+	}
+
+	.activity-list li {
+		display: flex;
+		justify-content: space-between;
+		gap: var(--space-3);
+		align-items: baseline;
+	}
+
+	.activity-list .summary {
+		margin: 0;
+	}
+
+	.activity-list time {
+		flex-shrink: 0;
+		color: var(--text-muted);
+		font-size: var(--text-sm);
 	}
 
 	.history {

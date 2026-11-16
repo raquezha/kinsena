@@ -3,6 +3,7 @@
 	import { FormState } from '../../client/form-state.svelte.ts';
 	import { closeSheet } from '../../client/sheet-route.ts';
 	import type { Destination } from '../../domain/models.ts';
+	import IconPicker from '../defaults/IconPicker.svelte';
 	import Sheet from '../overlay/Sheet.svelte';
 	import DestinationSelect from './DestinationSelect.svelte';
 
@@ -13,6 +14,14 @@
 	}: { open: boolean; paydayId: number; destinations: Destination[] } = $props();
 
 	const form = new FormState();
+	let title = $state('');
+	let icon = $state<string | null>(null);
+	$effect(() => {
+		if (open) {
+			title = '';
+			icon = null;
+		}
+	});
 </script>
 
 <Sheet
@@ -29,10 +38,7 @@
 		use:enhance={form.enhance({ success: 'Item added' })}
 	>
 		<input type="hidden" name="paydayId" value={paydayId} />
-		<label class="field">
-			<span>Name</span>
-			<input class="input" name="name" required maxlength="128" autocomplete="off" />
-		</label>
+		<IconPicker bind:title bind:value={icon} />
 		<label class="field">
 			<span>Full amount</span>
 			<input class="input money" name="amount" inputmode="decimal" autocomplete="off" />

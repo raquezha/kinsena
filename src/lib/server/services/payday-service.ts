@@ -1,3 +1,4 @@
+import type { ActivityEvent } from '../../domain/activity.ts';
 import { parseOptionalAmount } from '../../domain/amount-parser.ts';
 import type { PaydayCadence, ScheduledCadence } from '../../domain/cadence.ts';
 import { formatPaydayTitle } from '../../domain/calendar.ts';
@@ -30,6 +31,7 @@ export interface NewOtherPayday {
 export interface History {
 	paydays: PaydayView[];
 	reopenableId: number | null;
+	activity: ActivityEvent[];
 }
 
 export interface PaydayService {
@@ -58,11 +60,18 @@ export interface PaydayService {
 
 type Deps = Pick<
 	Repositories,
-	'paydays' | 'items' | 'templates' | 'settings' | 'holidays' | 'payOverrides'
+	| 'paydays'
+	| 'items'
+	| 'templates'
+	| 'settings'
+	| 'holidays'
+	| 'payOverrides'
+	| 'activity'
+	| 'transaction'
 >;
 
 export function createPaydayService(repos: Deps, clock: Clock): PaydayService {
-	const { paydays, items, settings } = repos;
+	const { paydays, items, settings, activity, transaction } = repos;
 
 	const viewOf = (payday: Payday): PaydayView => {
 		const routeItems = sortForChecklist(items.listByPayday(payday.id));
@@ -195,8 +204,18 @@ export function createPaydayService(repos: Deps, clock: Clock): PaydayService {
 			});
 		},
 		close(paydayId) {
-			requireOpenPayday(paydays, paydayId);
-			paydays.update(paydayId, { isClosed: true });
+			transaction(() => {
+				const payday = requireOpenPayday(paydays, paydayId);
+				paydays.update(paydayId, { isClosed: true });
+				activity.add({
+					createdAt: clock.now().getTime(),
+					action: 'finish',
+					paydayId,
+					entityType: 'payday',
+					entityId: paydayId,
+					summary: `Finished ${payday.title}`
+				});
+			});
 		},
 		reopen(paydayId) {
 			const closed = paydays.listClosed();
@@ -211,7 +230,8 @@ export function createPaydayService(repos: Deps, clock: Clock): PaydayService {
 			const closed = paydays.listClosed();
 			return {
 				paydays: closed.map(viewOf),
-				reopenableId: closed[0]?.id ?? null
+				reopenableId: closed[0]?.id ?? null,
+				activity: activity.listRecent(50)
 			};
 		},
 		findNext(paydayId) {

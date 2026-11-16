@@ -26,6 +26,7 @@ export interface ItemUndoSnapshot {
 	isDone: boolean;
 	sortOrder: number;
 	templateId: number | null;
+	icon: string | null;
 }
 
 export type UndoPayload =
@@ -66,7 +67,8 @@ export function snapshotItem(item: RouteItem): ItemUndoSnapshot {
 		dueDate: item.dueDate,
 		isDone: item.isDone,
 		sortOrder: item.sortOrder,
-		templateId: item.templateId
+		templateId: item.templateId,
+		icon: item.icon
 	};
 }
 
@@ -178,7 +180,8 @@ export function createPlanService(repos: Repositories, paydays: PaydayService): 
 					dueDate: snapshot.dueDate,
 					isDone: snapshot.isDone,
 					sortOrder: snapshot.sortOrder,
-					templateId: snapshot.templateId
+					templateId: snapshot.templateId,
+					icon: snapshot.icon
 				});
 			}
 		}
@@ -206,7 +209,13 @@ const itemSnapshotSchema = z.object({
 	dueDate: z.string().nullable(),
 	isDone: z.boolean(),
 	sortOrder: z.number().int(),
-	templateId: z.number().int().positive().nullable()
+	templateId: z.number().int().positive().nullable(),
+	icon: z
+		.string()
+		.max(64)
+		.nullable()
+		.optional()
+		.transform((value) => value ?? null)
 });
 
 const undoPayloadSchema = z.discriminatedUnion('kind', [
@@ -225,7 +234,13 @@ const undoPayloadSchema = z.discriminatedUnion('kind', [
 			dueDate: z.string().nullable(),
 			isDone: z.boolean(),
 			sortOrder: z.number().int(),
-			templateId: z.number().int().positive().nullable()
+			templateId: z.number().int().positive().nullable(),
+			icon: z
+				.string()
+				.max(64)
+				.nullable()
+				.optional()
+				.transform((value) => value ?? null)
 		})
 	})
 ]);

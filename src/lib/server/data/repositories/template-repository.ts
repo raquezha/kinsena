@@ -14,7 +14,8 @@ const columns = {
 	destinationId: templateItems.destinationId,
 	installmentCount: templateItems.installmentCount,
 	installmentsCompleted: templateItems.installmentsCompleted,
-	isActive: templateItems.isActive
+	isActive: templateItems.isActive,
+	icon: templateItems.icon
 };
 
 export function createTemplateRepository(db: Db): TemplateRepository {

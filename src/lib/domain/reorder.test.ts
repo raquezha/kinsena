@@ -26,6 +26,7 @@ function item(overrides: Partial<RouteItem>): RouteItem {
 		isDone: false,
 		sortOrder: 0,
 		templateId: null,
+		icon: null,
 		...overrides
 	};
 }

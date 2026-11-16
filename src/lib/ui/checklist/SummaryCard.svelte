@@ -192,9 +192,9 @@
 		font-weight: 600;
 	}
 
-	@media (min-width: 640px) and (max-width: 1099.98px) {
+	@media (min-width: 640px) {
 		.stats {
-			grid-template-columns: repeat(4, 1fr);
+			grid-template-columns: repeat(5, minmax(0, 1fr));
 		}
 	}
 </style>

@@ -1,4 +1,6 @@
 import type { DestinationKind } from './destination.ts';
+import { isCatalogIconKey } from './recurring-catalog.ts';
+import { isBrandIconValue } from './template-icon.ts';
 
 export type RecurringIcon =
 	| 'zap'
@@ -12,7 +14,21 @@ export type RecurringIcon =
 	| 'gamepad'
 	| 'landmark'
 	| 'receipt'
-	| 'repeat';
+	| 'repeat'
+	| 'car'
+	| 'shoppingBag'
+	| 'tv'
+	| 'heartPulse'
+	| 'graduationCap'
+	| 'utensils'
+	| 'plane'
+	| 'gift'
+	| 'shield'
+	| 'briefcase'
+	| 'baby'
+	| 'dog'
+	| 'dumbbell'
+	| 'wrench';
 
 const KEYWORD_RULES: { keywords: string[]; icon: RecurringIcon }[] = [
 	{ keywords: ['electric', 'power', 'utility', 'energy'], icon: 'zap' },
@@ -26,11 +42,15 @@ const KEYWORD_RULES: { keywords: string[]; icon: RecurringIcon }[] = [
 	{ keywords: ['game', 'steam', 'netflix', 'spotify', 'sub'], icon: 'gamepad' }
 ];
 
-/** Picks a generic category icon from the title, then destination kind. */
+/** Picks a category icon from override, title keywords, then destination kind. */
 export function getRecurringIcon(
 	title: string,
-	destinationKind?: DestinationKind | null
+	destinationKind?: DestinationKind | null,
+	iconOverride?: string | null
 ): RecurringIcon {
+	if (iconOverride && !isBrandIconValue(iconOverride) && isCatalogIconKey(iconOverride)) {
+		return iconOverride as RecurringIcon;
+	}
 	const normalized = title.toLowerCase();
 	for (const rule of KEYWORD_RULES) {
 		if (rule.keywords.some((keyword) => normalized.includes(keyword))) return rule.icon;

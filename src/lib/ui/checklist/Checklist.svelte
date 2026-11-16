@@ -3,7 +3,7 @@
 	import { prefersReducedMotion } from 'svelte/motion';
 	import { crossfade, fade, slide } from 'svelte/transition';
 	import { cubicOut } from 'svelte/easing';
-	import { dragHandle, dragHandleZone, type DndEvent } from 'svelte-dnd-action';
+	import { dragHandleZone, type DndEvent } from 'svelte-dnd-action';
 	import { failureMessage, postAction } from '../../client/actions.ts';
 	import type { Checklist } from '../../client/checklist.svelte.ts';
 	import {
@@ -13,10 +13,11 @@
 		styleChecklistDragGhost
 	} from '../../client/checklist-dnd.ts';
 	import { toasts } from '../../client/toasts.svelte.ts';
+	import type { ResolvedBrandIcon } from '../../domain/brand-icon.ts';
 	import type { CurrencyCode } from '../../domain/currency.ts';
 	import type { Destination, RouteItem, TemplateItem } from '../../domain/models.ts';
-	import Icon from '../icons/Icon.svelte';
 	import ChecklistRow from './ChecklistRow.svelte';
+	import DecisionChips from './DecisionChips.svelte';
 
 	let {
 		checklist,
@@ -28,7 +29,7 @@
 		checklist: Checklist;
 		paydayId: number;
 		currency: CurrencyCode;
-		destinations: Destination[];
+		destinations: (Destination & { brandIcon?: ResolvedBrandIcon | null })[];
 		templates: TemplateItem[];
 	} = $props();
 
@@ -138,6 +139,9 @@
 						ontoggle={checklist.toggle(item)}
 						ondelete={() => checklist.remove(item)}
 					/>
+					{#if checklist.routing && item.decision !== 'SKIPPED' && !item.isDone}
+						<div class="decisions"><DecisionChips {item} /></div>
+					{/if}
 				</li>
 			{/each}
 		</ul>
@@ -188,24 +192,20 @@
 				onfinalize={onFinalize}
 			>
 				{#each openItems as item (item.id)}
-					<li class="row-wrap" class:has-handles={showHandles} aria-label={item.name}>
-						{#if showHandles}
-							<!-- Pointer-only reorder for v1 (swipe-delete owns the row; keyboard DnD later). -->
-							<div class="grip" use:dragHandle aria-hidden="true" tabindex="-1">
-								<Icon name="grip" size={16} />
-							</div>
+					<li class="row-wrap" aria-label={item.name}>
+						<ChecklistRow
+							{item}
+							{currency}
+							destination={destinationFor(item.destinationId)}
+							installment={installmentLabel(item.templateId)}
+							routing={checklist.routing}
+							showHandle={showHandles}
+							ontoggle={checklist.toggle(item)}
+							ondelete={() => checklist.remove(item)}
+						/>
+						{#if checklist.routing && item.decision !== 'SKIPPED' && !item.isDone}
+							<div class="decisions"><DecisionChips {item} /></div>
 						{/if}
-						<div class="row-body">
-							<ChecklistRow
-								{item}
-								{currency}
-								destination={destinationFor(item.destinationId)}
-								installment={installmentLabel(item.templateId)}
-								routing={checklist.routing}
-								ontoggle={checklist.toggle(item)}
-								ondelete={() => checklist.remove(item)}
-							/>
-						</div>
 					</li>
 				{/each}
 			</ul>
@@ -249,56 +249,44 @@
 		margin: 0;
 		padding: 0;
 		display: grid;
-		gap: var(--space-5);
+		grid-template-columns: minmax(0, 1fr);
+		gap: 0.75rem;
+		align-items: stretch;
 	}
 
 	.row-wrap {
-		display: grid;
-		grid-template-columns: minmax(0, 1fr);
-		gap: var(--space-2);
-		align-items: center;
-		border-radius: var(--radius-lg);
-		/* Keep height stable across drag/save so rows never “grow” after a move. */
-		min-height: 0;
-	}
-
-	/* Fixed handle column — do not toggle this during save (that expands the row body). */
-	.row-wrap.has-handles {
-		grid-template-columns: 2.25rem minmax(0, 1fr);
-		gap: var(--space-2);
-	}
-
-	.grip {
-		display: grid;
-		place-items: center;
-		width: 2.25rem;
-		height: 2.25rem;
-		padding: 0;
-		border: 0;
-		border-radius: var(--radius-sm);
-		background: transparent;
-		color: var(--text-dim);
-		cursor: grab;
-		touch-action: none;
-		user-select: none;
-		-webkit-user-select: none;
-		-webkit-touch-callout: none;
-	}
-
-	.grip:active {
-		cursor: grabbing;
-		color: var(--text-muted);
-	}
-
-	.row-body {
 		min-width: 0;
+		min-height: 0;
+		height: 100%;
+		display: grid;
+		align-content: start;
 	}
 
-	/* Block row actions + grips while reorder POST is in flight — no opacity flash. */
-	.rows.saving .row-body,
-	.rows.saving .grip {
+	.decisions {
+		padding: 0.5rem 0.75rem 0.75rem;
+		background: var(--surface);
+		border: 1px solid var(--border-subtle);
+		border-top: 0;
+		border-radius: 0 0 1rem 1rem;
+	}
+
+	/* Block cards while reorder POST is in flight — no opacity flash. */
+	.rows.saving {
 		pointer-events: none;
-		cursor: default;
+	}
+
+	@media (min-width: 640px) {
+		.rows {
+			grid-template-columns: repeat(2, minmax(0, 1fr));
+			gap: 0.875rem;
+		}
+	}
+
+	@media (min-width: 1024px) {
+		.rows {
+			grid-template-columns: repeat(3, minmax(0, 1fr));
+			gap: 0.875rem;
+		}
 	}
 
 	.hint {

@@ -25,7 +25,8 @@ const item = (id: number, isDone = false): RouteItem => ({
 	dueDate: null,
 	isDone,
 	sortOrder: id,
-	templateId: null
+	templateId: null,
+	icon: null
 });
 
 describe('optimistic checklist', () => {
