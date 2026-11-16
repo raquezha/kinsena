@@ -124,10 +124,15 @@ test('edge: routing mode keeps cards uniform (decisions only in item sheet)', as
 	await markSalaryIn(page, '50,000');
 	// Inline decision bars are gone — cards stay drag-clean in Received mode.
 	await expect(row(page, 'Ghost Tall A').locator('.decisions')).toHaveCount(0);
-	await expect(row(page, 'Ghost Tall A').getByRole('button', { name: 'Pay full' })).toHaveCount(0);
+	await expect(
+		row(page, 'Ghost Tall A').getByRole('button', { name: 'Pay full', exact: true })
+	).toHaveCount(0);
+	await expect(
+		row(page, 'Ghost Tall A').getByRole('button', { name: 'More routing actions for Ghost Tall A' })
+	).toBeVisible();
 
 	const dialog = await openItem(page, 'Ghost Tall A');
-	await expect(dialog.getByRole('button', { name: 'Pay full' })).toBeVisible();
+	await expect(dialog.getByRole('button', { name: 'Pay full', exact: true })).toBeVisible();
 	await dialog.getByRole('link', { name: 'Close' }).click();
 	await expect(dialog).toBeHidden();
 
