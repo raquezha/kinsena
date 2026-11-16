@@ -88,8 +88,12 @@ describe('sessions', () => {
 		const token = first.issue();
 		const second = createSqliteSessionStore(handle.db, clock);
 		expect(second.isValid(token)).toBe(true);
+		expect(second.isValid(null)).toBe(false);
+		expect(second.isValid('')).toBe(false);
 		const other = first.issue();
 		second.revoke(other);
+		second.revoke(null);
+		second.revoke('');
 		expect(second.isValid(other)).toBe(false);
 		clock.advance(SESSION_TTL_SECONDS * 1000);
 		expect(second.isValid(token)).toBe(false);

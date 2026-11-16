@@ -78,6 +78,12 @@ describe('forms', () => {
 		).toEqual({ minimumAmount: null });
 	});
 
+	it('normalizes icon Auto blanks and keeps category keys', async () => {
+		expect(await readForm(post({ icon: 'auto' }), { icon: fields.icon })).toEqual({ icon: null });
+		expect(await readForm(post({ icon: '  ' }), { icon: fields.icon })).toEqual({ icon: null });
+		expect(await readForm(post({ icon: 'zap' }), { icon: fields.icon })).toEqual({ icon: 'zap' });
+	});
+
 	it('rejects malformed input', async () => {
 		await expect(readForm(post({ id: 'abc' }), { id: fields.id })).rejects.toThrow(DomainError);
 		await expect(

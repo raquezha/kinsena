@@ -102,4 +102,14 @@ describe('searchBrandIcons', () => {
 		expect(searchBrandIcons('gcash')[0]?.key).toBe('gcash');
 		expect(searchBrandIcons('')).toEqual([]);
 	});
+
+	it('also matches simple-icons brands by slug or display name', async () => {
+		const { searchBrandIcons } = await import('./brand-icon.ts');
+		const visa = searchBrandIcons('visa');
+		expect(visa.some((hit) => hit.key === 'visa' && hit.brandIcon.kind === 'svg')).toBe(true);
+		const paypal = searchBrandIcons('PayPal');
+		expect(paypal.some((hit) => hit.key === 'paypal')).toBe(true);
+		expect(searchBrandIcons('zzzz-no-brand-match-xyz')).toEqual([]);
+		expect(searchBrandIcons('bank', 1)).toHaveLength(1);
+	});
 });
