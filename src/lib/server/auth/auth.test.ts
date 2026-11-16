@@ -1,14 +1,18 @@
 import { mkdtempSync, writeFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
-import { join } from 'node:path';
+import { join, resolve } from 'node:path';
 import { describe, expect, it } from 'vitest';
+import { openDatabase } from '../data/database.ts';
+import { migrateDatabase } from '../data/migrate.ts';
 import { createTestClock } from '../testing/clock.ts';
 import { createAuthService } from './auth-service.ts';
 import { createFailureLimiter } from './failure-limiter.ts';
 import { ConfigurationError, createPassphraseVerifier, readPassphraseFile } from './passphrase.ts';
 import { createSessionStore, SESSION_TTL_SECONDS } from './session-store.ts';
+import { createSqliteSessionStore } from './sqlite-session-store.ts';
 
 const PASSPHRASE = 'correct horse battery staple';
+const MIGRATIONS = resolve('drizzle');
 
 function setup() {
 	const clock = createTestClock();
@@ -74,6 +78,26 @@ describe('sessions', () => {
 		const fresh = sessions.issue();
 		expect(sessions.isValid(old)).toBe(false);
 		expect(sessions.isValid(fresh)).toBe(true);
+	});
+
+	it('keeps SQLite sessions across store recreation', () => {
+		const clock = createTestClock();
+		const handle = openDatabase(':memory:');
+		migrateDatabase(handle, MIGRATIONS);
+		const first = createSqliteSessionStore(handle.db, clock);
+		const token = first.issue();
+		const second = createSqliteSessionStore(handle.db, clock);
+		expect(second.isValid(token)).toBe(true);
+		expect(second.isValid(null)).toBe(false);
+		expect(second.isValid('')).toBe(false);
+		const other = first.issue();
+		second.revoke(other);
+		second.revoke(null);
+		second.revoke('');
+		expect(second.isValid(other)).toBe(false);
+		clock.advance(SESSION_TTL_SECONDS * 1000);
+		expect(second.isValid(token)).toBe(false);
+		handle.close();
 	});
 });
 

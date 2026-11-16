@@ -3,7 +3,7 @@ import { tmpdir } from 'node:os';
 import { join, resolve } from 'node:path';
 import { describe, expect, it } from 'vitest';
 import { loadConfig } from './config.ts';
-import { createAppServices, systemClock } from './container.ts';
+import { clockFromEnv, createAppServices, systemClock } from './container.ts';
 
 describe('app wiring', () => {
 	it('loads defaults and env overrides', () => {
@@ -30,13 +30,29 @@ describe('app wiring', () => {
 		const dir = mkdtempSync(join(tmpdir(), 'kinsena-app-'));
 		const passwordFile = join(dir, 'password');
 		writeFileSync(passwordFile, 'a passphrase that is long enough\n');
-		const services = createAppServices({
+		const config = {
 			dbPath: join(dir, 'kinsena.db'),
 			passwordFile,
 			migrationsFolder: resolve('drizzle')
-		});
-		expect(services.auth.login('a passphrase that is long enough').ok).toBe(true);
+		};
+		const services = createAppServices(config);
+		const login = services.auth.login('a passphrase that is long enough');
+		expect(login.ok).toBe(true);
+		if (!login.ok) throw new Error('login failed');
 		expect(services.settings.currency()).toBe('PHP');
 		expect(systemClock.now()).toBeInstanceOf(Date);
+		// New process / Vite reload opens the same DB — session must still count.
+		const afterRestart = createAppServices(config);
+		expect(afterRestart.auth.isSignedIn(login.token)).toBe(true);
+		afterRestart.auth.logout(login.token);
+		expect(createAppServices(config).auth.isSignedIn(login.token)).toBe(false);
+	});
+
+	it('uses KINSENA_FAKE_NOW when set', () => {
+		expect(clockFromEnv({}).now()).toBeInstanceOf(Date);
+		expect(clockFromEnv({ KINSENA_FAKE_NOW: '2026-11-10T09:00:00' }).now().toISOString()).toMatch(
+			/^2026-11-10/
+		);
+		expect(() => clockFromEnv({ KINSENA_FAKE_NOW: 'nope' })).toThrow(/KINSENA_FAKE_NOW/);
 	});
 });

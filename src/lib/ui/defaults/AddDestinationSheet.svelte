@@ -5,9 +5,14 @@
 	import { DESTINATION_KIND_LABELS, DESTINATION_KINDS } from '../../domain/destination.ts';
 	import Sheet from '../overlay/Sheet.svelte';
 	import ChoiceGroup from '../forms/ChoiceGroup.svelte';
+	import DestinationBrandPreview from './DestinationBrandPreview.svelte';
 
 	let { open }: { open: boolean } = $props();
 	const form = new FormState();
+	let name = $state('');
+	$effect(() => {
+		if (open) name = '';
+	});
 </script>
 
 <Sheet
@@ -25,7 +30,17 @@
 	>
 		<label class="field">
 			<span>Name</span>
-			<input class="input" name="name" required maxlength="128" autocomplete="off" />
+			<span class="name-row">
+				<input
+					class="input"
+					name="name"
+					required
+					maxlength="128"
+					autocomplete="off"
+					bind:value={name}
+				/>
+				<DestinationBrandPreview {name} />
+			</span>
 		</label>
 		<ChoiceGroup
 			name="kind"
@@ -41,3 +56,16 @@
 		>
 	</form>
 </Sheet>
+
+<style>
+	.name-row {
+		display: flex;
+		align-items: center;
+		gap: 0.75rem;
+	}
+
+	.name-row .input {
+		flex: 1;
+		min-width: 0;
+	}
+</style>

@@ -21,6 +21,16 @@ export interface TemplateItem {
 	dueDay: number | null;
 	fundFrom: FundFrom;
 	destinationId: number | null;
+	/** null = not an installment plan. */
+	installmentCount: number | null;
+	/** Paid installments toward installmentCount. */
+	installmentsCompleted: number;
+	/** When false, skipped on future payday generation. Still listed on Defaults. */
+	isActive: boolean;
+	/**
+	 * null = Auto. Category icon key, or `brand:<key>` for a bank/biller badge.
+	 */
+	icon: string | null;
 }
 
 export interface Payday {
@@ -57,6 +67,11 @@ export interface RouteItem {
 	isDone: boolean;
 	sortOrder: number;
 	templateId: number | null;
+	/**
+	 * null = Auto. Category icon key, or `brand:<key>` for a bank/biller badge.
+	 * Inherited from Defaults templates when spawned.
+	 */
+	icon: string | null;
 }
 
 export function hasKnownAmount(item: Pick<RouteItem, 'fullAmountExpr'>): boolean {

@@ -1,3 +1,4 @@
+import type { ActivityEvent } from '../../domain/activity.ts';
 import { DEFAULT_CURRENCY, type CurrencyCode } from '../../domain/currency.ts';
 import type {
 	Destination,
@@ -9,6 +10,7 @@ import type {
 } from '../../domain/models.ts';
 import { DEFAULT_PAY_RULE, normalizePayRule, type PayRule } from '../../domain/pay-rule.ts';
 import type {
+	ActivityEventRepository,
 	DestinationRepository,
 	HolidayRepository,
 	PaydayRepository,
@@ -43,7 +45,11 @@ function memoryTemplates(): TemplateRepository {
 		minimumAmount,
 		dueDay,
 		fundFrom,
-		destinationId
+		destinationId,
+		installmentCount,
+		installmentsCompleted,
+		isActive,
+		icon
 	}: StoredTemplate): TemplateItem => ({
 		id,
 		name,
@@ -51,7 +57,11 @@ function memoryTemplates(): TemplateRepository {
 		minimumAmount,
 		dueDay,
 		fundFrom,
-		destinationId
+		destinationId,
+		installmentCount,
+		installmentsCompleted,
+		isActive,
+		icon
 	});
 	return {
 		listActive: () =>
@@ -65,7 +75,18 @@ function memoryTemplates(): TemplateRepository {
 		},
 		add(template) {
 			const id = rows.length + 1;
-			const { name, defaultAmount, minimumAmount, dueDay, fundFrom, destinationId } = template;
+			const {
+				name,
+				defaultAmount,
+				minimumAmount,
+				dueDay,
+				fundFrom,
+				destinationId,
+				installmentCount,
+				installmentsCompleted,
+				isActive,
+				icon
+			} = template;
 			rows.push({
 				id,
 				name,
@@ -74,6 +95,10 @@ function memoryTemplates(): TemplateRepository {
 				dueDay,
 				fundFrom,
 				destinationId,
+				installmentCount,
+				installmentsCompleted,
+				isActive,
+				icon: icon ?? null,
 				isArchived: false
 			});
 			return id;
@@ -245,6 +270,24 @@ function memoryPayOverrides(): PayOverrideRepository {
 	};
 }
 
+function memoryActivity(): ActivityEventRepository {
+	const rows: ActivityEvent[] = [];
+	let nextId = 1;
+	return {
+		add(event) {
+			const id = nextId++;
+			rows.push({ id, ...event });
+			return id;
+		},
+		listRecent(limit = 50) {
+			return [...rows]
+				.sort((a, b) => b.createdAt - a.createdAt || b.id - a.id)
+				.slice(0, limit)
+				.map((row) => ({ ...row }));
+		}
+	};
+}
+
 /** In-memory repositories with the same contract as the SQLite ones. */
 export function createMemoryRepositories(): Repositories {
 	return {
@@ -253,6 +296,8 @@ export function createMemoryRepositories(): Repositories {
 		...memoryPaydaysAndItems(),
 		settings: memorySettings(),
 		holidays: memoryHolidays(),
-		payOverrides: memoryPayOverrides()
+		payOverrides: memoryPayOverrides(),
+		activity: memoryActivity(),
+		transaction: (work) => work()
 	};
 }

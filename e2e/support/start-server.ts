@@ -20,7 +20,9 @@ const child = spawn(process.execPath, ['server.js'], {
 		HOST: '127.0.0.1',
 		PORT: port,
 		DB_PATH: join(dir, 'kinsena.db'),
-		KINSENA_PASSWORD_FILE: passwordFile
+		KINSENA_PASSWORD_FILE: passwordFile,
+		// Keep payday fixtures stable (tests assert November 15 as the active payday).
+		KINSENA_FAKE_NOW: '2026-11-10T09:00:00'
 	}
 });
 

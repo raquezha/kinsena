@@ -1,194 +1,255 @@
 <script lang="ts">
-	import { enhance } from '$app/forms';
-	import { slide } from 'svelte/transition';
-	import { FormState } from '../../client/form-state.svelte.ts';
+	import type { ResolvedBrandIcon } from '../../domain/brand-icon.ts';
 	import type { CurrencyCode } from '../../domain/currency.ts';
-	import { hasKnownAmount } from '../../domain/models.ts';
+	import { allocationProgress, destinationChips } from '../../domain/history-archive.ts';
+	import type { Destination } from '../../domain/models.ts';
 	import { formatMoney } from '../../domain/money.ts';
 	import type { PaydayView } from '../../domain/summary.ts';
 	import { formatCycleDate } from '../checklist/dates.ts';
-	import Icon from '../icons/Icon.svelte';
 
 	let {
 		view,
 		currency,
-		reopenable
-	}: { view: PaydayView; currency: CurrencyCode; reopenable: boolean } = $props();
+		destinations,
+		selected = false,
+		latest = false,
+		onclick
+	}: {
+		view: PaydayView;
+		currency: CurrencyCode;
+		destinations: (Destination & { brandIcon?: ResolvedBrandIcon | null })[];
+		selected?: boolean;
+		latest?: boolean;
+		onclick: () => void;
+	} = $props();
 
-	let expanded = $state(false);
-	const reopen = new FormState();
 	const { payday, summary } = $derived(view);
+	const progress = $derived(allocationProgress(summary));
+	const preview = $derived(destinationChips(view.items, destinations, 2));
+	const kept = $derived(summary.leftToRoute);
 </script>
 
-<article class="history-card" class:expanded>
+<article class="archive-card" class:selected>
 	<button
-		class="summary"
+		class="hit"
 		type="button"
-		aria-expanded={expanded}
-		onclick={() => (expanded = !expanded)}
+		aria-pressed={selected}
+		aria-label={`Open statement for ${payday.title}`}
+		{onclick}
 	>
-		<span class="titles">
-			<span class="title">{payday.title}</span>
-			<span class="meta">
-				{formatCycleDate(payday.scheduledDate)} · {summary.doneCount} of {summary.itemCount} routed
-			</span>
-		</span>
-		<span class="figures">
-			<span class="paid tabular">{formatMoney(summary.routed, currency)}</span>
-			{#if summary.leftToRoute !== null}
-				<span class="leftover tabular">Kept {formatMoney(summary.leftToRoute, currency)}</span>
-			{/if}
-		</span>
-		<span class="chevron" aria-hidden="true"><Icon name="chevron" size={18} /></span>
-	</button>
+		<header class="head">
+			<div class="titles">
+				<span class="title">{payday.title}</span>
+				<span class="date">{formatCycleDate(payday.scheduledDate)}</span>
+			</div>
+			{#if latest}<span class="latest">Latest</span>{/if}
+		</header>
 
-	{#if expanded}
-		<div class="details" transition:slide={{ duration: 260 }}>
-			{#if payday.note}<p class="note">{payday.note}</p>{/if}
-			<ul>
-				{#each view.items as item (item.id)}
-					<li class:done={item.isDone}>
-						<span class="mark" aria-label={item.isDone ? 'Routed' : item.decision}>
-							{#if item.isDone}<Icon name="check" size={14} stroke={3} />{/if}
-						</span>
-						<span class="name">{item.name}</span>
-						<span class="tabular">
-							{hasKnownAmount(item)
-								? formatMoney(item.chosenAmount || item.fullAmount, currency)
-								: 'No amount'}
-						</span>
-					</li>
-				{/each}
-			</ul>
-			{#if reopenable}
-				<form method="POST" action="?/reopen" use:enhance={reopen.enhance({ close: false })}>
-					<input type="hidden" name="paydayId" value={payday.id} />
-					{#if reopen.error}<p class="form-error" role="alert">{reopen.error}</p>{/if}
-					<button class="button block" type="submit" disabled={reopen.busy}
-						>Reopen this payday</button
-					>
-				</form>
+		<div class="hero">
+			<span class="kept-label">Kept</span>
+			<span class="kept tabular">
+				{kept === null ? '—' : formatMoney(kept, currency)}
+			</span>
+		</div>
+
+		<div
+			class="track"
+			role="progressbar"
+			aria-label="Allocation progress"
+			aria-valuemin={0}
+			aria-valuemax={100}
+			aria-valuenow={Math.round(progress * 100)}
+		>
+			<span class="fill" style:width={`${progress * 100}%`}></span>
+		</div>
+
+		<div class="chips">
+			{#each preview.chips as chip (chip.name)}
+				<span
+					class="chip"
+					style:color={chip.color ?? undefined}
+					style:background={chip.color
+						? `color-mix(in srgb, ${chip.color} 14%, transparent)`
+						: undefined}
+				>
+					<span class="arrow" aria-hidden="true">→</span>
+					<span class="chip-name">{chip.name}</span>
+					<span class="chip-amt tabular">{formatMoney(chip.amount, currency)}</span>
+				</span>
+			{/each}
+			{#if preview.moreCount > 0}
+				<span class="more">+{preview.moreCount} more</span>
 			{/if}
 		</div>
-	{/if}
+
+		<footer class="foot">
+			<span>{summary.doneCount} of {summary.itemCount} routed</span>
+			<span class="salary">
+				Salary {summary.salary === null ? '—' : formatMoney(summary.salary, currency)}
+			</span>
+		</footer>
+	</button>
 </article>
 
 <style>
-	.history-card {
-		background: var(--surface);
-		border: 1px solid var(--border-subtle);
-		border-radius: var(--radius-lg);
-		overflow: hidden;
-		transition: border-color var(--duration-base);
+	.archive-card {
+		position: relative;
+		min-height: 11rem;
+		border-radius: 0.875rem;
+		background: linear-gradient(145deg, rgb(32 30 26 / 0.85) 0%, rgb(22 21 18 / 0.95) 100%);
+		border: 1px solid rgb(255 255 255 / 0.08);
+		box-shadow: 0 8px 24px rgb(0 0 0 / 0.35);
+		transition:
+			border-color 160ms ease,
+			box-shadow 160ms ease;
 	}
 
-	.history-card.expanded {
-		border-color: var(--border);
+	.archive-card.selected {
+		border-color: rgb(229 201 139 / 0.5);
+		box-shadow:
+			0 12px 28px rgb(0 0 0 / 0.5),
+			0 0 0 1px rgb(229 201 139 / 0.25);
 	}
 
-	.summary {
+	.hit {
 		width: 100%;
+		min-height: 11rem;
+		padding: 1.25rem;
 		display: flex;
-		align-items: center;
-		gap: var(--space-3);
-		min-height: 72px;
-		padding: var(--space-3) var(--space-4);
+		flex-direction: column;
+		justify-content: space-between;
+		gap: 0.75rem;
 		border: 0;
 		background: transparent;
+		color: inherit;
 		text-align: left;
+		cursor: pointer;
 	}
 
-	.titles,
-	.figures {
-		display: grid;
-		gap: 2px;
+	.head {
+		display: flex;
+		align-items: flex-start;
+		justify-content: space-between;
+		gap: 0.75rem;
 	}
 
 	.titles {
-		flex: 1;
+		display: grid;
+		gap: 0.15rem;
 		min-width: 0;
 	}
 
 	.title {
+		font-size: 1.05rem;
 		font-weight: 700;
+		color: #f3efe6;
 	}
 
-	.meta,
-	.leftover {
-		color: var(--text-dim);
-		font-size: var(--text-sm);
+	.date {
+		color: rgb(255 255 255 / 0.5);
+		font-size: 0.75rem;
 	}
 
-	.figures {
-		text-align: right;
-	}
-
-	.paid {
+	.latest {
+		flex-shrink: 0;
+		padding: 0.2rem 0.55rem;
+		border-radius: 9999px;
+		background: rgb(229 201 139 / 0.16);
+		border: 1px solid rgb(229 201 139 / 0.35);
+		color: var(--accent);
+		font-size: 0.6875rem;
 		font-weight: 700;
+		letter-spacing: 0.02em;
+		text-transform: uppercase;
 	}
 
-	.chevron {
+	.hero {
 		display: grid;
-		color: var(--text-dim);
-		transition: transform var(--duration-base) var(--ease-out);
+		gap: 0.15rem;
 	}
 
-	.expanded .chevron {
-		transform: rotate(90deg);
+	.kept-label {
+		color: rgb(255 255 255 / 0.45);
+		font-size: 0.75rem;
+		font-weight: 600;
 	}
 
-	.details {
-		padding: 0 var(--space-4) var(--space-4);
-		display: grid;
-		gap: var(--space-3);
+	.kept {
+		font-size: 1.65rem;
+		font-weight: 800;
+		letter-spacing: -0.02em;
+		color: var(--accent);
+		font-variant-numeric: tabular-nums;
 	}
 
-	.note {
-		color: var(--text-muted);
-		font-size: var(--text-sm);
+	.track {
+		height: 0.375rem;
+		border-radius: 9999px;
+		background: rgb(255 255 255 / 0.06);
+		overflow: hidden;
 	}
 
-	ul {
-		list-style: none;
-		margin: 0;
-		padding: 0;
-		display: grid;
-		gap: var(--space-1);
+	.fill {
+		display: block;
+		height: 100%;
+		border-radius: inherit;
+		background: linear-gradient(90deg, rgb(229 201 139 / 0.75), var(--accent));
 	}
 
-	li {
+	.chips {
 		display: flex;
+		flex-wrap: wrap;
 		align-items: center;
-		gap: var(--space-3);
-		min-height: 40px;
-		padding: 0 var(--space-2);
-		border-radius: var(--radius-sm);
-		background: var(--surface-sunken);
-		font-size: var(--text-sm);
+		gap: 0.4rem;
 	}
 
-	.mark {
-		display: grid;
-		place-items: center;
-		width: 20px;
-		height: 20px;
-		border-radius: 6px;
-		border: 1.5px solid var(--border-strong);
-		color: var(--accent-ink);
+	.chip {
+		display: inline-flex;
+		align-items: center;
+		gap: 0.35rem;
+		max-width: 100%;
+		min-width: 0;
+		padding: 0.25rem 0.55rem;
+		border-radius: 9999px;
+		background: rgb(229 201 139 / 0.1);
+		color: rgb(229 201 139 / 0.9);
+		font-size: 0.75rem;
+		font-weight: 600;
 	}
 
-	.done .mark {
-		background: var(--accent);
-		border-color: var(--accent);
+	.arrow {
+		flex-shrink: 0;
 	}
 
-	.name {
-		flex: 1;
+	.chip-name {
+		overflow: hidden;
+		text-overflow: ellipsis;
+		white-space: nowrap;
 	}
 
-	@media (hover: hover) {
-		.summary:hover {
-			background: var(--surface-hover);
-		}
+	.chip-amt {
+		flex-shrink: 0;
+		color: #f3efe6;
+		font-variant-numeric: tabular-nums;
+	}
+
+	.more {
+		color: rgb(255 255 255 / 0.45);
+		font-size: 0.75rem;
+		font-weight: 600;
+	}
+
+	.foot {
+		display: flex;
+		justify-content: space-between;
+		gap: 0.75rem;
+		color: rgb(255 255 255 / 0.5);
+		font-size: 0.75rem;
+	}
+
+	.salary {
+		color: rgb(255 255 255 / 0.72);
+		font-weight: 600;
+		font-variant-numeric: tabular-nums;
 	}
 </style>

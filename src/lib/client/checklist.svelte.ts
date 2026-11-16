@@ -4,7 +4,15 @@ import type { Payday, RouteItem } from '../domain/models.ts';
 import { isReceived } from '../domain/models.ts';
 import { summarize, type PaydaySummary } from '../domain/summary.ts';
 import { failureMessage, postAction } from './actions.ts';
-import { hide, NO_CHANGES, setPaid, settle, withPending } from './optimistic.ts';
+import {
+	clearOrder,
+	hide,
+	NO_CHANGES,
+	setOrder,
+	setPaid,
+	settle,
+	withPending
+} from './optimistic.ts';
 import type { PendingChanges } from './optimistic.ts';
 import { toasts } from './toasts.svelte.ts';
 import { undoStack } from './undo.svelte.ts';
@@ -66,7 +74,11 @@ export class Checklist {
 		this.pending = hide(this.pending, item.id);
 		const result = await postAction('?/remove', { itemId: item.id });
 		const error = failureMessage(result);
-		if (!error) await refreshAll();
+		if (!error) {
+			await refreshAll();
+			// Server list is authoritative after refresh — drop client order overlay.
+			this.pending = clearOrder(this.pending);
+		}
 		this.#settle(item.id);
 		if (error) {
 			toasts.error(error);
@@ -74,5 +86,10 @@ export class Checklist {
 		}
 		const undo = result.type === 'success' ? result.data?.undo : undefined;
 		undoStack.push(undo, `Deleted ${item.name}`);
+	}
+
+	/** Keep open-item rank after a saved drag without remounting the page. */
+	applyOrder(orderedOpenIds: readonly number[]): void {
+		this.pending = setOrder(this.pending, orderedOpenIds);
 	}
 }

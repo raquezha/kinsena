@@ -60,7 +60,7 @@ test('captures proposal, routing with reasons, and finish check', async ({ page 
 	await page.setViewportSize(LAYOUTS[0]);
 	await plan.getByRole('button', { name: 'Approve all' }).click();
 	await expect(plan).toBeHidden();
-	await page.getByRole('button', { name: 'Mark Rent routed' }).click();
+	await page.getByRole('button', { name: /^(Pay full and )?Mark Rent routed$/i }).click();
 	await expect(page.getByRole('status').getByRole('button', { name: 'Undo' }).last()).toBeVisible();
 	await expect(row(page, 'Rent')).toContainText(/Full:|Minimum:|Skip:/);
 	await page.evaluate(() => window.scrollTo(0, 0));

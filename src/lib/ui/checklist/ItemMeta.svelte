@@ -6,11 +6,13 @@
 		destination,
 		dueDate,
 		isDone,
+		installment = null,
 		reason = null
 	}: {
 		destination: Destination | null;
 		dueDate: string | null;
 		isDone: boolean;
+		installment?: string | null;
 		reason?: string | null;
 	} = $props();
 </script>
@@ -22,13 +24,16 @@
 	{#if dueDate}
 		<span>Due {formatShortDate(dueDate)}</span>
 	{/if}
+	{#if installment}
+		<span>{installment}</span>
+	{/if}
 	{#if isDone}
 		<span class="paid-label">Paid</span>
 	{/if}
 	{#if reason}
 		<span class="reason">{reason}</span>
 	{/if}
-	{#if !destination && !dueDate && !isDone && !reason}&nbsp;{/if}
+	{#if !destination && !dueDate && !installment && !isDone && !reason}&nbsp;{/if}
 </span>
 
 <style>

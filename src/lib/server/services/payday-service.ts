@@ -1,3 +1,4 @@
+import type { ActivityEvent } from '../../domain/activity.ts';
 import { parseOptionalAmount } from '../../domain/amount-parser.ts';
 import type { PaydayCadence, ScheduledCadence } from '../../domain/cadence.ts';
 import { formatPaydayTitle } from '../../domain/calendar.ts';
@@ -8,13 +9,12 @@ import {
 	nextScheduledOnOrAfter
 } from '../../domain/payday-calendar.ts';
 import { ensure } from '../../domain/errors.ts';
-import { dueDateForPayday, templateFitsPayday } from '../../domain/fund-from.ts';
 import { isReceived, type Payday } from '../../domain/models.ts';
 import { ensureMoney, normalizeDate, normalizeNote, normalizeTitle } from '../../domain/rules.ts';
 import { sortForChecklist, summarize, type PaydayView } from '../../domain/summary.ts';
 import type { Clock, Repositories } from '../ports.ts';
 import { requireOpenPayday, requirePayday } from './guards.ts';
-import { itemFromTemplate } from './template-apply.ts';
+import { applyMissingDefaultsToPayday, type ApplyMissingResult } from './template-apply.ts';
 import {
 	arrivalNoteFor,
 	isLockedPayday,
@@ -31,6 +31,7 @@ export interface NewOtherPayday {
 export interface History {
 	paydays: PaydayView[];
 	reopenableId: number | null;
+	activity: ActivityEvent[];
 }
 
 export interface PaydayService {
@@ -53,15 +54,24 @@ export interface PaydayService {
 	nextAfter(paydayId: number): Payday;
 	/** Drop a manual pay-date override and restore the computed date. */
 	resetPayDate(paydayId: number): void;
+	/** Add active defaults missing from this open payday. */
+	applyMissingDefaults(paydayId: number): ApplyMissingResult;
 }
 
 type Deps = Pick<
 	Repositories,
-	'paydays' | 'items' | 'templates' | 'settings' | 'holidays' | 'payOverrides'
+	| 'paydays'
+	| 'items'
+	| 'templates'
+	| 'settings'
+	| 'holidays'
+	| 'payOverrides'
+	| 'activity'
+	| 'transaction'
 >;
 
 export function createPaydayService(repos: Deps, clock: Clock): PaydayService {
-	const { paydays, items, templates, settings } = repos;
+	const { paydays, items, settings, activity, transaction } = repos;
 
 	const viewOf = (payday: Payday): PaydayView => {
 		const routeItems = sortForChecklist(items.listByPayday(payday.id));
@@ -74,13 +84,7 @@ export function createPaydayService(repos: Deps, clock: Clock): PaydayService {
 	};
 
 	const applyTemplates = (payday: Payday) => {
-		let order = items.maxSortOrder(payday.id);
-		for (const template of templates.listActive()) {
-			if (items.hasTemplate(payday.id, template.id)) continue;
-			if (!templateFitsPayday(template, payday)) continue;
-			const dueDate = dueDateForPayday(template, payday);
-			items.add(itemFromTemplate(template, payday.id, dueDate, ++order));
-		}
+		applyMissingDefaultsToPayday(repos, payday);
 	};
 
 	const createScheduled = (date: string, cadence: ScheduledCadence): Payday => {
@@ -180,6 +184,10 @@ export function createPaydayService(repos: Deps, clock: Clock): PaydayService {
 			repos.payOverrides.remove(payday.scheduledDate);
 			paydays.update(paydayId, { payDate: resolvePayDate(repos, payday.scheduledDate) });
 		},
+		applyMissingDefaults(paydayId) {
+			const payday = requireOpenPayday(paydays, paydayId);
+			return applyMissingDefaultsToPayday(repos, payday);
+		},
 		setNote(paydayId, note) {
 			requireOpenPayday(paydays, paydayId);
 			paydays.update(paydayId, { note: normalizeNote(note) });
@@ -196,8 +204,18 @@ export function createPaydayService(repos: Deps, clock: Clock): PaydayService {
 			});
 		},
 		close(paydayId) {
-			requireOpenPayday(paydays, paydayId);
-			paydays.update(paydayId, { isClosed: true });
+			transaction(() => {
+				const payday = requireOpenPayday(paydays, paydayId);
+				paydays.update(paydayId, { isClosed: true });
+				activity.add({
+					createdAt: clock.now().getTime(),
+					action: 'finish',
+					paydayId,
+					entityType: 'payday',
+					entityId: paydayId,
+					summary: `Finished ${payday.title}`
+				});
+			});
 		},
 		reopen(paydayId) {
 			const closed = paydays.listClosed();
@@ -212,7 +230,8 @@ export function createPaydayService(repos: Deps, clock: Clock): PaydayService {
 			const closed = paydays.listClosed();
 			return {
 				paydays: closed.map(viewOf),
-				reopenableId: closed[0]?.id ?? null
+				reopenableId: closed[0]?.id ?? null,
+				activity: activity.listRecent(50)
 			};
 		},
 		findNext(paydayId) {

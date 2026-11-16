@@ -7,9 +7,18 @@
 	import DestinationSelect from '../checklist/DestinationSelect.svelte';
 	import Sheet from '../overlay/Sheet.svelte';
 	import ChoiceGroup from '../forms/ChoiceGroup.svelte';
+	import IconPicker from './IconPicker.svelte';
 
 	let { open, destinations }: { open: boolean; destinations: Destination[] } = $props();
 	const form = new FormState();
+	let title = $state('');
+	let icon = $state<string | null>(null);
+	$effect(() => {
+		if (open) {
+			title = '';
+			icon = null;
+		}
+	});
 </script>
 
 <Sheet
@@ -20,10 +29,7 @@
 	onclose={closeSheet}
 >
 	<form method="POST" action="?/add" class="stack" use:enhance={form.enhance({ success: 'Saved' })}>
-		<label class="field">
-			<span>Name</span>
-			<input class="input" name="name" required maxlength="128" autocomplete="off" />
-		</label>
+		<IconPicker bind:title bind:value={icon} />
 		<label class="field">
 			<span>Default amount</span>
 			<input class="input money" name="amount" inputmode="decimal" autocomplete="off" />
@@ -37,6 +43,17 @@
 			<span>Due day of month</span>
 			<input class="input" name="dueDay" inputmode="numeric" maxlength="2" placeholder="e.g. 20" />
 		</label>
+		<label class="field">
+			<span>Installments (optional)</span>
+			<input
+				class="input"
+				name="installmentCount"
+				inputmode="numeric"
+				maxlength="3"
+				placeholder="e.g. 6"
+			/>
+			<small>Fixed N payments of that amount. Leave blank for a normal recurring item.</small>
+		</label>
 		<ChoiceGroup
 			name="fundFrom"
 			legend="Fund from"
@@ -47,7 +64,27 @@
 			}))}
 		/>
 		<DestinationSelect {destinations} />
+		<label class="option">
+			<input type="hidden" name="applyToOpen" value="false" />
+			<input type="checkbox" name="applyToOpen" value="true" checked />
+			Add to open paydays if missing
+		</label>
 		{#if form.error}<p class="form-error" role="alert">{form.error}</p>{/if}
 		<button class="button primary block" type="submit" disabled={form.busy}>Save item</button>
 	</form>
 </Sheet>
+
+<style>
+	.option {
+		display: flex;
+		align-items: flex-start;
+		gap: var(--space-2);
+		font-size: var(--text-sm);
+		color: var(--text-muted);
+		line-height: 1.4;
+	}
+
+	.option input[type='checkbox'] {
+		margin-top: 0.2rem;
+	}
+</style>

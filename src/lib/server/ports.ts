@@ -1,3 +1,4 @@
+import type { ActivityAction, ActivityEntityType, ActivityEvent } from '../domain/activity.ts';
 import type { PaydayCadence } from '../domain/cadence.ts';
 import type { CurrencyCode } from '../domain/currency.ts';
 import type { DestinationKind } from '../domain/destination.ts';
@@ -20,13 +21,26 @@ export interface NewTemplate {
 	dueDay: number | null;
 	fundFrom: FundFrom;
 	destinationId: number | null;
+	installmentCount: number | null;
+	installmentsCompleted: number;
+	isActive: boolean;
+	icon: string | null;
 	createdAt: number;
 }
 
 export type TemplatePatch = Partial<
 	Pick<
 		TemplateItem,
-		'name' | 'defaultAmount' | 'minimumAmount' | 'dueDay' | 'fundFrom' | 'destinationId'
+		| 'name'
+		| 'defaultAmount'
+		| 'minimumAmount'
+		| 'dueDay'
+		| 'fundFrom'
+		| 'destinationId'
+		| 'installmentCount'
+		| 'installmentsCompleted'
+		| 'isActive'
+		| 'icon'
 	>
 >;
 
@@ -75,6 +89,7 @@ export type RouteItemPatch = Partial<
 		| 'isDone'
 		| 'sortOrder'
 		| 'templateId'
+		| 'icon'
 	>
 >;
 
@@ -126,6 +141,21 @@ export interface PayOverrideRepository {
 	remove(scheduledDate: string): boolean;
 }
 
+export interface NewActivityEvent {
+	createdAt: number;
+	action: ActivityAction;
+	paydayId: number | null;
+	entityType: ActivityEntityType;
+	entityId: number | null;
+	summary: string;
+}
+
+export interface ActivityEventRepository {
+	add(event: NewActivityEvent): number;
+	/** Newest first. */
+	listRecent(limit?: number): ActivityEvent[];
+}
+
 export interface Repositories {
 	templates: TemplateRepository;
 	paydays: PaydayRepository;
@@ -134,6 +164,9 @@ export interface Repositories {
 	settings: SettingsRepository;
 	holidays: HolidayRepository;
 	payOverrides: PayOverrideRepository;
+	activity: ActivityEventRepository;
+	/** SQLite: real transaction; memory: runs `work` as-is. */
+	transaction<T>(work: () => T): T;
 }
 
 export interface Clock {

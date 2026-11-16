@@ -6,20 +6,22 @@ Color, type, and motion live in one token file so a later look can be a token sw
 
 ## Screenshots
 
-Example data only (no personal records).
+Example data only (no personal records). Regenerated with `npm run screenshots`.
 
-| Mobile                                                     | Tablet                                                     | Desktop                                                      |
-| ---------------------------------------------------------- | ---------------------------------------------------------- | ------------------------------------------------------------ |
-| ![Mobile checklist](docs/screenshots/mobile-checklist.png) | ![Tablet checklist](docs/screenshots/tablet-checklist.png) | ![Desktop checklist](docs/screenshots/desktop-checklist.png) |
-| ![Mobile bottom sheet](docs/screenshots/mobile-editor.png) | ![Tablet dialog](docs/screenshots/tablet-editor.png)       | ![Desktop side panel](docs/screenshots/desktop-editor.png)   |
+| Mobile                                                   | Tablet                                                   | Desktop (web)                                              |
+| -------------------------------------------------------- | -------------------------------------------------------- | ---------------------------------------------------------- |
+| ![Mobile Active](docs/screenshots/mobile-checklist.png)  | ![Tablet Active](docs/screenshots/tablet-checklist.png)  | ![Desktop Active](docs/screenshots/desktop-checklist.png)  |
+| ![Mobile Defaults](docs/screenshots/mobile-defaults.png) | ![Tablet Defaults](docs/screenshots/tablet-defaults.png) | ![Desktop Defaults](docs/screenshots/desktop-defaults.png) |
+| ![Mobile History](docs/screenshots/mobile-history.png)   | ![Tablet History](docs/screenshots/tablet-history.png)   | ![Desktop History](docs/screenshots/desktop-history.png)   |
+| ![Mobile editor](docs/screenshots/mobile-editor.png)     | ![Tablet editor](docs/screenshots/tablet-editor.png)     | ![Desktop editor](docs/screenshots/desktop-editor.png)     |
 
 ![Mobile sign-in](docs/screenshots/mobile-login.png)
 
 Kinsena adapts to three layouts:
 
 - **Mobile** (under 640 px): bottom navigation, floating add button, and a draggable bottom sheet editor.
-- **Tablet** (640–1100 px): a slim icon rail, a roomier single column, and a centered dialog editor.
-- **Desktop** (1100 px and wider): a full sidebar, the checklist and summary side by side, a side-panel editor, and keyboard shortcuts.
+- **Tablet** (640–1100 px): a slim icon rail, roomier content, and a centered dialog editor.
+- **Desktop** (1100 px and wider): a full sidebar, side-panel editors, and keyboard shortcuts. Active payday uses a top Expected Salary hero above a Planned grid (1 / 2 / 3 columns by viewport).
 
 ## Before you upgrade: back up your database
 
@@ -66,11 +68,11 @@ The image runs as the unprivileged `node` user (UID 1000) and checks `/login` fo
 
 ## Use
 
-1. Add destinations (accounts and billers) and recurring items under **Defaults**. Leave the amount blank when it varies. Pick when each is funded: every payday, mid-month, month-end, or before the due date.
-2. Kinsena creates the next 15th and month-end paydays automatically. In plan mode, add statements and bills to an upcoming payday. You can also add a payday on any other date.
-3. When salary arrives, **Salary in** switches to routing mode. For each item choose Full, Min, Custom, or Skip (optionally move it to the next payday). Tick a routed item to mark it done; an **Undo** toast appears. Tap the row to edit it. On a phone you can also swipe a row left to delete it, with undo. Sums like `10,538.91 + 3403` work.
+1. Add destinations (accounts and billers) and recurring items under **Defaults**. Leave the amount blank when it varies. Pick when each is funded: every payday, mid-month, month-end, or before the due date. Pause a recurring item so future paydays skip it. Optional fixed-N installment plans stop spawning after N completed payments. Icons can stay **Auto** (keyword/brand match from the name) or be overridden in the item sheet.
+2. Kinsena creates the next 15th and month-end paydays automatically. In plan mode, add statements and bills to an upcoming payday, or **Add missing defaults** for templates that are not already on that payday. You can also add a payday on any other date.
+3. When salary arrives, **Salary in** switches to routing mode. For each item choose Full, Min, Custom, or Skip (optionally move it to the next payday). Drag the grip on open rows to reorder priority. Tick a routed item to mark it done; an **Undo** toast appears. Tap the row to edit it. On a phone you can also swipe a row left to delete it, with undo. Sums like `10,538.91 + 3403` work.
 4. **Salary**, **Planned** (minimum through full), **Routed**, and **Left to route** skip blank amounts, and a warning counts them. An explicit `0` is different from blank.
-5. Finish the payday to keep a read-only record in **History**. Finished one by mistake? Reopen the most recent finished payday.
+5. Finish the payday to keep a read-only record in **History**. **History** also shows a newest-first **Activity** feed for decide, skip, add, remove, finish, and toggle-done. Finished one by mistake? Reopen the most recent finished payday.
 
 Amounts are stored as integer centavos, and values with more than two decimals round half-up. **Settings** changes the currency symbol only; it does not convert amounts. Default mid-month and month-end salaries live in Settings too.
 
@@ -82,11 +84,11 @@ Kinsena ships its four-block K icon, a maskable variant, Apple touch icon, and a
 
 ## Private access
 
-There is one built-in login, with no registration or extra accounts. The passphrase never goes in the database or Git and is compared in constant time. Session cookies hold random tokens and are HTTP-only, SameSite Strict, and Secure except on loopback and Tailscale (100.64.0.0/10) addresses. Sessions last seven days; logging out revokes the session, and restarting Kinsena signs out every device. Changing the passphrase requires a restart. Ten failed sign-ins within a minute block further attempts until that minute passes. Cross-site form posts are rejected.
+There is one built-in login, with no registration or extra accounts. The passphrase never goes in the database or Git and is compared in constant time. Session cookies hold random tokens and are HTTP-only, SameSite Strict, and Secure except on loopback and Tailscale (100.64.0.0/10) addresses. Sessions last seven days and are stored in SQLite so a restart keeps you signed in; logging out revokes the session. Changing the passphrase requires a restart. Ten failed sign-ins within a minute block further attempts until that minute passes. Cross-site form posts are rejected.
 
 ## Automatic home-server updates (Linux + Docker Compose)
 
-A push to `main` runs [the publish workflow](.github/workflows/publish.yml): lint, type check, unit tests with coverage, end-to-end tests in three viewports, and a production build. Only then does it publish `ghcr.io/raquezha/kinsena:main` and `:sha-<commit>`. A matching semver tag (for example `v0.3.0`) also publishes `:0.3.0`, `:0.3`, `:stable`, and `:latest`, then opens a GitHub Release with generated notes. Verify always gates publishing and the release. The home server follows `:stable` and checks for a new image every five minutes and on startup, with no inbound SSH or self-hosted runner.
+A push to `main` runs [the publish workflow](.github/workflows/publish.yml): lint, type check, unit tests with coverage, end-to-end tests in three viewports, and a production build. Only then does it publish `ghcr.io/raquezha/kinsena:main` and `:sha-<commit>`. A matching semver tag (for example `v0.4.0`) also publishes `:0.4.0`, `:0.4`, `:stable`, and `:latest`, then opens a GitHub Release with generated notes. Verify always gates publishing and the release. The home server follows `:stable` and checks for a new image every five minutes and on startup, with no inbound SSH or self-hosted runner.
 
 `package.json` is the version source of truth. To release, bump `version`, commit, and push the matching tag. The workflow fails when the tag and `package.json` disagree.
 
@@ -129,9 +131,10 @@ Built with Svelte 5 (runes), SvelteKit, TypeScript, Drizzle ORM on better-sqlite
 
 ```
 src/
-  lib/domain/         pure rules: calendar, money, decisions, destinations, summaries
+  lib/domain/         pure rules: calendar, money, decisions, destinations, activity, icons
   lib/server/data/    Drizzle schema, migrations runner, legacy upgrade, repositories
-  lib/server/services payday, route, template, destination, settings use cases
+  lib/server/services payday, route, template, destination, settings, activity use cases
+  lib/server/brand-icon.ts  server-only brand resolve (simple-icons + PH roster)
   lib/server/auth/    passphrase file, constant-time check, sessions, rate limit
   lib/server/http/    origin checks, session cookie, form parsing
   lib/server/testing/ in-memory repositories and clock for fast tests

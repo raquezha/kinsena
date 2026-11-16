@@ -54,7 +54,20 @@ describe('route service', () => {
 			destinationId: null
 		});
 		expect(() => services.items.decide(blank, 'FULL')).toThrow('Set the full amount first');
-		expect(() => services.items.toggleDone(blank)).toThrow('Choose how to route this item first');
+		expect(() => services.items.toggleDone(blank)).toThrow('Set the full amount first');
+		const quick = services.items.add({
+			paydayId,
+			name: 'Quick pay',
+			amount: '250',
+			minimum: '',
+			dueDate: '',
+			destinationId: null
+		});
+		expect(services.items.toggleDone(quick)).toBe(true);
+		const quickItem = services.paydays.view(paydayId).items.find((item) => item.id === quick);
+		expect(quickItem?.decision).toBe('FULL');
+		expect(quickItem?.isDone).toBe(true);
+		expect(quickItem?.chosenAmount).toBe(25_000);
 		services.items.decide(rent, 'MINIMUM');
 		expect(
 			services.paydays.view(paydayId).items.find((item) => item.id === rent)?.chosenAmount
@@ -144,5 +157,131 @@ describe('route service', () => {
 		});
 		services.items.assign(id, paydayId);
 		expect(services.paydays.view(paydayId).items[0]?.name).toBe('Inbox bill');
+	});
+
+	it('reorders open items by manual rank and rejects done or skipped ids', () => {
+		const first = services.items.add({
+			paydayId,
+			name: 'First',
+			amount: '100',
+			minimum: '',
+			dueDate: '2026-11-01',
+			destinationId: null
+		});
+		const second = services.items.add({
+			paydayId,
+			name: 'Second',
+			amount: '100',
+			minimum: '',
+			dueDate: '2026-10-01',
+			destinationId: null
+		});
+		services.items.reorder(paydayId, [second, first]);
+		expect(services.paydays.view(paydayId).items.map((item) => item.id)).toEqual([second, first]);
+
+		services.items.decide(first, 'FULL');
+		services.items.toggleDone(first);
+		expect(() => services.items.reorder(paydayId, [first])).toThrow(/open items/i);
+
+		services.items.skip(second, false);
+		const third = services.items.add({
+			paydayId,
+			name: 'Third',
+			amount: '50',
+			minimum: '',
+			dueDate: '',
+			destinationId: null
+		});
+		services.items.reorder(paydayId, [third]);
+		expect(services.paydays.view(paydayId).items.find((item) => item.id === third)?.sortOrder).toBe(
+			0
+		);
+	});
+
+	it('keeps done and skipped buckets after open reorder and survives reload shape', () => {
+		const a = services.items.add({
+			paydayId,
+			name: 'A',
+			amount: '10',
+			minimum: '',
+			dueDate: '2026-12-01',
+			destinationId: null
+		});
+		const b = services.items.add({
+			paydayId,
+			name: 'B',
+			amount: '10',
+			minimum: '',
+			dueDate: '2026-11-01',
+			destinationId: null
+		});
+		const c = services.items.add({
+			paydayId,
+			name: 'C',
+			amount: '10',
+			minimum: '',
+			dueDate: '2026-10-01',
+			destinationId: null
+		});
+		services.items.decide(c, 'FULL');
+		services.items.toggleDone(c);
+		services.items.skip(b, false);
+
+		services.items.reorder(paydayId, [a]);
+		const view = services.paydays.view(paydayId);
+		expect(view.items.map((item) => item.id)).toEqual([a, c, b]);
+		expect(view.items.find((item) => item.id === a)?.sortOrder).toBe(0);
+	});
+
+	it('rejects stale, duplicate, and closed-payday reorder payloads', () => {
+		const a = services.items.add({
+			paydayId,
+			name: 'A',
+			amount: '10',
+			minimum: '',
+			dueDate: '',
+			destinationId: null
+		});
+		const b = services.items.add({
+			paydayId,
+			name: 'B',
+			amount: '10',
+			minimum: '',
+			dueDate: '',
+			destinationId: null
+		});
+		expect(() => services.items.reorder(paydayId, [a])).toThrow(/out of date/i);
+		expect(() => services.items.reorder(paydayId, [a, a])).toThrow(/out of date/i);
+		expect(() => services.items.reorder(paydayId, [a, 999])).toThrow(/open items/i);
+		services.items.reorder(paydayId, [b, a]);
+		expect(services.paydays.view(paydayId).items.map((item) => item.id)).toEqual([b, a]);
+
+		services.paydays.receive(paydayId, '50,000');
+		services.paydays.close(paydayId);
+		expect(() => services.items.reorder(paydayId, [b, a])).toThrow();
+	});
+
+	it('no-op reorder is idempotent', () => {
+		const a = services.items.add({
+			paydayId,
+			name: 'A',
+			amount: '10',
+			minimum: '',
+			dueDate: '',
+			destinationId: null
+		});
+		const b = services.items.add({
+			paydayId,
+			name: 'B',
+			amount: '10',
+			minimum: '',
+			dueDate: '',
+			destinationId: null
+		});
+		const before = services.paydays.view(paydayId).items.map((item) => item.id);
+		services.items.reorder(paydayId, [a, b]);
+		expect(services.paydays.view(paydayId).items.map((item) => item.id)).toEqual(before);
+		services.items.reorder(paydayId, [a, b]);
+		expect(services.paydays.view(paydayId).items.map((item) => item.id)).toEqual(before);
 	});
 });

@@ -11,7 +11,7 @@ import { createSqliteRepositories } from './index.ts';
 function sqliteRepositories(): Repositories {
 	const handle = openDatabase(':memory:');
 	migrateDatabase(handle, resolve('drizzle'));
-	return createSqliteRepositories(handle.db);
+	return createSqliteRepositories(handle);
 }
 
 const newPayday: NewPayday = {
@@ -39,7 +39,8 @@ const item = (name: string, sortOrder: number, paydayId: number | null = 1): New
 	dueDate: null,
 	isDone: false,
 	sortOrder,
-	templateId: null
+	templateId: null,
+	icon: null
 });
 
 describe.each([
@@ -55,6 +56,10 @@ describe.each([
 			dueDay: 5,
 			fundFrom: 'EVERY',
 			destinationId: null,
+			installmentCount: null,
+			installmentsCompleted: 0,
+			isActive: true,
+			icon: null,
 			createdAt: 1
 		});
 		templates.add({
@@ -64,6 +69,10 @@ describe.each([
 			dueDay: null,
 			fundFrom: 'MONTH_END',
 			destinationId: null,
+			installmentCount: null,
+			installmentsCompleted: 0,
+			isActive: true,
+			icon: null,
 			createdAt: 1
 		});
 		expect(templates.listActive().map((entry) => entry.name)).toEqual(['Aircon', 'Rent']);
@@ -120,6 +129,33 @@ describe.each([
 		expect(items.listByPayday(paydayId)).toHaveLength(1);
 	});
 
+	it('stores activity events newest first', () => {
+		const { activity } = create();
+		activity.add({
+			createdAt: 10,
+			action: 'add',
+			paydayId: 1,
+			entityType: 'item',
+			entityId: 1,
+			summary: 'Added older'
+		});
+		activity.add({
+			createdAt: 20,
+			action: 'finish',
+			paydayId: 1,
+			entityType: 'payday',
+			entityId: 1,
+			summary: 'Finished newer'
+		});
+		expect(activity.listRecent(1)).toEqual([
+			expect.objectContaining({ action: 'finish', summary: 'Finished newer' })
+		]);
+		expect(activity.listRecent().map((event) => event.summary)).toEqual([
+			'Finished newer',
+			'Added older'
+		]);
+	});
+
 	it('stores destinations and settings', () => {
 		const { destinations, settings } = create();
 		const gcash = destinations.add({ name: 'GCash', kind: 'ACCOUNT', createdAt: 1 });
@@ -151,7 +187,7 @@ describe('sqlite settings fallbacks', () => {
 	it('falls back when settings are missing or the currency is unknown', () => {
 		const handle = openDatabase(':memory:');
 		migrateDatabase(handle, resolve('drizzle'));
-		const { settings } = createSqliteRepositories(handle.db);
+		const { settings } = createSqliteRepositories(handle);
 		handle.sqlite.exec('DELETE FROM settings');
 		expect(settings.get()).toEqual({
 			currency: 'PHP',
@@ -171,7 +207,7 @@ describe('sqlite holidays and overrides', () => {
 	it('seeds official 2026 and 2027 national holidays and stores overrides', () => {
 		const handle = openDatabase(':memory:');
 		migrateDatabase(handle, resolve('drizzle'));
-		const { holidays, payOverrides } = createSqliteRepositories(handle.db);
+		const { holidays, payOverrides } = createSqliteRepositories(handle);
 		const rows = holidays.list();
 		expect(rows).toHaveLength(OFFICIAL_NATIONAL_HOLIDAYS.length);
 		expect(rows.map((row) => row.date).sort()).toEqual(

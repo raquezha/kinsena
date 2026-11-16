@@ -134,6 +134,56 @@ describe('plan service', () => {
 		expect(() => parseUndoPayload({ kind: 'items', items: [] })).toThrow('Nothing to undo');
 	});
 
+	it('parses undo payloads and fills missing icon as null', () => {
+		const removed = parseUndoPayload({
+			kind: 'removed',
+			removed: {
+				paydayId: 1,
+				destinationId: null,
+				name: 'Rent',
+				fullAmountExpr: '12000',
+				minimumAmount: null,
+				chosenAmount: 12000,
+				decision: 'FULL',
+				decisionReason: null,
+				dueDate: null,
+				isDone: false,
+				sortOrder: 0,
+				templateId: null
+			}
+		});
+		expect(removed).toEqual({
+			kind: 'removed',
+			removed: expect.objectContaining({ name: 'Rent', icon: null })
+		});
+		const items = parseUndoPayload({
+			kind: 'items',
+			items: [
+				{
+					id: 1,
+					paydayId: 1,
+					destinationId: null,
+					name: 'Rent',
+					fullAmount: 12000,
+					fullAmountExpr: '12000',
+					minimumAmount: null,
+					chosenAmount: 12000,
+					decision: 'FULL',
+					decisionReason: null,
+					dueDate: null,
+					isDone: true,
+					sortOrder: 0,
+					templateId: null,
+					icon: 'brand:bdo'
+				}
+			]
+		});
+		expect(items).toEqual({
+			kind: 'items',
+			items: [expect.objectContaining({ icon: 'brand:bdo' })]
+		});
+	});
+
 	it('builds a skipped plan when salary has not been received', () => {
 		const { services, nextMid } = setup();
 		const plan = services.plans.build(nextMid.id, 'PHP');

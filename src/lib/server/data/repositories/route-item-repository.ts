@@ -18,7 +18,8 @@ const columns = {
 	dueDate: routeItems.dueDate,
 	isDone: routeItems.isDone,
 	sortOrder: routeItems.sortOrder,
-	templateId: routeItems.templateId
+	templateId: routeItems.templateId,
+	icon: routeItems.icon
 };
 
 export function createRouteItemRepository(db: Db): RouteItemRepository {

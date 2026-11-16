@@ -7,6 +7,7 @@ export const load: LayoutServerLoad = ({ locals }) => {
 		currency: locals.services.settings.currency(),
 		version: __APP_VERSION__,
 		openPaydays: paydays.listOpen(),
-		destinations: locals.services.destinations.list()
+		destinations: locals.services.destinations.list(),
+		templates: locals.services.templates.list()
 	};
 };

@@ -1,39 +1,35 @@
 <script lang="ts">
-	import { enhance, type SubmitFunction } from '$app/forms';
-	import { openSheet, sheetHref } from '../../client/sheet-route.ts';
+	import { type SubmitFunction } from '$app/forms';
+	import { openSheet } from '../../client/sheet-route.ts';
+	import type { ResolvedBrandIcon } from '../../domain/brand-icon.ts';
 	import type { CurrencyCode } from '../../domain/currency.ts';
-	import { hasKnownAmount, type Destination, type RouteItem } from '../../domain/models.ts';
-	import { formatMoney } from '../../domain/money.ts';
+	import type { Destination, RouteItem } from '../../domain/models.ts';
 	import Icon from '../icons/Icon.svelte';
-	import DecisionChips from './DecisionChips.svelte';
-	import ItemMeta from './ItemMeta.svelte';
+	import ChecklistItemCard from './ChecklistItemCard.svelte';
 	import { SwipeToDelete } from './swipe.svelte.ts';
 
 	let {
 		item,
 		currency,
 		destination,
+		installment = null,
 		routing,
+		showHandle = false,
 		ontoggle,
 		ondelete
 	}: {
-		item: RouteItem;
+		item: RouteItem & { resolvedBrandIcon?: ResolvedBrandIcon | null };
 		currency: CurrencyCode;
-		destination: Destination | null;
+		destination: (Destination & { brandIcon?: ResolvedBrandIcon | null }) | null;
+		installment?: string | null;
 		routing: boolean;
+		showHandle?: boolean;
 		ontoggle: SubmitFunction;
 		ondelete: () => void;
 	} = $props();
 
 	const swipe = new SwipeToDelete();
 	const sheet = $derived(`item-${item.id}`);
-	const amount = $derived(
-		item.decision === 'PENDING' || item.decision === 'SKIPPED'
-			? hasKnownAmount(item)
-				? item.fullAmount
-				: null
-			: item.chosenAmount
-	);
 
 	function onOpen(event: MouseEvent) {
 		event.preventDefault();
@@ -49,7 +45,7 @@
 <div class="swipe" style:--swipe={swipe.progress}>
 	<div class="behind" aria-hidden="true"><Icon name="trash" size={20} /> Delete</div>
 	<div
-		class="row"
+		class="card"
 		class:paid={item.isDone}
 		class:skipped={item.decision === 'SKIPPED'}
 		style:transform="translateX({swipe.offset.current}px)"
@@ -59,51 +55,32 @@
 		onpointercancel={onPointerUp}
 		role="presentation"
 	>
-		{#if routing}
-			<form method="POST" action="?/toggle" use:enhance={ontoggle}>
-				<input type="hidden" name="itemId" value={item.id} />
-				<button
-					class="check"
-					type="submit"
-					aria-pressed={item.isDone}
-					aria-label={item.isDone ? `Mark ${item.name} not routed` : `Mark ${item.name} routed`}
-				>
-					{#if item.isDone}<Icon name="check" size={18} stroke={2.6} />{/if}
-				</button>
-			</form>
-		{/if}
-		<a class="open" href={sheetHref(sheet)} onclick={onOpen} data-sveltekit-noscroll>
-			<span class="text">
-				<span class="name">{item.name}</span>
-				<ItemMeta
-					{destination}
-					dueDate={item.dueDate}
-					isDone={item.isDone}
-					reason={item.decisionReason}
-				/>
-			</span>
-			{#if amount !== null}
-				<span class="amount tabular">{formatMoney(amount, currency)}</span>
-			{:else}
-				<span class="amount missing">Set amount</span>
-			{/if}
-			<span class="chevron" aria-hidden="true"><Icon name="chevron" size={18} /></span>
-		</a>
+		<ChecklistItemCard
+			{item}
+			{currency}
+			{destination}
+			{installment}
+			{routing}
+			{showHandle}
+			{sheet}
+			{ontoggle}
+			{onOpen}
+		/>
 	</div>
-	{#if routing && item.decision !== 'SKIPPED' && !item.isDone}
-		<div class="decisions"><DecisionChips {item} /></div>
-	{/if}
 </div>
 
 <style>
 	.swipe {
 		position: relative;
-		border-radius: var(--radius-md);
+		border-radius: 0.875rem;
 		overflow: hidden;
-		background: var(--surface);
-		border: 1px solid var(--border-subtle);
+		height: 100%;
 	}
-
+	/* Let the routing popover escape the rounded card while open. */
+	.swipe:has(:global(.more.open)) {
+		overflow: visible;
+		z-index: 25;
+	}
 	.behind {
 		position: absolute;
 		inset: 0;
@@ -115,162 +92,40 @@
 		background: var(--danger-solid);
 		color: var(--danger);
 		font-weight: 700;
-		opacity: calc(0.4 + var(--swipe) * 0.6);
+		/* Resting opacity must be 0 — paid/skipped cards used to show Delete through translucency. */
+		opacity: var(--swipe);
+		pointer-events: none;
 	}
-
-	.row {
+	.card {
 		position: relative;
 		display: flex;
-		align-items: center;
-		gap: var(--space-4);
-		min-height: 80px;
-		padding-left: var(--space-4);
-		background: var(--surface);
+		flex-direction: column;
+		justify-content: space-between;
+		min-height: 8.5rem;
+		padding: 1rem;
+		background: linear-gradient(145deg, rgb(32 30 26 / 0.85) 0%, rgb(22 21 18 / 0.95) 100%);
+		border: 1px solid rgb(255 255 255 / 0.08);
+		border-radius: 0.875rem;
+		box-shadow: 0 8px 24px rgb(0 0 0 / 0.35);
 		touch-action: pan-y;
-	}
-
-	.check {
-		position: relative;
-		display: grid;
-		place-items: center;
-		width: var(--tap);
-		height: var(--tap);
-		padding: 0;
-		border: 0;
-		background: transparent;
-		color: var(--accent-ink);
-	}
-
-	.check::before {
-		content: '';
-		position: absolute;
-		width: 28px;
-		height: 28px;
-		border-radius: 9px;
-		border: 2px solid var(--border-strong);
-		transition:
-			border-color var(--duration-fast),
-			background var(--duration-fast),
-			transform var(--duration-base) var(--ease-spring);
-	}
-
-	.check :global(svg) {
-		position: relative;
-		animation: tick-in 280ms var(--ease-spring);
-	}
-
-	.paid .check::before {
-		border-color: var(--accent);
-		background: var(--accent);
-		animation: pop 320ms var(--ease-spring);
-	}
-
-	.open {
-		flex: 1;
-		min-width: 0;
-		min-height: 62px;
-		display: flex;
-		align-items: center;
-		gap: var(--space-3);
-		padding-right: var(--space-3);
-		color: inherit;
-		text-decoration: none;
-	}
-
-	.text {
-		flex: 1;
-		min-width: 0;
-		display: grid;
-		gap: 2px;
-	}
-
-	.name {
-		font-weight: 650;
 		overflow: hidden;
-		text-overflow: ellipsis;
-		white-space: nowrap;
-		transition: color var(--duration-base);
-	}
-
-	.amount {
-		font-weight: 700;
-		color: var(--text);
-	}
-
-	.amount.missing {
-		color: var(--notice);
-		font-size: var(--text-sm);
-	}
-
-	.paid .name,
-	.paid .amount,
-	.skipped .name,
-	.skipped .amount {
-		color: var(--text-dim);
-	}
-
-	.paid .name {
-		text-decoration: line-through;
-		text-decoration-color: rgb(170 182 174 / 0.5);
-	}
-
-	.chevron {
-		display: grid;
-		color: var(--text-dim);
-		opacity: 0.6;
 		transition:
-			transform var(--duration-fast),
-			opacity var(--duration-fast);
+			transform 160ms ease,
+			box-shadow 160ms ease,
+			border-color 160ms ease,
+			opacity 160ms ease;
 	}
-
-	.decisions {
-		position: relative;
-		padding: 0 var(--space-3) var(--space-3);
-		background: var(--surface);
+	.swipe:has(:global(.more.open)) .card {
+		overflow: visible;
 	}
-
+	/* Fade content only so the opaque surface still hides the swipe Delete layer. */
+	.card.paid > :global(*),
+	.card.skipped > :global(*) {
+		opacity: 0.62;
+	}
 	@media (hover: hover) {
-		.swipe:hover {
-			border-color: var(--border);
-			background: var(--surface-hover);
-		}
-
-		.row:hover,
-		.swipe:hover .decisions,
-		.swipe:hover .row {
-			background: var(--surface-hover);
-		}
-
-		.row:hover .chevron {
-			opacity: 1;
-			transform: translateX(2px);
-		}
-
-		.check:hover::before {
-			border-color: var(--accent);
-		}
-	}
-
-	@keyframes pop {
-		0% {
-			transform: scale(0.7);
-		}
-		60% {
-			transform: scale(1.15);
-		}
-	}
-
-	@keyframes tick-in {
-		from {
-			transform: scale(0.4);
-			opacity: 0;
-		}
-	}
-
-	@media (prefers-reduced-motion: reduce) {
-		.paid .check::before,
-		.check :global(svg) {
-			animation: none;
+		.card:hover {
+			border-color: rgb(255 255 255 / 0.14);
 		}
 	}
 </style>

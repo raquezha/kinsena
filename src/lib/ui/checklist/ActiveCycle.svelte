@@ -2,7 +2,7 @@
 	import { Checklist as ChecklistState } from '../../client/checklist.svelte.ts';
 	import { currentSheet } from '../../client/sheet-route.ts';
 	import type { CurrencyCode } from '../../domain/currency.ts';
-	import type { Destination } from '../../domain/models.ts';
+	import type { Destination, TemplateItem } from '../../domain/models.ts';
 	import type { PaydayView } from '../../domain/summary.ts';
 	import PaydaySwitcher from '../payday/PaydaySwitcher.svelte';
 	import AddFab from './AddFab.svelte';
@@ -24,6 +24,7 @@
 		view,
 		currency,
 		destinations,
+		templates,
 		paydays,
 		nextScheduledDate,
 		plan,
@@ -32,6 +33,7 @@
 		view: PaydayView;
 		currency: CurrencyCode;
 		destinations: Destination[];
+		templates: TemplateItem[];
 		paydays: import('../../domain/models.ts').Payday[];
 		nextScheduledDate: string | null;
 		plan: import('../../domain/planner.ts').PlanProposal | null;
@@ -72,7 +74,7 @@
 		{#if checklist.routing}
 			<ProgressBar summary={checklist.summary} {currency} />
 		{/if}
-		<Checklist {checklist} {currency} {destinations} />
+		<Checklist {checklist} paydayId={view.payday.id} {currency} {destinations} {templates} />
 	</div>
 </div>
 
@@ -94,35 +96,10 @@
 <CustomAmountSheet item={custom} />
 
 <style>
+	/* Full-width stack: header → salary hero → Planned grid (no right sidebar). */
 	.active {
 		display: grid;
 		gap: var(--space-8);
-		grid-template-areas: 'header' 'summary' 'list';
-	}
-
-	.header {
-		grid-area: header;
-	}
-
-	.summary {
-		grid-area: summary;
-	}
-
-	.list {
-		grid-area: list;
-	}
-
-	@media (min-width: 1100px) {
-		.active {
-			grid-template-columns: minmax(0, 1fr) 380px;
-			grid-template-areas: 'header header' 'list summary';
-			gap: var(--space-6) var(--space-8);
-			align-items: start;
-		}
-
-		.summary {
-			position: sticky;
-			top: var(--space-8);
-		}
+		grid-template-columns: minmax(0, 1fr);
 	}
 </style>

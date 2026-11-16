@@ -1,8 +1,28 @@
 import { formAction } from '#lib/server/http/actions.ts';
 import { fields } from '#lib/server/http/forms.ts';
-import { isReceived } from '#lib/domain/models.ts';
+import { ensure } from '#lib/domain/errors.ts';
+import { isReceived, type RouteItem, type TemplateItem } from '#lib/domain/models.ts';
+import { brandKeyFromIcon } from '#lib/domain/template-icon.ts';
+import { resolveBrandIcon } from '#lib/server/brand-icon.ts';
 import { parseApprovedLines, parseUndoPayload } from '#lib/server/services/plan-service.ts';
 import type { Actions, PageServerLoad } from './$types';
+
+function resolveItemBrandIcon(
+	item: RouteItem,
+	templates: TemplateItem[]
+): ReturnType<typeof resolveBrandIcon> {
+	const brandKey = brandKeyFromIcon(item.icon ?? '');
+	if (brandKey) return resolveBrandIcon(brandKey);
+	if (item.icon) return null;
+	const fromName = resolveBrandIcon(item.name);
+	if (fromName) return fromName;
+	if (item.templateId === null) return null;
+	const template = templates.find((entry) => entry.id === item.templateId);
+	if (!template) return null;
+	const templateBrand = brandKeyFromIcon(template.icon ?? '');
+	if (templateBrand) return resolveBrandIcon(templateBrand);
+	return template.icon ? null : resolveBrandIcon(template.name);
+}
 
 export const load: PageServerLoad = ({ locals, url }) => {
 	const raw = url.searchParams.get('p');
@@ -10,12 +30,30 @@ export const load: PageServerLoad = ({ locals, url }) => {
 	const active = locals.services.paydays.active(preferredId);
 	const next = active ? locals.services.paydays.findNext(active.payday.id) : null;
 	const currency = locals.services.settings.currency();
+	const templates = locals.services.templates.list();
 	const plan =
 		active && isReceived(active.payday)
 			? locals.services.plans.build(active.payday.id, currency)
 			: null;
 	const finishIssues = active ? locals.services.plans.finishIssues(active.payday.id) : [];
-	return { active, nextScheduledDate: next?.payDate ?? null, plan, finishIssues };
+	return {
+		active: active
+			? {
+					...active,
+					items: active.items.map((item) => ({
+						...item,
+						resolvedBrandIcon: resolveItemBrandIcon(item, templates)
+					}))
+				}
+			: null,
+		destinations: locals.services.destinations.list().map((destination) => ({
+			...destination,
+			brandIcon: resolveBrandIcon(destination.name)
+		})),
+		nextScheduledDate: next?.payDate ?? null,
+		plan,
+		finishIssues
+	};
 };
 
 const paydayId = fields.id;
@@ -25,7 +63,8 @@ const itemFields = {
 	amount: fields.amount,
 	minimum: fields.amount,
 	dueDate: fields.date,
-	destinationId: fields.optionalId
+	destinationId: fields.optionalId,
+	icon: fields.icon
 };
 
 export const actions: Actions = {
@@ -77,6 +116,14 @@ export const actions: Actions = {
 		items.assign(form.itemId, form.paydayId);
 		return { undo };
 	}),
+	reorder: formAction({ paydayId, orderedIds: fields.json }, (form, { items }) => {
+		ensure(
+			Array.isArray(form.orderedIds) &&
+				form.orderedIds.every((id) => typeof id === 'number' && Number.isInteger(id) && id > 0),
+			'Checklist order is out of date — refresh and try again'
+		);
+		items.reorder(form.paydayId, form.orderedIds);
+	}),
 	remove: formAction({ itemId }, (form, { items }) => {
 		const removed = items.remove(form.itemId);
 		return { removed, undo: { kind: 'removed' as const, removed } };
@@ -94,14 +141,16 @@ export const actions: Actions = {
 			dueDate: fields.date,
 			isDone: fields.flag,
 			sortOrder: fields.position,
-			templateId: fields.optionalId
+			templateId: fields.optionalId,
+			icon: fields.icon
 		},
 		(form, { items }) => ({
 			itemId: items.restore({
 				...form,
 				chosenAmount: form.chosenAmount ?? 0,
 				decisionReason: form.decisionReason.trim() === '' ? null : form.decisionReason,
-				dueDate: form.dueDate.trim() === '' ? null : form.dueDate
+				dueDate: form.dueDate.trim() === '' ? null : form.dueDate,
+				icon: form.icon
 			})
 		})
 	),

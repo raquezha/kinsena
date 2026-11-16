@@ -23,7 +23,7 @@ function fixtureDb(schemaSql: string): string {
 function openMigrated(path: string) {
 	const handle = openDatabase(path);
 	migrateDatabase(handle, MIGRATIONS);
-	return { handle, repos: createSqliteRepositories(handle.db) };
+	return { handle, repos: createSqliteRepositories(handle) };
 }
 
 function tableExists(handle: ReturnType<typeof openDatabase>, name: string): boolean {
@@ -41,6 +41,8 @@ describe('database migration', () => {
 		expect(repos.templates.listActive()).toEqual([]);
 		expect(repos.paydays.listOpen()).toEqual([]);
 		expect(tableExists(handle, 'paydays')).toBe(true);
+		expect(tableExists(handle, 'sessions')).toBe(true);
+		expect(tableExists(handle, 'activity_events')).toBe(true);
 		expect(tableExists(handle, 'cycles')).toBe(false);
 		handle.close();
 	});
@@ -65,7 +67,11 @@ describe('database migration', () => {
 					minimumAmount: null,
 					dueDay: null,
 					fundFrom: 'EVERY',
-					destinationId: null
+					destinationId: null,
+					installmentCount: null,
+					installmentsCompleted: 0,
+					isActive: true,
+					icon: null
 				}
 			]);
 			const [closed] = repos.paydays.listClosed();

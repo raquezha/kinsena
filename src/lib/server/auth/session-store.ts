@@ -9,10 +9,7 @@ export interface SessionStore {
 	revoke(token: string | null | undefined): void;
 }
 
-/**
- * Sessions live in memory only: a restart signs every device out,
- * and nothing about a session is written to disk.
- */
+/** In-memory sessions for unit tests. Production uses createSqliteSessionStore. */
 export function createSessionStore(clock: Clock, ttlSeconds = SESSION_TTL_SECONDS) {
 	const sessions = new Map<string, number>();
 	const now = () => clock.now().getTime();
