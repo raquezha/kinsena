@@ -1,6 +1,15 @@
 import AxeBuilder from '@axe-core/playwright';
 import { expect, test, type Page } from '@playwright/test';
-import { addDefault, addItem, markSalaryIn, nav, row, sheet, signIn } from './support/app.ts';
+import {
+	addDefault,
+	addItem,
+	markSalaryIn,
+	nav,
+	openItem,
+	row,
+	sheet,
+	signIn
+} from './support/app.ts';
 
 async function expectNoSeriousViolations(page: Page, where: string): Promise<void> {
 	const results = await new AxeBuilder({ page }).analyze();
@@ -70,11 +79,10 @@ test('enters routing mode, decides amounts, and marks items routed with undo', a
 		await expect(page.getByRole('button', { name: 'Mark Rent routed' })).toBeVisible();
 	}
 
-	await row(page, 'Electricity').getByRole('link').click();
-	const dialog = sheet(page, 'Electricity');
-	await dialog.getByLabel('Full amount').fill('2,450.5');
-	await dialog.getByRole('button', { name: 'Save' }).click();
-	await expect(dialog).toBeHidden();
+	const electricSheet = await openItem(page, 'Electricity');
+	await electricSheet.getByLabel('Full amount').fill('2,450.5');
+	await electricSheet.getByRole('button', { name: 'Save' }).click();
+	await expect(electricSheet).toBeHidden();
 	await expect(row(page, 'Electricity')).toContainText('₱2,450.50');
 	await expect(page.getByRole('note')).toHaveCount(0);
 
@@ -83,8 +91,7 @@ test('enters routing mode, decides amounts, and marks items routed with undo', a
 });
 
 test('rejects an invalid amount without closing the editor', async ({ page }) => {
-	await row(page, 'Groceries').getByRole('link').click();
-	const dialog = sheet(page, 'Groceries');
+	const dialog = await openItem(page, 'Groceries');
 	await dialog.getByLabel('Full amount').fill('abc');
 	await dialog.getByRole('button', { name: 'Save' }).click();
 	await expect(dialog.getByRole('alert')).toBeVisible();
@@ -102,8 +109,7 @@ test('skips an item and offers to move it to the next payday', async ({ page }) 
 });
 
 test('deletes an item and restores it with undo', async ({ page }) => {
-	await row(page, 'Electricity').getByRole('link').click();
-	await sheet(page, 'Electricity').getByRole('button', { name: 'Delete' }).click();
+	await (await openItem(page, 'Electricity')).getByRole('button', { name: 'Delete' }).click();
 	await expect(row(page, 'Electricity')).toHaveCount(0);
 	await page.getByRole('status').getByRole('button', { name: 'Undo' }).last().click();
 	await expect(row(page, 'Electricity')).toContainText('₱2,450.50');
@@ -129,10 +135,14 @@ test('finishes a payday into read-only history and reopens it', async ({ page })
 	await review.getByRole('button', { name: 'Yes, finish anyway' }).click();
 	await expect(review).toBeHidden();
 	await nav(page, 'History').click();
-	const card = page.getByRole('button', { name: /November 15|October 15/ });
-	await card.click();
-	await expect(page.getByText('Rent')).toBeVisible();
-	await page.getByRole('button', { name: 'Reopen this payday' }).click();
+	await expect(page.getByRole('heading', { name: 'Activity' })).toBeVisible();
+	await expect(page.getByText(/^Finished /).first()).toBeVisible();
+	const historyCard = page.locator('article.history-card').filter({
+		has: page.getByRole('button', { name: /November 15|October 15/ })
+	});
+	await historyCard.getByRole('button', { name: /November 15|October 15/ }).click();
+	await expect(historyCard.getByText('Rent', { exact: true })).toBeVisible();
+	await historyCard.getByRole('button', { name: 'Reopen this payday' }).click();
 	await expect(page).toHaveURL(/\/$/);
 	await expect(
 		page.getByRole('heading', { level: 1, name: /November 15|October 15/ })

@@ -41,6 +41,14 @@ export function row(page: Page, name: string): Locator {
 	return page.getByRole('listitem').filter({ has: page.getByText(name, { exact: true }) });
 }
 
+/** Opens the item editor sheet (card has both Edit and Open links). */
+export async function openItem(page: Page, name: string): Promise<Locator> {
+	await row(page, name).getByRole('link', { name: `Edit ${name}` }).click();
+	const dialog = sheet(page, name);
+	await expect(dialog).toBeVisible();
+	return dialog;
+}
+
 export async function addDefault(page: Page, name: string, amount = ''): Promise<void> {
 	await page.goto('/defaults');
 	await page.getByRole('link', { name: 'Add item' }).click();
@@ -148,9 +156,7 @@ export async function ensureEmptyOpenList(page: Page): Promise<void> {
 		const names = await openRowNames(page);
 		if (names.length === 0) break;
 		const name = names[0]!;
-		await row(page, name).getByRole('link').click();
-		const dialog = sheet(page, name);
-		await expect(dialog).toBeVisible();
+		const dialog = await openItem(page, name);
 		await dialog.getByRole('button', { name: 'Delete' }).click();
 		await expect(dialog).toBeHidden();
 		await expect.poll(async () => openRowNames(page), { timeout: 10_000 }).not.toContain(name);

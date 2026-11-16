@@ -13,7 +13,9 @@ const shotSuites = [
 	{ name: 'reorder-shots', file: 'reorder-shots.test.ts', port: 4306 },
 	{ name: 'step1-shots', file: 'step1-shots.test.ts', port: 4307 },
 	{ name: 'step2-shots', file: 'step2-shots.test.ts', port: 4308 },
-	{ name: 'step3-shots', file: 'step3-shots.test.ts', port: 4309 }
+	{ name: 'step3-shots', file: 'step3-shots.test.ts', port: 4309 },
+	/** Isolated DB so finishing a payday cannot pollute checklist serial suites. */
+	{ name: 'activity-e2e', file: 'activity.test.ts', port: 4310 }
 ] as const;
 
 const shotFiles = shotSuites.map(({ file }) => `**/${file}`);

@@ -81,13 +81,17 @@
 
 	.activity-list li {
 		display: flex;
+		flex-wrap: wrap;
 		justify-content: space-between;
-		gap: var(--space-3);
+		gap: var(--space-1) var(--space-3);
 		align-items: baseline;
 	}
 
 	.activity-list .summary {
 		margin: 0;
+		min-width: 0;
+		flex: 1 1 12rem;
+		overflow-wrap: anywhere;
 	}
 
 	.activity-list time {

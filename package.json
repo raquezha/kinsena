@@ -23,8 +23,8 @@
 		"format": "prettier --write .",
 		"test": "vitest run",
 		"test:coverage": "vitest run --coverage",
-		"test:e2e": "vite build && playwright test --project=mobile --project=tablet --project=desktop",
-		"screenshots": "vite build && playwright test --project=screenshots",
+		"test:e2e": "vite build && playwright test --project=mobile --project=tablet --project=desktop --project=activity-e2e",
+		"screenshots": "vite build && playwright test --project=screenshots --project=activity-e2e",
 		"icons": "sh scripts/generate-icons.sh",
 		"db:generate": "drizzle-kit generate"
 	},

@@ -79,6 +79,8 @@ test('captures every screen and state for visual review', async ({ page }) => {
 	await capture(page, '04-history-empty', async () => {
 		await page.goto('/history');
 		await expect(page.getByRole('heading', { name: 'History' })).toBeVisible();
+		await expect(page.getByRole('heading', { name: 'Activity' })).toHaveCount(0);
+		await expect(page.getByText('When you finish a payday it will live here.')).toBeVisible();
 	});
 	await capture(page, '05-defaults-empty', async () => {
 		await page.goto('/defaults');
@@ -162,7 +164,7 @@ test('captures every screen and state for visual review', async ({ page }) => {
 			await page.keyboard.press('Escape');
 			await expect(skip).toBeHidden();
 
-			await row(page, 'Electricity').getByRole('link').click();
+			await row(page, 'Electricity').getByRole('link', { name: 'Edit Electricity' }).click();
 			await expect(sheet(page, 'Electricity')).toBeVisible();
 			await page.waitForTimeout(250);
 			await shot(page, scheme, layout.name, '12-item-editor');
@@ -206,5 +208,10 @@ test('captures every screen and state for visual review', async ({ page }) => {
 	await capture(page, '15-history', async () => {
 		await page.goto('/history');
 		await expect(page.getByRole('heading', { name: 'History' })).toBeVisible();
+		await expect(page.getByRole('heading', { name: 'Activity' })).toBeVisible();
+		await expect(page.getByText(/^Finished /).first()).toBeVisible();
+		await expect(page.locator('section.activity').getByText(/receive|Salary in|approve/i)).toHaveCount(
+			0
+		);
 	});
 });

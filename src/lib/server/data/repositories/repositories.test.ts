@@ -129,6 +129,33 @@ describe.each([
 		expect(items.listByPayday(paydayId)).toHaveLength(1);
 	});
 
+	it('stores activity events newest first', () => {
+		const { activity } = create();
+		activity.add({
+			createdAt: 10,
+			action: 'add',
+			paydayId: 1,
+			entityType: 'item',
+			entityId: 1,
+			summary: 'Added older'
+		});
+		activity.add({
+			createdAt: 20,
+			action: 'finish',
+			paydayId: 1,
+			entityType: 'payday',
+			entityId: 1,
+			summary: 'Finished newer'
+		});
+		expect(activity.listRecent(1)).toEqual([
+			expect.objectContaining({ action: 'finish', summary: 'Finished newer' })
+		]);
+		expect(activity.listRecent().map((event) => event.summary)).toEqual([
+			'Finished newer',
+			'Added older'
+		]);
+	});
+
 	it('stores destinations and settings', () => {
 		const { destinations, settings } = create();
 		const gcash = destinations.add({ name: 'GCash', kind: 'ACCOUNT', createdAt: 1 });
