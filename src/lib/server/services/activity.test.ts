@@ -66,7 +66,9 @@ describe('activity feed', () => {
 		).toBe(true);
 		expect(activity.some((event) => /note|Bonus|Should not/i.test(event.summary))).toBe(false);
 		expect(activity.find((event) => event.action === 'finish')?.summary).toMatch(/^Finished /);
-		expect(activity.find((event) => event.action === 'decide')?.summary).toBe('Chose full for Rent');
+		expect(activity.find((event) => event.action === 'decide')?.summary).toBe(
+			'Chose full for Rent'
+		);
 	});
 
 	it('does not emit for receive, reorder, plan approve, restore, reopen, update, or archive', () => {
@@ -122,10 +124,12 @@ describe('activity feed', () => {
 
 		const fresh = services.paydays.history().activity.filter((event) => !setupIds.has(event.id));
 		expect(fresh.map((event) => event.action)).toEqual(['finish', 'remove']);
-		expect(fresh.some((event) => /renamed|receive|archive|reopen|approve|cut/i.test(event.summary))).toBe(
-			false
+		expect(
+			fresh.some((event) => /renamed|receive|archive|reopen|approve|cut/i.test(event.summary))
+		).toBe(false);
+		expect(services.paydays.view(paydayId).items.find((item) => item.id === a)?.name).toBe(
+			'A renamed'
 		);
-		expect(services.paydays.view(paydayId).items.find((item) => item.id === a)?.name).toBe('A renamed');
 	});
 
 	it('does not emit when decide, toggle, or skip fail', () => {
@@ -151,7 +155,7 @@ describe('activity feed', () => {
 		const before = services.paydays.history().activity.length;
 
 		expect(() => services.items.decide(blank, 'FULL')).toThrow('Set the full amount first');
-		expect(() => services.items.toggleDone(blank)).toThrow('Choose how to route this item first');
+		expect(() => services.items.toggleDone(blank)).toThrow('Set the full amount first');
 		expect(() => services.items.decide(blank, 'SKIPPED')).toThrow('Use skip to skip an item');
 		expect(() => services.items.skip(inbox, true)).toThrow('Assign this item to a payday first');
 		expect(() => services.items.decide(999, 'FULL')).toThrow();
@@ -197,14 +201,14 @@ describe('activity feed', () => {
 		services.paydays.close(paydayId);
 
 		const { activity } = services.paydays.history();
-		expect(activity.filter((event) => event.action === 'decide').map((event) => event.summary)).toEqual(
-			[
-				'Chose full for Rent',
-				'Cleared decision for Rent',
-				'Chose custom for Rent',
-				'Chose minimum for Rent'
-			]
-		);
+		expect(
+			activity.filter((event) => event.action === 'decide').map((event) => event.summary)
+		).toEqual([
+			'Chose full for Rent',
+			'Cleared decision for Rent',
+			'Chose custom for Rent',
+			'Chose minimum for Rent'
+		]);
 		expect(activity.find((event) => event.action === 'skip')).toMatchObject({
 			summary: 'Moved Rent to next payday',
 			paydayId,

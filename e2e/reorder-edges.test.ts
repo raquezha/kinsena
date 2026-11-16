@@ -1,12 +1,14 @@
 import { expect, test } from '@playwright/test';
 import {
 	addItem,
-	assertVerticalDragLock,
+	assertGridDragFollowsPointer,
 	cancelOpenDrag,
 	clearToasts,
 	dragOpenItem,
 	dragOpenItemTouch,
 	ensureEmptyOpenList,
+	markSalaryIn,
+	openItem,
 	openRowNames,
 	performGripDrag,
 	row,
@@ -19,7 +21,7 @@ test.beforeEach(async ({ page }) => {
 	await signIn(page);
 });
 
-test('edge: last→first, reverse twice, cancel drag, and vertical lock', async ({ page }) => {
+test('edge: last→first, reverse twice, cancel drag, and grid pointer follow', async ({ page }) => {
 	test.setTimeout(120_000);
 	await ensureEmptyOpenList(page);
 	await addItem(page, 'Edge A', '10');
@@ -48,16 +50,16 @@ test('edge: last→first, reverse twice, cancel drag, and vertical lock', async 
 		.poll(async () => openRowNames(page), { timeout: 10_000 })
 		.toEqual(['Edge A', 'Edge B', 'Edge C', 'Edge D']);
 
-	// Sideways fling must not slide the ghost left/right (vertical lock).
-	await assertVerticalDragLock(page, 'Edge A', 'Edge C');
+	// Sideways motion must follow the pointer; mid-drag must not leave an empty bottom band.
+	const beforeSideways = await openRowNames(page);
+	await assertGridDragFollowsPointer(page, 'Edge A', 'Edge C');
 	await expect
 		.poll(async () => openRowNames(page), { timeout: 10_000 })
-		.toEqual(['Edge B', 'Edge C', 'Edge A', 'Edge D']);
+		.not.toEqual(beforeSideways);
 
+	const afterSideways = await openRowNames(page);
 	await page.reload();
-	await expect
-		.poll(async () => openRowNames(page))
-		.toEqual(['Edge B', 'Edge C', 'Edge A', 'Edge D']);
+	await expect.poll(async () => openRowNames(page)).toEqual(afterSideways);
 });
 
 test('edge: failed reorder rolls UI back; touch drag works on touch projects', async ({
@@ -112,6 +114,47 @@ test('edge: failed reorder rolls UI back; touch drag works on touch projects', a
 	await expect
 		.poll(async () => openRowNames(page), { timeout: 10_000 })
 		.toEqual(['Fail B', 'Fail A', 'Fail C']);
+});
+
+test('edge: routing mode keeps cards uniform (decisions only in item sheet)', async ({ page }) => {
+	test.setTimeout(90_000);
+	await ensureEmptyOpenList(page);
+	await addItem(page, 'Ghost Tall A', '100');
+	await addItem(page, 'Ghost Tall B', '200');
+	await markSalaryIn(page, '50,000');
+	// Inline decision bars are gone — cards stay drag-clean in Received mode.
+	await expect(row(page, 'Ghost Tall A').locator('.decisions')).toHaveCount(0);
+	await expect(row(page, 'Ghost Tall A').getByRole('button', { name: 'Pay full' })).toHaveCount(0);
+
+	const dialog = await openItem(page, 'Ghost Tall A');
+	await expect(dialog.getByRole('button', { name: 'Pay full' })).toBeVisible();
+	await dialog.getByRole('link', { name: 'Close' }).click();
+	await expect(dialog).toBeHidden();
+
+	// Mid-drag still works in Received mode — cards are the same height as Planned.
+	const fromGrip = row(page, 'Ghost Tall A').locator('.grip');
+	const toBox = await row(page, 'Ghost Tall B').boundingBox();
+	const fromBox = await fromGrip.boundingBox();
+	if (!fromBox || !toBox) throw new Error('missing drag boxes');
+	await page.mouse.move(fromBox.x + fromBox.width / 2, fromBox.y + fromBox.height / 2);
+	await page.mouse.down();
+	await page.waitForTimeout(80);
+	await page.mouse.move(toBox.x + 40, toBox.y + toBox.height / 2, { steps: 12 });
+	const ghost = page.locator('#dnd-action-dragged-el');
+	await expect(ghost).toBeVisible({ timeout: 5_000 });
+	const heights = await ghost.evaluate((el) => {
+		const card = el.querySelector('.swipe') as HTMLElement | null;
+		return {
+			ghost: el.getBoundingClientRect().height,
+			card: card?.getBoundingClientRect().height ?? 0
+		};
+	});
+	expect(Math.abs(heights.ghost - heights.card)).toBeLessThanOrEqual(8);
+	await page.screenshot({
+		path: '/tmp/kinsena-reorder-shots/routing-cards-uniform.png',
+		animations: 'disabled'
+	});
+	await page.mouse.up();
 });
 
 test('edge: first→last then neighbor swap; grip stays for 2+ open rows', async ({ page }) => {

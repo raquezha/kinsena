@@ -55,7 +55,11 @@ test('enters routing mode, decides amounts, and marks items routed with undo', a
 	await plan.getByRole('button', { name: 'Approve all' }).click();
 	await expect(plan).toBeHidden();
 	await expect(page.getByRole('status')).toContainText('Plan approved');
-	await expect(row(page, 'Rent')).toContainText('Full: set by you');
+	// Decision chips live in the item sheet — cards stay uniform for drag.
+	const rentSheet = await openItem(page, 'Rent');
+	await expect(rentSheet.getByRole('button', { name: 'Pay full' })).toHaveClass(/active/);
+	await rentSheet.getByRole('link', { name: 'Close' }).click();
+	await expect(rentSheet).toBeHidden();
 	await expect(page.getByRole('region', { name: 'Payday summary' })).toContainText(/remaining/i);
 	await expect(
 		page.getByRole('region', { name: 'Payday summary' }).getByText('Left to route')
@@ -67,16 +71,20 @@ test('enters routing mode, decides amounts, and marks items routed with undo', a
 		await expect(progress).toContainText('Left to route');
 	}
 
-	await page.getByRole('button', { name: 'Mark Rent routed' }).click();
+	await page.getByRole('button', { name: /^(Pay full and )?Mark Rent routed$/i }).click();
 	await expect(page.getByRole('region', { name: /^Routed/ })).toContainText('Rent');
 	await page.getByRole('status').getByRole('button', { name: 'Undo' }).last().click();
-	await expect(page.getByRole('button', { name: 'Mark Rent routed' })).toBeVisible();
+	await expect(
+		page.getByRole('button', { name: /^(Pay full and )?Mark Rent routed$/i })
+	).toBeVisible();
 
 	if (!test.info().project.use.hasTouch) {
-		await page.getByRole('button', { name: 'Mark Rent routed' }).click();
+		await page.getByRole('button', { name: /^(Pay full and )?Mark Rent routed$/i }).click();
 		await expect(page.getByRole('region', { name: /^Routed/ })).toContainText('Rent');
 		await page.keyboard.press('Control+z');
-		await expect(page.getByRole('button', { name: 'Mark Rent routed' })).toBeVisible();
+		await expect(
+			page.getByRole('button', { name: /^(Pay full and )?Mark Rent routed$/i })
+		).toBeVisible();
 	}
 
 	const electricSheet = await openItem(page, 'Electricity');
@@ -100,7 +108,8 @@ test('rejects an invalid amount without closing the editor', async ({ page }) =>
 });
 
 test('skips an item and offers to move it to the next payday', async ({ page }) => {
-	await row(page, 'Groceries').getByRole('button', { name: 'Skip' }).click();
+	const itemSheet = await openItem(page, 'Groceries');
+	await itemSheet.getByRole('button', { name: 'Skip' }).click();
 	const dialog = sheet(page, /Skip Groceries/);
 	await expect(dialog).toBeVisible();
 	await dialog.getByRole('button', { name: 'Skip this payday' }).click();
@@ -135,14 +144,17 @@ test('finishes a payday into read-only history and reopens it', async ({ page })
 	await review.getByRole('button', { name: 'Yes, finish anyway' }).click();
 	await expect(review).toBeHidden();
 	await nav(page, 'History').click();
-	await expect(page.getByRole('heading', { name: 'Activity' })).toBeVisible();
-	await expect(page.getByText(/^Finished /).first()).toBeVisible();
-	const historyCard = page.locator('article.history-card').filter({
-		has: page.getByRole('button', { name: /November 15|October 15/ })
+	await page.getByRole('button', { name: 'Activity log' }).click();
+	const activity = page.getByRole('dialog', { name: 'Activity log' });
+	await expect(activity.getByText(/^Finished /).first()).toBeVisible();
+	await activity.getByRole('link', { name: 'Close' }).click();
+	const openStatement = page.getByRole('button', {
+		name: /Open statement for (November 15|October 15)/
 	});
-	await historyCard.getByRole('button', { name: /November 15|October 15/ }).click();
-	await expect(historyCard.getByText('Rent', { exact: true })).toBeVisible();
-	await historyCard.getByRole('button', { name: 'Reopen this payday' }).click();
+	await openStatement.click();
+	const ledger = page.getByRole('region', { name: /Statement for (November 15|October 15)/ });
+	await expect(ledger.getByText('Rent', { exact: true })).toBeVisible();
+	await ledger.getByRole('button', { name: 'Reopen payday' }).click();
 	await expect(page).toHaveURL(/\/$/);
 	await expect(
 		page.getByRole('heading', { level: 1, name: /November 15|October 15/ })

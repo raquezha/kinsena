@@ -1,8 +1,4 @@
-import type {
-	ActivityAction,
-	ActivityEntityType,
-	ActivityEvent
-} from '../domain/activity.ts';
+import type { ActivityAction, ActivityEntityType, ActivityEvent } from '../domain/activity.ts';
 import type { PaydayCadence } from '../domain/cadence.ts';
 import type { CurrencyCode } from '../domain/currency.ts';
 import type { DestinationKind } from '../domain/destination.ts';

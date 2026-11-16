@@ -7,6 +7,7 @@ import {
 	addDestination,
 	addItem,
 	clearToasts,
+	decidePayFull,
 	markSalaryIn,
 	row,
 	sheet,
@@ -79,7 +80,8 @@ test('captures every screen and state for visual review', async ({ page }) => {
 	await capture(page, '04-history-empty', async () => {
 		await page.goto('/history');
 		await expect(page.getByRole('heading', { name: 'History' })).toBeVisible();
-		await expect(page.getByRole('heading', { name: 'Activity' })).toHaveCount(0);
+		await expect(page.getByRole('button', { name: 'Activity log' })).toBeVisible();
+		await expect(page.getByRole('heading', { name: 'Activity log' })).toHaveCount(0);
 		await expect(page.getByText('When you finish a payday it will live here.')).toBeVisible();
 	});
 	await capture(page, '05-defaults-empty', async () => {
@@ -132,8 +134,8 @@ test('captures every screen and state for visual review', async ({ page }) => {
 	await resize(page, LAYOUTS[0]);
 	await page.goto('/');
 	await markSalaryIn(page, '38,500');
-	await row(page, 'Rent').getByRole('button', { name: 'Pay full' }).click();
-	await page.getByRole('button', { name: 'Mark Rent routed' }).click();
+	await decidePayFull(page, 'Rent');
+	await page.getByRole('button', { name: /^(Pay full and )?Mark Rent routed$/i }).click();
 	await clearToasts(page);
 
 	await capture(page, '09-routing-bayad', async () => {
@@ -208,10 +210,12 @@ test('captures every screen and state for visual review', async ({ page }) => {
 	await capture(page, '15-history', async () => {
 		await page.goto('/history');
 		await expect(page.getByRole('heading', { name: 'History' })).toBeVisible();
-		await expect(page.getByRole('heading', { name: 'Activity' })).toBeVisible();
-		await expect(page.getByText(/^Finished /).first()).toBeVisible();
-		await expect(page.locator('section.activity').getByText(/receive|Salary in|approve/i)).toHaveCount(
-			0
-		);
+		await page.getByRole('button', { name: 'Activity log' }).click();
+		const activity = page.getByRole('dialog', { name: 'Activity log' });
+		await expect(activity.getByText(/^Finished /).first()).toBeVisible();
+		await activity.getByRole('link', { name: 'Close' }).click();
+		await expect(
+			page.locator('section.activity').getByText(/receive|Salary in|approve/i)
+		).toHaveCount(0);
 	});
 });

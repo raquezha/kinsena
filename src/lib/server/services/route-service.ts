@@ -1,18 +1,23 @@
-import {
-	activityDecideSummary,
-	activitySkipSummary,
-	activityToggleDoneSummary
-} from '../../domain/activity.ts';
+import { activityDecideSummary, activitySkipSummary } from '../../domain/activity.ts';
 import { parseAmount, parseOptionalAmount } from '../../domain/amount-parser.ts';
-import { isRoutedDecision, type Decision } from '../../domain/decision.ts';
+import type { Decision } from '../../domain/decision.ts';
 import { ensure } from '../../domain/errors.ts';
-import { hasKnownAmount, type RouteItem } from '../../domain/models.ts';
+import type { RouteItem } from '../../domain/models.ts';
 import { openItemIds, sortOrdersForOpenReorder } from '../../domain/reorder.ts';
 import { ensureMoney, normalizeName, normalizeOptionalDate } from '../../domain/rules.ts';
 import { parseStoredIcon } from '../parse-icon.ts';
 import type { Clock, Repositories } from '../ports.ts';
 import type { PaydayService } from './payday-service.ts';
 import { requireActiveItem, requireOpenPayday } from './guards.ts';
+import {
+	adjustInstallmentProgress,
+	chosenFor,
+	toggleDoneItem,
+	toRemoved,
+	type RemovedItem
+} from './route-helpers.ts';
+
+export type { RemovedItem };
 
 export interface NewItemInput {
 	paydayId: number | null;
@@ -33,23 +38,6 @@ export interface ItemEditInput {
 	icon?: string | null;
 }
 
-export type RemovedItem = Pick<
-	RouteItem,
-	| 'paydayId'
-	| 'destinationId'
-	| 'name'
-	| 'fullAmountExpr'
-	| 'minimumAmount'
-	| 'chosenAmount'
-	| 'decision'
-	| 'decisionReason'
-	| 'dueDate'
-	| 'isDone'
-	| 'sortOrder'
-	| 'templateId'
-	| 'icon'
->;
-
 export interface RouteService {
 	add(input: NewItemInput): number;
 	update(itemId: number, input: ItemEditInput): void;
@@ -64,57 +52,6 @@ export interface RouteService {
 }
 
 type Deps = Pick<Repositories, 'paydays' | 'items' | 'templates' | 'activity' | 'transaction'>;
-
-function adjustInstallmentProgress(
-	templates: Deps['templates'],
-	templateId: number | null,
-	delta: number
-): void {
-	if (templateId === null || delta === 0) return;
-	const template = templates.findById(templateId);
-	if (!template || template.installmentCount === null) return;
-	const next = Math.min(
-		template.installmentCount,
-		Math.max(0, template.installmentsCompleted + delta)
-	);
-	if (next === template.installmentsCompleted) return;
-	templates.update(templateId, { installmentsCompleted: next });
-}
-
-function chosenFor(decision: Decision, item: RouteItem, custom: string | undefined): number {
-	if (decision === 'FULL') {
-		ensure(hasKnownAmount(item), 'Set the full amount first');
-		return item.fullAmount;
-	}
-	if (decision === 'MINIMUM') {
-		ensure(item.minimumAmount !== null, 'Set a minimum amount first');
-		return item.minimumAmount;
-	}
-	if (decision === 'CUSTOM') {
-		const parsed = parseAmount(custom);
-		ensure(parsed.expression !== '', 'Enter a custom amount');
-		return parsed.cents;
-	}
-	return 0;
-}
-
-function toRemoved(item: RouteItem): RemovedItem {
-	return {
-		paydayId: item.paydayId,
-		destinationId: item.destinationId,
-		name: item.name,
-		fullAmountExpr: item.fullAmountExpr,
-		minimumAmount: item.minimumAmount,
-		chosenAmount: item.chosenAmount,
-		decision: item.decision,
-		decisionReason: item.decisionReason,
-		dueDate: item.dueDate,
-		isDone: item.isDone,
-		sortOrder: item.sortOrder,
-		templateId: item.templateId,
-		icon: item.icon
-	};
-}
 
 export function createRouteService(
 	repos: Deps,
@@ -261,24 +198,9 @@ export function createRouteService(
 			});
 		},
 		toggleDone(itemId) {
-			return transaction(() => {
-				const item = requireActiveItem(paydays, items, itemId);
-				if (!item.isDone) {
-					ensure(isRoutedDecision(item.decision), 'Choose how to route this item first');
-				}
-				const nextDone = !item.isDone;
-				items.update(itemId, { isDone: nextDone });
-				adjustInstallmentProgress(templates, item.templateId, nextDone ? 1 : -1);
-				activity.add({
-					createdAt: clock.now().getTime(),
-					action: 'toggle_done',
-					paydayId: item.paydayId,
-					entityType: 'item',
-					entityId: itemId,
-					summary: activityToggleDoneSummary(item.name, nextDone)
-				});
-				return nextDone;
-			});
+			return transaction(() =>
+				toggleDoneItem({ paydays, items, templates, activity, clock }, itemId)
+			);
 		},
 		assign(itemId, paydayId) {
 			requireActiveItem(paydays, items, itemId);

@@ -43,10 +43,34 @@ export function row(page: Page, name: string): Locator {
 
 /** Opens the item editor sheet (card has both Edit and Open links). */
 export async function openItem(page: Page, name: string): Promise<Locator> {
-	await row(page, name).getByRole('link', { name: `Edit ${name}` }).click();
+	await row(page, name)
+		.getByRole('link', { name: `Edit ${name}` })
+		.click();
 	const dialog = sheet(page, name);
 	await expect(dialog).toBeVisible();
 	return dialog;
+}
+
+/** Decide Pay full via the card `...` menu (does not mark routed). */
+export async function decidePayFull(page: Page, name: string): Promise<void> {
+	const item = row(page, name);
+	await item.getByRole('button', { name: `More routing actions for ${name}` }).click();
+	await item.getByRole('menuitem', { name: 'Pay full' }).click();
+	await expect(item.getByRole('menu')).toHaveCount(0);
+}
+
+/** Quick-pay checkbox: Pay full + mark routed in one tap when still pending. */
+export async function markRouted(page: Page, name: string): Promise<void> {
+	const item = row(page, name);
+	await item
+		.getByRole('button', {
+			name: new RegExp(`^(Pay full and )?mark ${escapeRegExp(name)} routed$`, 'i')
+		})
+		.click();
+}
+
+function escapeRegExp(value: string): string {
+	return value.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
 }
 
 export async function addDefault(page: Page, name: string, amount = ''): Promise<void> {
@@ -269,34 +293,79 @@ export async function cancelOpenDrag(page: Page, name: string): Promise<void> {
 }
 
 /**
- * Mid-drag: ghost must stay vertically locked (no left/right jump).
- * Drifts sideways with the pointer on X, then asserts the ghost X stays near the list.
+ * Mid-drag: Planned is a multi-column grid, so the ghost must follow sideways
+ * pointer motion (not a vertical-only lock). Also asserts the zone does not keep
+ * a locked min-height empty band under the cards.
  */
-export async function assertVerticalDragLock(
+export async function assertGridDragFollowsPointer(
 	page: Page,
 	fromName: string,
 	toName: string
 ): Promise<void> {
-	const { start, end, listLeft } = await gripDragBoxes(page, fromName, toName, 'after');
+	const list = page.getByRole('list', { name: /^(Planned|To route)$/ });
+	const { start, end } = await gripDragBoxes(page, fromName, toName, 'after');
+	const midX = start.x + 120;
+	const midY = (start.y + end.y) / 2;
 	await page.mouse.move(start.x, start.y);
 	await page.mouse.down();
 	await page.waitForTimeout(80);
-	// Pull far sideways on purpose — vertical lock should zero X translate.
-	await page.mouse.move(start.x + 120, (start.y + end.y) / 2, { steps: 10 });
+	await page.mouse.move(midX, midY, { steps: 10 });
 	const ghost = page.locator('#dnd-action-dragged-el');
 	await expect(ghost).toBeVisible({ timeout: 5_000 });
 	const ghostBox = await ghost.boundingBox();
 	expect(ghostBox).toBeTruthy();
-	expect(Math.abs((ghostBox?.x ?? 0) - listLeft)).toBeLessThanOrEqual(28);
-	await page.mouse.move(end.x, end.y, { steps: 10 });
-	await page.mouse.up();
-	await page.waitForResponse(
+	const ghostCenterX = (ghostBox?.x ?? 0) + (ghostBox?.width ?? 0) / 2;
+	expect(Math.abs(ghostCenterX - midX)).toBeLessThanOrEqual(48);
+	// Ghost must hug the card — no empty band under the gold outline (decision chips).
+	const ghostHeights = await ghost.evaluate((el) => {
+		const card = el.querySelector('.swipe') as HTMLElement | null;
+		return {
+			ghost: el.getBoundingClientRect().height,
+			card: card?.getBoundingClientRect().height ?? 0
+		};
+	});
+	expect(ghostHeights.card).toBeGreaterThan(0);
+	expect(Math.abs(ghostHeights.ghost - ghostHeights.card)).toBeLessThanOrEqual(8);
+
+	const midDrag = await list.evaluate((el) => {
+		const contentBottom = Array.from(el.children).reduce((max, child) => {
+			const box = (child as HTMLElement).getBoundingClientRect();
+			return Math.max(max, box.bottom);
+		}, el.getBoundingClientRect().top);
+		const listBottom = el.getBoundingClientRect().bottom;
+		const shadow = el.querySelector(
+			'[data-is-dnd-shadow-item-internal="true"]'
+		) as HTMLElement | null;
+		const shadowStyle = shadow ? getComputedStyle(shadow) : null;
+		const decisions = shadow?.querySelector('.decisions') as HTMLElement | null;
+		return {
+			inlineMinHeight: el.style.minHeight || '',
+			emptyBandPx: listBottom - contentBottom,
+			shadowCount: shadow ? 1 : 0,
+			shadowVisibility: shadowStyle?.visibility ?? 'missing',
+			shadowBg: shadowStyle?.backgroundColor ?? '',
+			decisionsDisplay: decisions ? getComputedStyle(decisions).display : 'none'
+		};
+	});
+	expect(midDrag.inlineMinHeight).toBe('');
+	expect(midDrag.emptyBandPx).toBeLessThanOrEqual(24);
+	expect(midDrag.shadowCount).toBe(1);
+	// Drop slot must be a visible highlight — never an invisible blank hole.
+	expect(midDrag.shadowVisibility).toBe('visible');
+	expect(midDrag.shadowBg).not.toMatch(/^rgba?\(0,\s*0,\s*0,\s*0\)$/);
+	expect(midDrag.decisionsDisplay).toBe('none');
+
+	const reorder = page.waitForResponse(
 		(response) =>
 			response.request().method() === 'POST' &&
 			response.url().includes('?/reorder') &&
 			response.ok(),
 		{ timeout: 15_000 }
 	);
+	await page.mouse.move(end.x, end.y, { steps: 12 });
+	await page.waitForTimeout(40);
+	await page.mouse.up();
+	await reorder;
 }
 
 /**

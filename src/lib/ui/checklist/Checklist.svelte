@@ -6,18 +6,13 @@
 	import { dragHandleZone, type DndEvent } from 'svelte-dnd-action';
 	import { failureMessage, postAction } from '../../client/actions.ts';
 	import type { Checklist } from '../../client/checklist.svelte.ts';
-	import {
-		CHECKLIST_FLIP_MS,
-		startVerticalDragLock,
-		stopVerticalDragLock,
-		styleChecklistDragGhost
-	} from '../../client/checklist-dnd.ts';
+	import { CHECKLIST_FLIP_MS, styleChecklistDragGhost } from '../../client/checklist-dnd.ts';
 	import { toasts } from '../../client/toasts.svelte.ts';
 	import type { ResolvedBrandIcon } from '../../domain/brand-icon.ts';
 	import type { CurrencyCode } from '../../domain/currency.ts';
 	import type { Destination, RouteItem, TemplateItem } from '../../domain/models.ts';
 	import ChecklistRow from './ChecklistRow.svelte';
-	import DecisionChips from './DecisionChips.svelte';
+	import './checklist-dnd.css';
 
 	let {
 		checklist,
@@ -43,7 +38,6 @@
 
 	/** Local draft while dragging/saving — avoids $effect sync loops and refresh flicker. */
 	let draftOpen = $state<RouteItem[] | null>(null);
-	let dragging = $state(false);
 	let saving = $state(false);
 	let openListEl = $state<HTMLUListElement | null>(null);
 
@@ -55,8 +49,6 @@
 	 * Saving blocks input via CSS pointer-events instead.
 	 */
 	const canDrag = $derived(showHandles);
-
-	$effect(() => () => stopVerticalDragLock());
 
 	function destinationFor(id: number | null) {
 		return destinations.find((entry) => entry.id === id) ?? null;
@@ -70,21 +62,27 @@
 	}
 
 	function onConsider(event: CustomEvent<DndEvent<RouteItem>>) {
-		if (!dragging) startVerticalDragLock();
-		dragging = true;
 		draftOpen = event.detail.items;
+		clearZoneMinSize();
 	}
 
 	function clearZoneMinSize() {
-		// Library locks min-height while dragging; clear so the list cannot stay expanded.
 		if (!openListEl) return;
 		openListEl.style.minHeight = '';
 		openListEl.style.minWidth = '';
 	}
 
+	// svelte-dnd-action writes inline minHeight on drag start; strip it as soon as it appears.
+	$effect(() => {
+		const el = openListEl;
+		if (!el || typeof MutationObserver === 'undefined') return;
+		const observer = new MutationObserver(() => clearZoneMinSize());
+		observer.observe(el, { attributes: true, attributeFilter: ['style'] });
+		clearZoneMinSize();
+		return () => observer.disconnect();
+	});
+
 	async function onFinalize(event: CustomEvent<DndEvent<RouteItem>>) {
-		stopVerticalDragLock();
-		dragging = false;
 		clearZoneMinSize();
 		const next = event.detail.items;
 		const orderedIds = next.map((item) => item.id);
@@ -139,9 +137,6 @@
 						ontoggle={checklist.toggle(item)}
 						ondelete={() => checklist.remove(item)}
 					/>
-					{#if checklist.routing && item.decision !== 'SKIPPED' && !item.isDone}
-						<div class="decisions"><DecisionChips {item} /></div>
-					{/if}
 				</li>
 			{/each}
 		</ul>
@@ -178,11 +173,11 @@
 					dropFromOthersDisabled: true,
 					// Kill default yellow outline "glow" on the list while dragging.
 					dropTargetStyle: {},
-					// Tall rows + morph = chunky flings; keep ghost stable.
+					// Tall grid cards + morph = chunky flings; keep ghost stable.
 					morphDisabled: true,
-					// Skip diagonal settle animation (left/right snap then flicker).
+					// Free X/Y for the 1/2/3-column Planned grid (no vertical lock).
 					dropAnimationDisabled: true,
-					centreDraggedOnCursor: false,
+					centreDraggedOnCursor: true,
 					// Handle is intentional — no long-press delay (NN/g: separate drag from swipe).
 					delayTouchStart: false,
 					transformDraggedElement: styleChecklistDragGhost,
@@ -203,14 +198,11 @@
 							ontoggle={checklist.toggle(item)}
 							ondelete={() => checklist.remove(item)}
 						/>
-						{#if checklist.routing && item.decision !== 'SKIPPED' && !item.isDone}
-							<div class="decisions"><DecisionChips {item} /></div>
-						{/if}
 					</li>
 				{/each}
 			</ul>
 			{#if showHandles}
-				<p class="hint">Drag the handle to reorder.</p>
+				<p class="hint">Drag the handle to reorder across the grid.</p>
 			{/if}
 		</section>
 	{/if}
@@ -252,25 +244,16 @@
 		grid-template-columns: minmax(0, 1fr);
 		gap: 0.75rem;
 		align-items: stretch;
+		/* Beat svelte-dnd-action preventShrinking — grid must reflow mid-drag. */
+		min-height: 0 !important;
 	}
 
 	.row-wrap {
 		min-width: 0;
 		min-height: 0;
 		height: 100%;
-		display: grid;
-		align-content: start;
 	}
 
-	.decisions {
-		padding: 0.5rem 0.75rem 0.75rem;
-		background: var(--surface);
-		border: 1px solid var(--border-subtle);
-		border-top: 0;
-		border-radius: 0 0 1rem 1rem;
-	}
-
-	/* Block cards while reorder POST is in flight — no opacity flash. */
 	.rows.saving {
 		pointer-events: none;
 	}
@@ -301,21 +284,5 @@
 		border-radius: var(--radius-lg);
 		color: var(--text-muted);
 		text-align: center;
-	}
-
-	/* Ghost: flat, no glow — X locked in JS; library owns translate3d. */
-	:global(.checklist-drag-ghost) {
-		cursor: grabbing !important;
-		z-index: 20;
-		pointer-events: none;
-		opacity: 1;
-		box-shadow: none !important;
-		outline: none !important;
-		filter: none !important;
-		background: var(--surface);
-	}
-
-	:global(.checklist-drag-ghost *) {
-		box-shadow: none !important;
 	}
 </style>

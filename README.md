@@ -8,12 +8,12 @@ Color, type, and motion live in one token file so a later look can be a token sw
 
 Example data only (no personal records). Regenerated with `npm run screenshots`.
 
-| Mobile                                                     | Tablet                                                     | Desktop (web)                                                |
-| ---------------------------------------------------------- | ---------------------------------------------------------- | ------------------------------------------------------------ |
-| ![Mobile Active](docs/screenshots/mobile-checklist.png)    | ![Tablet Active](docs/screenshots/tablet-checklist.png)    | ![Desktop Active](docs/screenshots/desktop-checklist.png)    |
-| ![Mobile Defaults](docs/screenshots/mobile-defaults.png)   | ![Tablet Defaults](docs/screenshots/tablet-defaults.png)   | ![Desktop Defaults](docs/screenshots/desktop-defaults.png)   |
-| ![Mobile History](docs/screenshots/mobile-history.png)     | ![Tablet History](docs/screenshots/tablet-history.png)     | ![Desktop History](docs/screenshots/desktop-history.png)     |
-| ![Mobile editor](docs/screenshots/mobile-editor.png)       | ![Tablet editor](docs/screenshots/tablet-editor.png)       | ![Desktop editor](docs/screenshots/desktop-editor.png)       |
+| Mobile                                                   | Tablet                                                   | Desktop (web)                                              |
+| -------------------------------------------------------- | -------------------------------------------------------- | ---------------------------------------------------------- |
+| ![Mobile Active](docs/screenshots/mobile-checklist.png)  | ![Tablet Active](docs/screenshots/tablet-checklist.png)  | ![Desktop Active](docs/screenshots/desktop-checklist.png)  |
+| ![Mobile Defaults](docs/screenshots/mobile-defaults.png) | ![Tablet Defaults](docs/screenshots/tablet-defaults.png) | ![Desktop Defaults](docs/screenshots/desktop-defaults.png) |
+| ![Mobile History](docs/screenshots/mobile-history.png)   | ![Tablet History](docs/screenshots/tablet-history.png)   | ![Desktop History](docs/screenshots/desktop-history.png)   |
+| ![Mobile editor](docs/screenshots/mobile-editor.png)     | ![Tablet editor](docs/screenshots/tablet-editor.png)     | ![Desktop editor](docs/screenshots/desktop-editor.png)     |
 
 ![Mobile sign-in](docs/screenshots/mobile-login.png)
 
@@ -88,7 +88,7 @@ There is one built-in login, with no registration or extra accounts. The passphr
 
 ## Automatic home-server updates (Linux + Docker Compose)
 
-A push to `main` runs [the publish workflow](.github/workflows/publish.yml): lint, type check, unit tests with coverage, end-to-end tests in three viewports, and a production build. Only then does it publish `ghcr.io/raquezha/kinsena:main` and `:sha-<commit>`. A matching semver tag (for example `v0.3.0`) also publishes `:0.3.0`, `:0.3`, `:stable`, and `:latest`, then opens a GitHub Release with generated notes. Verify always gates publishing and the release. The home server follows `:stable` and checks for a new image every five minutes and on startup, with no inbound SSH or self-hosted runner.
+A push to `main` runs [the publish workflow](.github/workflows/publish.yml): lint, type check, unit tests with coverage, end-to-end tests in three viewports, and a production build. Only then does it publish `ghcr.io/raquezha/kinsena:main` and `:sha-<commit>`. A matching semver tag (for example `v0.4.0`) also publishes `:0.4.0`, `:0.4`, `:stable`, and `:latest`, then opens a GitHub Release with generated notes. Verify always gates publishing and the release. The home server follows `:stable` and checks for a new image every five minutes and on startup, with no inbound SSH or self-hosted runner.
 
 `package.json` is the version source of truth. To release, bump `version`, commit, and push the matching tag. The workflow fails when the tag and `package.json` disagree.
 

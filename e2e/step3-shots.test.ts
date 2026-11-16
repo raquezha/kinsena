@@ -6,6 +6,7 @@ import {
 	addItem,
 	clearToasts,
 	markSalaryIn,
+	openItem,
 	sheet,
 	signIn
 } from './support/app.ts';
@@ -109,12 +110,12 @@ test('captures routing, salary header, PHP currency default, and settings', asyn
 	await page.setViewportSize(LAYOUTS[0]);
 	await page.goto('/');
 	await expect(page.getByRole('heading', { level: 1, name: 'November 15' })).toBeVisible();
-	const payFull = page.getByRole('button', { name: 'Pay full' }).first();
-	await expect(payFull).toBeVisible();
-	await payFull.evaluate((element) =>
-		element.scrollIntoView({ block: 'center', inline: 'nearest' })
-	);
+	// Routing actions live in the item sheet — capture that surface.
+	const rentSheet = await openItem(page, 'Rent');
+	await expect(rentSheet.getByRole('button', { name: 'Pay full' })).toBeVisible();
 	await shot(page, 'mobile-routing');
+	await page.keyboard.press('Escape');
+	await expect(rentSheet).toBeHidden();
 
 	await page.setViewportSize(LAYOUTS[1]);
 	await page.goto('/');

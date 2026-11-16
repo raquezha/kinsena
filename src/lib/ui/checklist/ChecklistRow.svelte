@@ -72,9 +72,14 @@
 <style>
 	.swipe {
 		position: relative;
-		border-radius: 1rem;
+		border-radius: 0.875rem;
 		overflow: hidden;
 		height: 100%;
+	}
+	/* Let the routing popover escape the rounded card while open. */
+	.swipe:has(:global(.more.open)) {
+		overflow: visible;
+		z-index: 25;
 	}
 	.behind {
 		position: absolute;
@@ -87,30 +92,40 @@
 		background: var(--danger-solid);
 		color: var(--danger);
 		font-weight: 700;
-		opacity: calc(0.4 + var(--swipe) * 0.6);
+		/* Resting opacity must be 0 — paid/skipped cards used to show Delete through translucency. */
+		opacity: var(--swipe);
+		pointer-events: none;
 	}
 	.card {
 		position: relative;
 		display: flex;
 		flex-direction: column;
 		justify-content: space-between;
-		min-height: 8.0625rem;
-		padding: 0.875rem 1rem;
-		background: var(--surface);
-		border: 1px solid var(--border-subtle);
-		border-radius: 1rem;
+		min-height: 8.5rem;
+		padding: 1rem;
+		background: linear-gradient(145deg, rgb(32 30 26 / 0.85) 0%, rgb(22 21 18 / 0.95) 100%);
+		border: 1px solid rgb(255 255 255 / 0.08);
+		border-radius: 0.875rem;
+		box-shadow: 0 8px 24px rgb(0 0 0 / 0.35);
 		touch-action: pan-y;
+		overflow: hidden;
 		transition:
-			border-color var(--duration-fast),
-			opacity var(--duration-fast);
+			transform 160ms ease,
+			box-shadow 160ms ease,
+			border-color 160ms ease,
+			opacity 160ms ease;
 	}
-	.card.paid,
-	.card.skipped {
+	.swipe:has(:global(.more.open)) .card {
+		overflow: visible;
+	}
+	/* Fade content only so the opaque surface still hides the swipe Delete layer. */
+	.card.paid > :global(*),
+	.card.skipped > :global(*) {
 		opacity: 0.62;
 	}
 	@media (hover: hover) {
 		.card:hover {
-			border-color: var(--border);
+			border-color: rgb(255 255 255 / 0.14);
 		}
 	}
 </style>

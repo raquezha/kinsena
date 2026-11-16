@@ -5,6 +5,7 @@ import {
 	addDestination,
 	addItem,
 	clearToasts,
+	decidePayFull,
 	finishPayday,
 	markSalaryIn,
 	openItem,
@@ -68,9 +69,9 @@ test('captures current Active, Defaults, History, and editors', async ({ page })
 	await page.setViewportSize(LAYOUTS[2]);
 	await page.goto('/');
 	await markSalaryIn(page, '38,500');
-	await row(page, 'Rent').getByRole('button', { name: 'Pay full' }).click();
-	await row(page, 'Savings').getByRole('button', { name: 'Pay full' }).click();
-	await page.getByRole('button', { name: 'Mark Savings routed' }).click();
+	await decidePayFull(page, 'Rent');
+	await decidePayFull(page, 'Savings');
+	await page.getByRole('button', { name: /^(Pay full and )?Mark Savings routed$/i }).click();
 	await clearToasts(page);
 
 	await openItem(page, 'Electricity');
@@ -99,12 +100,12 @@ test('captures current Active, Defaults, History, and editors', async ({ page })
 	await page.goto('/');
 	await finishPayday(page);
 	await page.goto('/history');
-	await expect(page.getByRole('heading', { name: 'Activity' })).toBeVisible();
+	await expect(page.getByRole('button', { name: 'Activity log' })).toBeVisible();
 
 	for (const layout of LAYOUTS) {
 		await page.setViewportSize(layout);
 		await page.goto('/history');
-		await expect(page.getByRole('heading', { name: 'Activity' })).toBeVisible();
+		await expect(page.getByRole('button', { name: 'Activity log' })).toBeVisible();
 		await shot(page, `${layout.name}-history`, true);
 	}
 });

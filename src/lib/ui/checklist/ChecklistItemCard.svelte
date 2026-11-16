@@ -4,6 +4,7 @@
 	import { sheetHref } from '../../client/sheet-route.ts';
 	import type { ResolvedBrandIcon } from '../../domain/brand-icon.ts';
 	import type { CurrencyCode } from '../../domain/currency.ts';
+	import { isRoutedDecision } from '../../domain/decision.ts';
 	import { hasKnownAmount, type Destination, type RouteItem } from '../../domain/models.ts';
 	import { formatMoney } from '../../domain/money.ts';
 	import { getRecurringIcon } from '../../domain/recurring-icon.ts';
@@ -11,6 +12,7 @@
 	import Icon from '../icons/Icon.svelte';
 	import BrandMark from '../defaults/BrandMark.svelte';
 	import { formatShortDate } from './dates.ts';
+	import RouteMoreMenu from './RouteMoreMenu.svelte';
 
 	let {
 		item,
@@ -48,10 +50,10 @@
 		if (item.dueDate) parts.push(`Due ${formatShortDate(item.dueDate)}`);
 		if (installment) parts.push(installment);
 		if (item.isDone) parts.push('Paid');
-		if (item.decisionReason) parts.push(item.decisionReason);
 		return parts.join(' · ');
 	});
 	const pillColor = $derived(destination?.brandIcon?.color ?? null);
+	const showMore = $derived(routing && !item.isDone);
 </script>
 
 <div class="top">
@@ -79,30 +81,30 @@
 			{#if metaLabel}<span class="meta">{metaLabel}</span>{/if}
 		</span>
 	</a>
-	<div class="actions">
-		{#if routing}
+	{#if routing}
+		<div class="actions">
 			<form method="POST" action="?/toggle" use:enhance={ontoggle}>
 				<input type="hidden" name="itemId" value={item.id} />
 				<button
 					class="check"
 					type="submit"
 					aria-pressed={item.isDone}
-					aria-label={item.isDone ? `Mark ${item.name} not routed` : `Mark ${item.name} routed`}
+					aria-label={item.isDone
+						? `Mark ${item.name} not routed`
+						: isRoutedDecision(item.decision)
+							? `Mark ${item.name} routed`
+							: `Pay full and Mark ${item.name} routed`}
+					onpointerdown={(event) => event.stopPropagation()}
 					onclick={(event) => event.stopPropagation()}
 				>
-					{#if item.isDone}<Icon name="check" size={16} stroke={2.6} />{/if}
+					{#if item.isDone}<Icon name="check" size={14} stroke={2.6} />{/if}
 				</button>
 			</form>
-		{/if}
-		<a
-			class="chevron"
-			href={sheetHref(sheet)}
-			onclick={onOpen}
-			data-sveltekit-noscroll
-			aria-hidden="true"
-			tabindex="-1"><Icon name="chevron" size={16} /></a
-		>
-	</div>
+			{#if showMore}
+				<RouteMoreMenu {item} />
+			{/if}
+		</div>
+	{/if}
 </div>
 
 <a
@@ -151,7 +153,6 @@
 		width: 1.5rem;
 		height: 1.75rem;
 		flex-shrink: 0;
-		margin-top: 0.15rem;
 		color: var(--text-dim);
 		cursor: grab;
 		touch-action: none;
@@ -193,6 +194,7 @@
 	.name {
 		font-size: 0.9375rem;
 		font-weight: 650;
+		color: #f3efe6;
 		overflow: hidden;
 		text-overflow: ellipsis;
 		white-space: nowrap;
@@ -207,15 +209,20 @@
 	.actions {
 		display: flex;
 		align-items: center;
-		gap: 0.25rem;
+		align-self: flex-start;
+		gap: 0.375rem;
 		flex-shrink: 0;
+		height: 1.75rem;
+	}
+	.actions form {
+		margin: 0;
 	}
 	.check {
 		position: relative;
 		display: grid;
 		place-items: center;
-		width: 2rem;
-		height: 2rem;
+		width: 1.5rem;
+		height: 1.5rem;
 		padding: 0;
 		border: 0;
 		background: transparent;
@@ -224,9 +231,9 @@
 	.check::before {
 		content: '';
 		position: absolute;
-		width: 1.375rem;
-		height: 1.375rem;
-		border-radius: 0.4rem;
+		width: 1.125rem;
+		height: 1.125rem;
+		border-radius: 0.3125rem;
 		border: 2px solid var(--border-strong);
 	}
 	:global(.paid) .check::before {
@@ -235,13 +242,6 @@
 	}
 	.check :global(svg) {
 		position: relative;
-	}
-	.chevron {
-		display: grid;
-		place-items: center;
-		color: var(--text-dim);
-		opacity: 0.6;
-		text-decoration: none;
 	}
 	.body {
 		display: flex;

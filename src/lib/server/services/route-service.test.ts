@@ -54,7 +54,20 @@ describe('route service', () => {
 			destinationId: null
 		});
 		expect(() => services.items.decide(blank, 'FULL')).toThrow('Set the full amount first');
-		expect(() => services.items.toggleDone(blank)).toThrow('Choose how to route this item first');
+		expect(() => services.items.toggleDone(blank)).toThrow('Set the full amount first');
+		const quick = services.items.add({
+			paydayId,
+			name: 'Quick pay',
+			amount: '250',
+			minimum: '',
+			dueDate: '',
+			destinationId: null
+		});
+		expect(services.items.toggleDone(quick)).toBe(true);
+		const quickItem = services.paydays.view(paydayId).items.find((item) => item.id === quick);
+		expect(quickItem?.decision).toBe('FULL');
+		expect(quickItem?.isDone).toBe(true);
+		expect(quickItem?.chosenAmount).toBe(25_000);
 		services.items.decide(rent, 'MINIMUM');
 		expect(
 			services.paydays.view(paydayId).items.find((item) => item.id === rent)?.chosenAmount
