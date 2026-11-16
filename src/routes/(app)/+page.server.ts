@@ -86,9 +86,6 @@ export const actions: Actions = {
 		);
 		items.reorder(form.paydayId, form.orderedIds);
 	}),
-	addMissingDefaults: formAction({ paydayId }, (form, { paydays }) =>
-		paydays.applyMissingDefaults(form.paydayId)
-	),
 	remove: formAction({ itemId }, (form, { items }) => {
 		const removed = items.remove(form.itemId);
 		return { removed, undo: { kind: 'removed' as const, removed } };

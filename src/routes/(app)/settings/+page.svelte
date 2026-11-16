@@ -95,7 +95,7 @@
 
 	<section class="card about">
 		<h2>Kinsena {data.version}</h2>
-		<p>One private login. Sessions end after seven days or when the server restarts.</p>
+		<p>One private login. Sessions last seven days until you log out.</p>
 		<form method="POST" action="/logout">
 			<button class="button block" type="submit"><Icon name="logout" size={18} /> Log out</button>
 		</form>
@@ -145,12 +145,20 @@
 		display: none;
 	}
 
+	.settings > :global(.card) {
+		height: 100%;
+		display: flex;
+		flex-direction: column;
+	}
+
 	@media (min-width: 1100px) {
 		.settings {
 			grid-template-columns: 1fr 1fr;
-			align-items: start;
+			align-items: stretch;
 		}
 
+		/* Currency, pay rule, holidays need the full row; remaining cards share equal-height pairs */
+		.settings > :global(.card:nth-child(1)),
 		.settings > :global(.card:nth-child(2)),
 		.settings > :global(.card:nth-child(3)) {
 			grid-column: 1 / -1;

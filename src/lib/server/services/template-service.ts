@@ -23,6 +23,7 @@ export interface TemplateService {
 	list(): TemplateItem[];
 	add(input: TemplateInput): number;
 	update(id: number, input: TemplateInput): void;
+	toggleActive(id: number): boolean;
 	archive(id: number): void;
 }
 
@@ -72,6 +73,7 @@ export function createTemplateService(repos: Repositories, clock: Clock): Templa
 			const id = templates.add({
 				...fields,
 				installmentsCompleted: 0,
+				isActive: true,
 				createdAt: clock.now().getTime()
 			});
 			const saved = templates.findById(id);
@@ -80,6 +82,13 @@ export function createTemplateService(repos: Repositories, clock: Clock): Templa
 		},
 		update(id, input) {
 			ensure(templates.update(id, parsed(input)), 'Unknown saved item');
+		},
+		toggleActive(id) {
+			const template = templates.findById(id);
+			ensure(template !== null, 'Unknown saved item');
+			const next = !template.isActive;
+			ensure(templates.update(id, { isActive: next }), 'Unknown saved item');
+			return next;
 		},
 		archive(id) {
 			ensure(templates.archive(id), 'Unknown saved item');

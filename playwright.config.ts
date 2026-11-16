@@ -5,14 +5,22 @@ const layouts = [
 	{ name: 'tablet', port: 4302, viewport: { width: 834, height: 1112 }, touch: true },
 	{ name: 'desktop', port: 4303, viewport: { width: 1440, height: 900 }, touch: false }
 ] as const;
-const SCREENSHOT_PORT = 4304;
+
+/** One DB/port per shot file so seeds and salary-in do not leak across suites. */
+const shotSuites = [
+	{ name: 'screenshots', file: 'screenshots.test.ts', port: 4304 },
+	{ name: 'polish-shots', file: 'polish-shots.test.ts', port: 4305 },
+	{ name: 'reorder-shots', file: 'reorder-shots.test.ts', port: 4306 },
+	{ name: 'step1-shots', file: 'step1-shots.test.ts', port: 4307 },
+	{ name: 'step2-shots', file: 'step2-shots.test.ts', port: 4308 },
+	{ name: 'step3-shots', file: 'step3-shots.test.ts', port: 4309 }
+] as const;
+
+const shotFiles = shotSuites.map(({ file }) => `**/${file}`);
 
 const servers = [
 	...layouts.map(({ name, port }) => ({ name, port })),
-	{
-		name: 'screenshots',
-		port: SCREENSHOT_PORT
-	}
+	...shotSuites.map(({ name, port }) => ({ name, port }))
 ];
 
 export default defineConfig({
@@ -28,13 +36,7 @@ export default defineConfig({
 	projects: [
 		...layouts.map(({ name, port, viewport, touch }) => ({
 			name,
-			testIgnore: [
-				'**/screenshots.test.ts',
-				'**/polish-shots.test.ts',
-				'**/step1-shots.test.ts',
-				'**/step2-shots.test.ts',
-				'**/step3-shots.test.ts'
-			],
+			testIgnore: shotFiles,
 			use: {
 				...devices['Desktop Chrome'],
 				baseURL: `http://127.0.0.1:${port}`,
@@ -42,21 +44,15 @@ export default defineConfig({
 				hasTouch: touch
 			}
 		})),
-		{
-			name: 'screenshots',
-			testMatch: [
-				'**/screenshots.test.ts',
-				'**/polish-shots.test.ts',
-				'**/step1-shots.test.ts',
-				'**/step2-shots.test.ts',
-				'**/step3-shots.test.ts'
-			],
+		...shotSuites.map(({ name, file, port }) => ({
+			name,
+			testMatch: `**/${file}`,
 			use: {
 				...devices['Desktop Chrome'],
-				baseURL: `http://127.0.0.1:${SCREENSHOT_PORT}`,
-				reducedMotion: 'reduce'
+				baseURL: `http://127.0.0.1:${port}`,
+				reducedMotion: 'reduce' as const
 			}
-		}
+		}))
 	],
 	webServer: servers.map(({ name, port }) => ({
 		command: `node e2e/support/start-server.ts ${name} ${port}`,

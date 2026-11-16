@@ -31,6 +31,8 @@ export const templateItems = sqliteTable('template_items', {
 	/** null = not an installment plan. */
 	installmentCount: integer('installment_count'),
 	installmentsCompleted: integer('installments_completed').notNull().default(0),
+	/** Paused defaults stay on Defaults but do not copy into new paydays. */
+	isActive: integer('is_active', { mode: 'boolean' }).notNull().default(true),
 	isArchived: integer('is_archived', { mode: 'boolean' }).notNull().default(false),
 	createdAt: integer('created_at').notNull()
 });
@@ -93,4 +95,10 @@ export const holidays = sqliteTable(
 export const payDateOverrides = sqliteTable('pay_date_overrides', {
 	scheduledDate: text('scheduled_date', { length: 32 }).primaryKey(),
 	payDate: text('pay_date', { length: 32 }).notNull()
+});
+
+/** Login tokens; survive process restarts. Cookie still holds the raw token. */
+export const sessions = sqliteTable('sessions', {
+	token: text('token', { length: 64 }).primaryKey(),
+	expiresAt: integer('expires_at').notNull()
 });

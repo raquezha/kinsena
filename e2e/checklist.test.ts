@@ -141,7 +141,7 @@ test('finishes a payday into read-only history and reopens it', async ({ page })
 
 test('changes the currency symbol', async ({ page }) => {
 	await nav(page, 'Settings').click();
-	await page.getByRole('radio', { name: /US dollar/ }).check();
+	await page.getByRole('radio', { name: /\$ USD/ }).check();
 	await expect(page.getByRole('status')).toContainText('Currency updated');
 	await nav(page, 'Active').click();
 	await expect(row(page, 'Rent')).toContainText('$12,000.00');

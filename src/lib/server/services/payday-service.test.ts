@@ -210,6 +210,25 @@ describe('defaults apply-if-missing', () => {
 		expect(result.skippedByRule).toBeGreaterThan(0);
 		expect(services.paydays.view(mid.id).items.some((item) => item.name === 'Later')).toBe(false);
 	});
+
+	it('skips paused defaults when applying to a payday', () => {
+		const services = createServices(createMemoryRepositories(), 'test-passphrase-16c', createTestClock());
+		services.paydays.ensureUpcoming();
+		const mid = services.paydays.active()!.payday;
+		const id = services.templates.add({
+			name: 'Paused bill',
+			amount: '200',
+			minimum: '',
+			dueDay: '',
+			fundFrom: 'EVERY',
+			destinationId: null,
+			applyToOpen: false
+		});
+		expect(services.templates.toggleActive(id)).toBe(false);
+		const result = services.paydays.applyMissingDefaults(mid.id);
+		expect(result.added).toBe(0);
+		expect(services.paydays.view(mid.id).items.some((item) => item.templateId === id)).toBe(false);
+	});
 });
 
 describe('applyTemplateToUpcoming', () => {

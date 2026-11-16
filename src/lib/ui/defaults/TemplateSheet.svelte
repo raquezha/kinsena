@@ -85,7 +85,7 @@
 					{#if shown.installmentCount !== null}
 						<small>{shown.installmentsCompleted} of {shown.installmentCount} paid</small>
 					{:else}
-						<small>Fixed N payments of the default amount. Leave blank for a normal recurring item.</small>
+						<small>Fixed N payments of that amount. Leave blank for a normal recurring item.</small>
 					{/if}
 				</label>
 				<ChoiceGroup

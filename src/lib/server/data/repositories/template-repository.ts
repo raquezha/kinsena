@@ -13,7 +13,8 @@ const columns = {
 	fundFrom: templateItems.fundFrom,
 	destinationId: templateItems.destinationId,
 	installmentCount: templateItems.installmentCount,
-	installmentsCompleted: templateItems.installmentsCompleted
+	installmentsCompleted: templateItems.installmentsCompleted,
+	isActive: templateItems.isActive
 };
 
 export function createTemplateRepository(db: Db): TemplateRepository {

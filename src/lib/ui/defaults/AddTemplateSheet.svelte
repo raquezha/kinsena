@@ -46,7 +46,7 @@
 				maxlength="3"
 				placeholder="e.g. 6"
 			/>
-			<small>Fixed N payments of the default amount. Leave blank for a normal recurring item.</small>
+			<small>Fixed N payments of that amount. Leave blank for a normal recurring item.</small>
 		</label>
 		<ChoiceGroup
 			name="fundFrom"

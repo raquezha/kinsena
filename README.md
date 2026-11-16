@@ -82,7 +82,7 @@ Kinsena ships its four-block K icon, a maskable variant, Apple touch icon, and a
 
 ## Private access
 
-There is one built-in login, with no registration or extra accounts. The passphrase never goes in the database or Git and is compared in constant time. Session cookies hold random tokens and are HTTP-only, SameSite Strict, and Secure except on loopback and Tailscale (100.64.0.0/10) addresses. Sessions last seven days; logging out revokes the session, and restarting Kinsena signs out every device. Changing the passphrase requires a restart. Ten failed sign-ins within a minute block further attempts until that minute passes. Cross-site form posts are rejected.
+There is one built-in login, with no registration or extra accounts. The passphrase never goes in the database or Git and is compared in constant time. Session cookies hold random tokens and are HTTP-only, SameSite Strict, and Secure except on loopback and Tailscale (100.64.0.0/10) addresses. Sessions last seven days and are stored in SQLite so a restart keeps you signed in; logging out revokes the session. Changing the passphrase requires a restart. Ten failed sign-ins within a minute block further attempts until that minute passes. Cross-site form posts are rejected.
 
 ## Automatic home-server updates (Linux + Docker Compose)
 

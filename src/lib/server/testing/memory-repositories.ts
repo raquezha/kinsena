@@ -45,7 +45,8 @@ function memoryTemplates(): TemplateRepository {
 		fundFrom,
 		destinationId,
 		installmentCount,
-		installmentsCompleted
+		installmentsCompleted,
+		isActive
 	}: StoredTemplate): TemplateItem => ({
 		id,
 		name,
@@ -55,7 +56,8 @@ function memoryTemplates(): TemplateRepository {
 		fundFrom,
 		destinationId,
 		installmentCount,
-		installmentsCompleted
+		installmentsCompleted,
+		isActive
 	});
 	return {
 		listActive: () =>
@@ -77,7 +79,8 @@ function memoryTemplates(): TemplateRepository {
 				fundFrom,
 				destinationId,
 				installmentCount,
-				installmentsCompleted
+				installmentsCompleted,
+				isActive
 			} = template;
 			rows.push({
 				id,
@@ -89,6 +92,7 @@ function memoryTemplates(): TemplateRepository {
 				destinationId,
 				installmentCount,
 				installmentsCompleted,
+				isActive,
 				isArchived: false
 			});
 			return id;

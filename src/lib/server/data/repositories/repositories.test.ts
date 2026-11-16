@@ -57,6 +57,7 @@ describe.each([
 			destinationId: null,
 			installmentCount: null,
 			installmentsCompleted: 0,
+			isActive: true,
 			createdAt: 1
 		});
 		templates.add({
@@ -68,6 +69,7 @@ describe.each([
 			destinationId: null,
 			installmentCount: null,
 			installmentsCompleted: 0,
+			isActive: true,
 			createdAt: 1
 		});
 		expect(templates.listActive().map((entry) => entry.name)).toEqual(['Aircon', 'Rent']);

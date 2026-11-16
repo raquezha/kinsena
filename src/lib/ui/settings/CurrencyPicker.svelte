@@ -31,7 +31,6 @@
 						onchange={() => formElement?.requestSubmit()}
 					/>
 					<span class="symbol">{CURRENCIES[code].symbol}</span>
-					<span class="label">{CURRENCIES[code].label}</span>
 					<span class="code">{code}</span>
 				</label>
 			{/each}
@@ -49,28 +48,32 @@
 	}
 
 	legend {
-		font-size: var(--text-lg);
+		font-size: 1.45rem;
 		font-weight: 750;
+		margin-bottom: var(--space-3);
 	}
 
 	.hint {
-		margin: var(--space-1) 0 var(--space-4);
+		margin: 0 0 var(--space-4);
 		color: var(--text-muted);
 		font-size: var(--text-sm);
+		line-height: 1.55;
 	}
 
 	.options {
 		display: grid;
 		gap: var(--space-2);
+		grid-template-columns: repeat(3, minmax(0, 1fr));
 	}
 
 	.option {
 		position: relative;
 		display: flex;
 		align-items: center;
-		gap: var(--space-3);
+		justify-content: center;
+		gap: var(--space-2);
 		min-height: var(--tap);
-		padding: 0 var(--space-4);
+		padding: 0 var(--space-3);
 		border-radius: var(--radius-md);
 		border: 1px solid var(--border-subtle);
 		background: var(--surface-sunken);
@@ -98,35 +101,26 @@
 	}
 
 	.symbol {
-		width: 36px;
 		font-weight: 800;
 		color: var(--accent);
-	}
-
-	.label {
-		flex: 1;
-		display: flex;
-		flex-wrap: wrap;
-		align-items: center;
-		gap: var(--space-2);
-		font-weight: 600;
 	}
 
 	.code {
 		color: var(--text-dim);
 		font-family: var(--font-mono);
 		font-size: var(--text-sm);
+		font-weight: 600;
 	}
 
 	@media (min-width: 640px) {
 		.options {
-			grid-template-columns: repeat(2, 1fr);
+			grid-template-columns: repeat(4, minmax(0, 1fr));
 		}
 	}
 
 	@media (min-width: 1100px) {
 		.options {
-			grid-template-columns: repeat(3, 1fr);
+			grid-template-columns: repeat(3, minmax(0, 1fr));
 		}
 	}
 </style>

@@ -41,6 +41,7 @@ describe('database migration', () => {
 		expect(repos.templates.listActive()).toEqual([]);
 		expect(repos.paydays.listOpen()).toEqual([]);
 		expect(tableExists(handle, 'paydays')).toBe(true);
+		expect(tableExists(handle, 'sessions')).toBe(true);
 		expect(tableExists(handle, 'cycles')).toBe(false);
 		handle.close();
 	});
@@ -67,7 +68,8 @@ describe('database migration', () => {
 					fundFrom: 'EVERY',
 					destinationId: null,
 					installmentCount: null,
-					installmentsCompleted: 0
+					installmentsCompleted: 0,
+					isActive: true
 				}
 			]);
 			const [closed] = repos.paydays.listClosed();

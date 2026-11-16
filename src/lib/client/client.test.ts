@@ -1,6 +1,14 @@
 import { describe, expect, it } from 'vitest';
 import type { RouteItem } from '../domain/models.ts';
-import { hide, NO_CHANGES, setPaid, settle, withPending } from './optimistic.ts';
+import {
+	clearOrder,
+	hide,
+	NO_CHANGES,
+	setOrder,
+	setPaid,
+	settle,
+	withPending
+} from './optimistic.ts';
 import { shortcutFor } from './shortcuts.ts';
 
 const item = (id: number, isDone = false): RouteItem => ({
@@ -44,6 +52,32 @@ describe('optimistic checklist', () => {
 		const settled = settle(pending, 2);
 		expect(settled.paid.size).toBe(0);
 		expect(withPending(items, settled)).toHaveLength(3);
+	});
+
+	it('applies saved open order without waiting for a page refresh', () => {
+		const pending = setOrder(NO_CHANGES, [2, 1]);
+		expect(withPending(items, pending).map((entry) => entry.id)).toEqual([2, 1, 3]);
+	});
+
+	it('keeps order overlay across settle, drops it on clearOrder, and prunes hide', () => {
+		const ordered = setOrder(NO_CHANGES, [2, 1]);
+		const afterSettle = settle(ordered, 1);
+		expect(afterSettle.order?.get(2)).toBe(0);
+		expect(withPending(items, afterSettle).map((entry) => entry.id)).toEqual([2, 1, 3]);
+
+		const afterHide = hide(ordered, 2);
+		expect(afterHide.order?.has(2)).toBe(false);
+		expect(afterHide.hidden.has(2)).toBe(true);
+
+		expect(clearOrder(ordered).order).toBeNull();
+	});
+
+	it('parity: optimistic setOrder matches open-list id sequence after withPending', () => {
+		const sequence = [2, 1] as const;
+		const pending = setOrder(NO_CHANGES, sequence);
+		const open = withPending(items, pending).filter((entry) => !entry.isDone);
+		expect(open.map((entry) => entry.id)).toEqual([...sequence]);
+		expect(open.map((entry) => entry.sortOrder)).toEqual([0, 1]);
 	});
 });
 

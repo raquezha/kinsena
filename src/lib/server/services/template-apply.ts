@@ -56,6 +56,7 @@ export function shouldSpawnTemplate(
 	template: TemplateItem,
 	payday: Payday
 ): boolean {
+	if (template.isActive === false) return false;
 	if (repos.items.hasTemplate(payday.id, template.id)) return false;
 	if (!templateFitsPayday(template, payday)) return false;
 	if (template.installmentCount !== null) {

@@ -25,6 +25,8 @@ export interface TemplateItem {
 	installmentCount: number | null;
 	/** Paid installments toward installmentCount. */
 	installmentsCompleted: number;
+	/** When false, skipped on future payday generation. Still listed on Defaults. */
+	isActive: boolean;
 }
 
 export interface Payday {

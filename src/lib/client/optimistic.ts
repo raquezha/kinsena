@@ -7,9 +7,11 @@ export interface PendingChanges {
 	paid: ReadonlyMap<number, boolean>;
 	/** items the user just deleted */
 	hidden: ReadonlySet<number>;
+	/** open-item id -> sortOrder from a drag that already saved (avoids refresh flicker) */
+	order: ReadonlyMap<number, number> | null;
 }
 
-export const NO_CHANGES: PendingChanges = { paid: new Map(), hidden: new Set() };
+export const NO_CHANGES: PendingChanges = { paid: new Map(), hidden: new Set(), order: null };
 
 /** Server items with the user's unconfirmed changes applied, in checklist order. */
 export function withPending(items: RouteItem[], pending: PendingChanges): RouteItem[] {
@@ -17,7 +19,11 @@ export function withPending(items: RouteItem[], pending: PendingChanges): RouteI
 		.filter((item) => !pending.hidden.has(item.id))
 		.map((item) => {
 			const paid = pending.paid.get(item.id);
-			return paid === undefined ? item : { ...item, isDone: paid };
+			const sortOrder = pending.order?.get(item.id);
+			let next = item;
+			if (paid !== undefined) next = { ...next, isDone: paid };
+			if (sortOrder !== undefined) next = { ...next, sortOrder };
+			return next;
 		});
 	return sortForChecklist(visible);
 }
@@ -27,7 +33,24 @@ export function setPaid(pending: PendingChanges, id: number, paid: boolean): Pen
 }
 
 export function hide(pending: PendingChanges, id: number): PendingChanges {
-	return { ...pending, hidden: new Set(pending.hidden).add(id) };
+	const hidden = new Set(pending.hidden).add(id);
+	if (!pending.order?.has(id)) return { ...pending, hidden };
+	const order = new Map(pending.order);
+	order.delete(id);
+	return { ...pending, hidden, order: order.size > 0 ? order : null };
+}
+
+/** Contiguous ranks for the open checklist after a successful drag. */
+export function setOrder(pending: PendingChanges, orderedOpenIds: readonly number[]): PendingChanges {
+	return {
+		...pending,
+		order: new Map(orderedOpenIds.map((id, index) => [id, index]))
+	};
+}
+
+/** Drop client order overlay after a full server refresh. */
+export function clearOrder(pending: PendingChanges): PendingChanges {
+	return pending.order === null ? pending : { ...pending, order: null };
 }
 
 /** Forgets the change for an item once the server confirmed or rejected it. */
@@ -36,5 +59,5 @@ export function settle(pending: PendingChanges, id: number): PendingChanges {
 	const hidden = new Set(pending.hidden);
 	paid.delete(id);
 	hidden.delete(id);
-	return { paid, hidden };
+	return { ...pending, paid, hidden };
 }

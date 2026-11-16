@@ -25,6 +25,9 @@ export const actions: Actions = {
 	update: formAction({ templateId, ...templateFields }, (form, { templates }) =>
 		templates.update(form.templateId, form)
 	),
+	toggleActive: formAction({ templateId }, (form, { templates }) => ({
+		isActive: templates.toggleActive(form.templateId)
+	})),
 	archive: formAction({ templateId }, (form, { templates }) => templates.archive(form.templateId)),
 	addDestination: formAction(
 		{ name: fields.name, kind: fields.kind },

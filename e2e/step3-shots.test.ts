@@ -66,18 +66,16 @@ test('captures routing, salary header, PHP currency default, and settings', asyn
 	await page.setViewportSize(LAYOUTS[0]);
 	await page.goto('/settings');
 	await expect(page.getByRole('group', { name: 'Currency' })).toBeVisible();
-	await expect(page.getByRole('radio', { name: /Philippine peso/ })).toBeChecked();
-	await expect(page.getByText('Default', { exact: true })).toBeVisible();
-	await expect(page.getByRole('radio', { name: /US dollar/ })).toBeVisible();
+	await expect(page.getByRole('radio', { name: /₱ PHP/ })).toBeChecked();
+	await expect(page.getByRole('radio', { name: /\$ USD/ })).toBeVisible();
 	await page.getByRole('group', { name: 'Currency' }).scrollIntoViewIfNeeded();
 	await shot(page, 'mobile-settings-currency');
 
 	await page.setViewportSize(LAYOUTS[2]);
 	await page.goto('/settings');
 	await expect(page.getByRole('group', { name: 'Currency' })).toBeVisible();
-	await expect(page.getByRole('radio', { name: /Philippine peso/ })).toBeChecked();
-	await expect(page.getByText('Default', { exact: true })).toBeVisible();
-	await expect(page.getByRole('radio', { name: /US dollar/ })).toBeVisible();
+	await expect(page.getByRole('radio', { name: /₱ PHP/ })).toBeChecked();
+	await expect(page.getByRole('radio', { name: /\$ USD/ })).toBeVisible();
 	await page.getByRole('group', { name: 'Currency' }).scrollIntoViewIfNeeded();
 	await shot(page, 'desktop-settings-currency');
 

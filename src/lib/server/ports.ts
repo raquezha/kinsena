@@ -22,6 +22,7 @@ export interface NewTemplate {
 	destinationId: number | null;
 	installmentCount: number | null;
 	installmentsCompleted: number;
+	isActive: boolean;
 	createdAt: number;
 }
 
@@ -36,6 +37,7 @@ export type TemplatePatch = Partial<
 		| 'destinationId'
 		| 'installmentCount'
 		| 'installmentsCompleted'
+		| 'isActive'
 	>
 >;
 
