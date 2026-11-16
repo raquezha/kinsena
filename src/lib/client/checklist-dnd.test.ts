@@ -80,6 +80,34 @@ describe('vertical drag lock', () => {
 		startVerticalDragLock();
 		frame!(0);
 		expect(style.transform).toBe('translate(0px, 32px)');
+		frame!(0); // already locked — no rewrite
+		expect(style.transform).toBe('translate(0px, 32px)');
+		stopVerticalDragLock();
+	});
+
+	it('ignores a missing ghost and non-translate transforms', () => {
+		let frame: FrameRequestCallback | null = null;
+		vi.stubGlobal('requestAnimationFrame', (cb: FrameRequestCallback) => {
+			frame = cb;
+			return 1;
+		});
+		vi.stubGlobal('cancelAnimationFrame', () => {
+			frame = null;
+		});
+
+		vi.stubGlobal('document', { getElementById: () => null });
+		startVerticalDragLock();
+		frame!(0);
+		stopVerticalDragLock();
+
+		const style = { transform: 'matrix(1, 0, 0, 1, 12, 24)' };
+		const el = { id: DRAGGED_ELEMENT_ID, style } as unknown as HTMLElement;
+		vi.stubGlobal('document', {
+			getElementById: (id: string) => (id === DRAGGED_ELEMENT_ID ? el : null)
+		});
+		startVerticalDragLock();
+		frame!(0);
+		expect(style.transform).toBe('matrix(1, 0, 0, 1, 12, 24)');
 		stopVerticalDragLock();
 	});
 });

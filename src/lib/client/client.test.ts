@@ -70,6 +70,10 @@ describe('optimistic checklist', () => {
 		expect(afterHide.hidden.has(2)).toBe(true);
 
 		expect(clearOrder(ordered).order).toBeNull();
+		expect(clearOrder(NO_CHANGES)).toBe(NO_CHANGES);
+
+		const lastRanked = setOrder(NO_CHANGES, [1]);
+		expect(hide(lastRanked, 1).order).toBeNull();
 	});
 
 	it('parity: optimistic setOrder matches open-list id sequence after withPending', () => {
