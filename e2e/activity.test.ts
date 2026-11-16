@@ -1,4 +1,5 @@
 import { expect, test } from '@playwright/test';
+import { mkdirSync } from 'node:fs';
 import {
 	addItem,
 	clearToasts,
@@ -10,7 +11,7 @@ import {
 	signIn
 } from './support/app.ts';
 
-const OUT = 'docs/screenshots';
+const OUT = '/tmp/kinsena-activity-shots';
 
 const VIEWPORTS = [
 	{ name: 'mobile', width: 390, height: 844 },
@@ -63,6 +64,7 @@ test('History Activity feed lists key actions only and stays screenshot-stable',
 	await expect(page.getByRole('button', { name: /November 15|October 15/ })).toBeVisible();
 	await expect(activity.getByText(/Salary|receive|approve/i)).toHaveCount(0);
 
+	mkdirSync(OUT, { recursive: true });
 	for (const viewport of VIEWPORTS) {
 		await page.setViewportSize({ width: viewport.width, height: viewport.height });
 		await page.goto('/history');

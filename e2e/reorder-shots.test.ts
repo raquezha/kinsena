@@ -12,7 +12,7 @@ import {
 } from './support/app.ts';
 import { DRAG_GHOST_CLASS } from '../src/lib/client/checklist-dnd.ts';
 
-const OUT = 'docs/screenshots';
+const OUT = '/tmp/kinsena-reorder-shots';
 const LAYOUTS = [
 	{ name: 'mobile', width: 390, height: 844 },
 	{ name: 'tablet', width: 834, height: 1112 },

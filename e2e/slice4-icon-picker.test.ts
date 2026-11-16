@@ -1,7 +1,9 @@
 import { expect, test, type Page } from '@playwright/test';
+import { mkdirSync } from 'node:fs';
 import { clearToasts, signIn } from './support/app.ts';
 
-const OUT = 'docs/screenshots';
+const OUT = '/tmp/kinsena-slice4-shots';
+mkdirSync(OUT, { recursive: true });
 
 const VIEWPORTS = [
 	{ name: 'mobile', width: 390, height: 844 },
