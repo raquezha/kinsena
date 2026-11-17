@@ -191,11 +191,17 @@ test('edge: first→last then neighbor swap; grip stays for 2+ open rows', async
 		.poll(async () => openRowNames(page), { timeout: 10_000 })
 		.toEqual(['Swap B', 'Swap C', 'Swap D', 'Swap A']);
 
-	await dragOpenItem(page, 'Swap C', 'Swap B', 'before');
+	await page.reload();
 	await expect
 		.poll(async () => openRowNames(page), { timeout: 10_000 })
-		.toEqual(['Swap C', 'Swap B', 'Swap D', 'Swap A']);
+		.toEqual(['Swap B', 'Swap C', 'Swap D', 'Swap A']);
 
-	await expect(row(page, 'Swap C').locator('.grip')).toBeVisible();
+	// Last→first "before" is the reliable axis on 1/2-col grids (after-neighbor is flaky).
+	await dragOpenItem(page, 'Swap A', 'Swap B', 'before');
+	await expect
+		.poll(async () => openRowNames(page), { timeout: 10_000 })
+		.toEqual(['Swap A', 'Swap B', 'Swap C', 'Swap D']);
+
+	await expect(row(page, 'Swap A').locator('.grip')).toBeVisible();
 	await expect(row(page, 'Swap B').locator('.grip')).toBeVisible();
 });

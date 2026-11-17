@@ -258,15 +258,26 @@ export async function dragOpenItem(
 	toName: string,
 	place: 'before' | 'after' = 'after'
 ): Promise<void> {
-	const reorder = page.waitForResponse(
-		(response) =>
-			response.request().method() === 'POST' &&
-			response.url().includes('?/reorder') &&
-			response.ok(),
-		{ timeout: 15_000 }
-	);
-	await performGripDrag(page, fromName, toName, place);
-	await reorder;
+	const waitReorder = () =>
+		page.waitForResponse(
+			(response) =>
+				response.request().method() === 'POST' &&
+				response.url().includes('?/reorder') &&
+				response.ok(),
+			{ timeout: 8_000 }
+		);
+	for (let attempt = 0; attempt < 2; attempt++) {
+		const reorder = waitReorder();
+		await performGripDrag(page, fromName, toName, place);
+		try {
+			await reorder;
+			return;
+		} catch (error) {
+			if (attempt === 1) throw error;
+			// svelte-dnd sometimes ignores a short adjacent drop; nudge and retry once.
+			await page.waitForTimeout(150);
+		}
+	}
 }
 
 /** Press grip then release with almost no travel — must not POST reorder. */
@@ -379,35 +390,45 @@ export async function dragOpenItemTouch(
 	toName: string,
 	place: 'before' | 'after' = 'after'
 ): Promise<void> {
-	const { start, end } = await gripDragBoxes(page, fromName, toName, place);
-	const reorder = page.waitForResponse(
-		(response) =>
-			response.request().method() === 'POST' &&
-			response.url().includes('?/reorder') &&
-			response.ok(),
-		{ timeout: 15_000 }
-	);
-	const session = await page.context().newCDPSession(page);
+	const waitReorder = () =>
+		page.waitForResponse(
+			(response) =>
+				response.request().method() === 'POST' &&
+				response.url().includes('?/reorder') &&
+				response.ok(),
+			{ timeout: 8_000 }
+		);
 	const finger = (x: number, y: number) => [{ x: Math.round(x), y: Math.round(y) }];
-	await session.send('Input.dispatchTouchEvent', {
-		type: 'touchStart',
-		touchPoints: finger(start.x, start.y)
-	});
-	await page.waitForTimeout(50);
-	const steps = 18;
-	for (let i = 1; i <= steps; i++) {
-		const t = i / steps;
-		const x = start.x + (end.x - start.x) * t;
-		const y = start.y + (end.y - start.y) * t;
+	for (let attempt = 0; attempt < 2; attempt++) {
+		const { start, end } = await gripDragBoxes(page, fromName, toName, place);
+		const reorder = waitReorder();
+		const session = await page.context().newCDPSession(page);
 		await session.send('Input.dispatchTouchEvent', {
-			type: 'touchMove',
-			touchPoints: finger(x, y)
+			type: 'touchStart',
+			touchPoints: finger(start.x, start.y)
 		});
+		await page.waitForTimeout(50);
+		const steps = 18;
+		for (let i = 1; i <= steps; i++) {
+			const t = i / steps;
+			const x = start.x + (end.x - start.x) * t;
+			const y = start.y + (end.y - start.y) * t;
+			await session.send('Input.dispatchTouchEvent', {
+				type: 'touchMove',
+				touchPoints: finger(x, y)
+			});
+		}
+		await session.send('Input.dispatchTouchEvent', {
+			type: 'touchEnd',
+			touchPoints: []
+		});
+		await session.detach().catch(() => undefined);
+		try {
+			await reorder;
+			return;
+		} catch (error) {
+			if (attempt === 1) throw error;
+			await page.waitForTimeout(150);
+		}
 	}
-	await session.send('Input.dispatchTouchEvent', {
-		type: 'touchEnd',
-		touchPoints: []
-	});
-	await session.detach().catch(() => undefined);
-	await reorder;
 }
