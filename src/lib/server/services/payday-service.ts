@@ -45,6 +45,8 @@ export interface PaydayService {
 	setPayDate(paydayId: number, payDate: string): void;
 	setNote(paydayId: number, note: string): void;
 	receive(paydayId: number, salary: string): void;
+	/** Clear Mark received so the open payday returns to Upcoming. */
+	unreceive(paydayId: number): void;
 	close(paydayId: number): void;
 	reopen(paydayId: number): void;
 	history(): History;
@@ -202,6 +204,11 @@ export function createPaydayService(repos: Deps, clock: Clock): PaydayService {
 				receivedAmount: received,
 				receivedAt: localIsoDate(clock.now())
 			});
+		},
+		unreceive(paydayId) {
+			const payday = requireOpenPayday(paydays, paydayId);
+			ensure(payday.receivedAt !== null, 'This payday is not marked received');
+			paydays.update(paydayId, { receivedAmount: null, receivedAt: null });
 		},
 		close(paydayId) {
 			transaction(() => {

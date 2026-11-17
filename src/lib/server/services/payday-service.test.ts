@@ -86,11 +86,14 @@ describe('payday service', () => {
 		);
 	});
 
-	it('marks salary received, saves a note, and finishes into history', () => {
+	it('marks salary received, undoes received, then finishes into history', () => {
 		services.paydays.ensureUpcoming();
 		const mid = services.paydays.active()!;
 		expect(() => services.paydays.receive(mid.payday.id, '')).toThrow(
 			'Enter the salary that arrived'
+		);
+		expect(() => services.paydays.unreceive(mid.payday.id)).toThrow(
+			'This payday is not marked received'
 		);
 		services.paydays.receive(mid.payday.id, '75,000.25');
 		services.paydays.setNote(mid.payday.id, 'Bonus payout');
@@ -98,6 +101,12 @@ describe('payday service', () => {
 		expect(received.payday.receivedAt).toBe('2026-10-15');
 		expect(received.payday.receivedAmount).toBe(7_500_025);
 		expect(received.summary.salary).toBe(7_500_025);
+		services.paydays.unreceive(mid.payday.id);
+		const upcoming = services.paydays.view(mid.payday.id);
+		expect(upcoming.payday.receivedAt).toBeNull();
+		expect(upcoming.payday.receivedAmount).toBeNull();
+		expect(upcoming.summary.salary).toBe(upcoming.payday.expectedAmount);
+		services.paydays.receive(mid.payday.id, '75,000.25');
 		services.paydays.close(mid.payday.id);
 		expect(services.paydays.active()?.payday.id).not.toBe(mid.payday.id);
 		expect(services.paydays.history().reopenableId).toBe(mid.payday.id);

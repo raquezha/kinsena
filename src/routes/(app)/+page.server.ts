@@ -71,6 +71,7 @@ export const actions: Actions = {
 	receive: formAction({ paydayId, salary: fields.amount }, (form, { paydays }) =>
 		paydays.receive(form.paydayId, form.salary)
 	),
+	unreceive: formAction({ paydayId }, (form, { paydays }) => paydays.unreceive(form.paydayId)),
 	expected: formAction({ paydayId, salary: fields.amount }, (form, { paydays }) =>
 		paydays.setExpected(form.paydayId, form.salary)
 	),

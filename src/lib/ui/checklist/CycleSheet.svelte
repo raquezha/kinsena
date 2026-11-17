@@ -26,6 +26,7 @@
 	const resetPay = new FormState();
 	const note = new FormState();
 	const finish = new FormState();
+	const unreceive = new FormState();
 	const received = $derived(isReceived(payday));
 	const finishHint = $derived.by(() => {
 		const parts: string[] = [];
@@ -63,7 +64,20 @@
 		{/if}
 
 		{#if received}
-			<p class="hint">Arrived {payday.payDate}. Received paydays cannot move.</p>
+			<div class="stack">
+				<p class="hint">Arrived {payday.payDate}. Received paydays cannot move.</p>
+				<ConfirmButton
+					action="?/unreceive"
+					fields={{ paydayId: payday.id }}
+					confirm="Yes, undo received"
+					onsubmit={unreceive.enhance({ success: 'Back to Upcoming — salary not marked received' })}
+				>
+					Undo received
+				</ConfirmButton>
+				{#if unreceive.error}
+					<p class="form-error" role="alert">{unreceive.error}</p>
+				{/if}
+			</div>
 		{:else}
 			<form
 				method="POST"
