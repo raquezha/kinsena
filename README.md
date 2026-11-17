@@ -1,5 +1,7 @@
 # Kinsena
 
+**Kinsenas na. Sahod na. Saan mapupunta ang pera?**
+
 A self-hosted payday routing checklist for bills, statements, and transfers. It is not a bank integration or an expense tracker. Before payday you record incoming bills and the date you will pay them. When salary arrives you go item by item and decide where that money goes — a biller, an account, or left unrouted.
 
 Color, type, and motion live in one token file so a later look can be a token swap.
