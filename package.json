@@ -1,6 +1,6 @@
 {
 	"name": "kinsena",
-	"version": "0.4.1",
+	"version": "0.4.2",
 	"description": "A self-hosted payday routing checklist for bills, statements, and transfers.",
 	"license": "MIT",
 	"private": true,
