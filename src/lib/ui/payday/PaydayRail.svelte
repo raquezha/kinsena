@@ -97,8 +97,8 @@
 		letter-spacing: -0.01em;
 		text-align: center;
 		transition:
-			color var(--duration-base) var(--ease-out),
-			background-color var(--duration-base) var(--ease-out);
+			color 150ms ease-out,
+			background-color 150ms ease-out;
 	}
 
 	.payday.current {
@@ -108,8 +108,8 @@
 
 	@media (hover: hover) {
 		.payday:hover {
-			color: #d4d4d4;
-			background: rgb(255 255 255 / 0.03);
+			color: #fff;
+			background: rgb(255 255 255 / 0.06);
 		}
 
 		.payday.current:hover {
@@ -141,10 +141,10 @@
 		gap: 0.375rem;
 		margin: 0;
 		padding: var(--space-2) var(--space-3);
-		border-radius: var(--radius-sm);
-		border: 1px solid rgb(255 255 255 / 0.06);
+		border-radius: var(--radius-md);
+		border: 0;
 		background: transparent;
-		color: #a3a3a3;
+		color: rgb(255 255 255 / 0.6);
 		font-size: var(--text-xs);
 		text-align: left;
 		white-space: nowrap;
@@ -165,7 +165,7 @@
 		font-size: var(--text-xs);
 		font-weight: 700;
 		line-height: 1.3;
-		color: #a3a3a3;
+		color: rgb(255 255 255 / 0.6);
 		flex: 0 1 auto;
 		min-width: 0;
 	}
@@ -186,7 +186,7 @@
 
 	.nested .payday.current {
 		background: #1c1c1c;
-		border-color: rgb(255 255 255 / 0.14);
+		border: 1px solid rgb(255 255 255 / 0.12);
 		color: #e5c98b;
 	}
 
@@ -200,12 +200,12 @@
 
 	@media (hover: hover) {
 		.nested .payday:hover {
-			color: rgb(255 255 255 / 0.85);
-			background: rgb(255 255 255 / 0.03);
+			color: #fff;
+			background: rgb(255 255 255 / 0.05);
 		}
 
 		.nested .payday:hover .payday-title {
-			color: rgb(255 255 255 / 0.85);
+			color: #fff;
 		}
 
 		.nested .payday.current:hover {

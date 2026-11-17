@@ -59,8 +59,8 @@
 
 	/* Layout */
 	--nav-height: 4rem;
-	--rail-width: 84px;
-	--sidebar-width: 280px;
+	--rail-width: 80px;
+	--sidebar-width: 260px;
 	--content-max: 1180px;
 	--safe-top: env(safe-area-inset-top, 0px);
 	--safe-bottom: env(safe-area-inset-bottom, 0px);
@@ -68,8 +68,10 @@
 	/* Motion */
 	--ease-out: cubic-bezier(0.16, 1, 0.3, 1);
 	--ease-spring: cubic-bezier(0.2, 1.4, 0.3, 1);
+	--ease-collapse: cubic-bezier(0.22, 1, 0.36, 1);
 	--duration-fast: 140ms;
 	--duration-base: 220ms;
+	--duration-collapse: 200ms;
 	--duration-slow: 380ms;
 
 	--z-nav: 20;
@@ -81,6 +83,7 @@
 	:root {
 		--duration-fast: 0ms;
 		--duration-base: 0ms;
+		--duration-collapse: 0ms;
 		--duration-slow: 0ms;
 	}
 }

@@ -1,6 +1,7 @@
 <script lang="ts">
 	import { goto } from '$app/navigation';
 	import { openSheet } from '#lib/client/sheet-route.ts';
+	import { sidebarCollapsedCookie } from '#lib/client/sidebar.ts';
 	import { shortcutFor } from '#lib/client/shortcuts.ts';
 	import { undoStack } from '#lib/client/undo.svelte.ts';
 	import AppNav from '#lib/ui/layout/AppNav.svelte';
@@ -8,6 +9,17 @@
 	import type { LayoutProps } from './$types';
 
 	let { children, data }: LayoutProps = $props();
+	// Seed from SSR cookie so first paint matches (cookie updates keep later loads aligned).
+	// svelte-ignore state_referenced_locally
+	let sidebarCollapsed = $state(data.sidebarCollapsed);
+
+	$effect(() => {
+		document.cookie = sidebarCollapsedCookie(sidebarCollapsed);
+	});
+
+	function toggleSidebar() {
+		sidebarCollapsed = !sidebarCollapsed;
+	}
 
 	function onKeydown(event: KeyboardEvent) {
 		const target = event.target as HTMLElement;
@@ -21,6 +33,16 @@
 		) {
 			event.preventDefault();
 			void undoStack.undo();
+			return;
+		}
+		if (!typing && event.key === '[' && !event.metaKey && !event.ctrlKey && !event.altKey) {
+			event.preventDefault();
+			toggleSidebar();
+			return;
+		}
+		if (!typing && (event.metaKey || event.ctrlKey) && event.key === '\\') {
+			event.preventDefault();
+			toggleSidebar();
 			return;
 		}
 		const shortcut = shortcutFor({
@@ -39,8 +61,8 @@
 
 <svelte:window onkeydown={onKeydown} />
 
-<div class="shell">
-	<AppNav version={data.version} paydays={data.openPaydays} />
+<div class="shell" class:sidebar-collapsed={sidebarCollapsed}>
+	<AppNav version={data.version} paydays={data.openPaydays} bind:collapsed={sidebarCollapsed} />
 	<main class="content">
 		{@render children()}
 	</main>
@@ -65,6 +87,9 @@
 		.content {
 			padding: var(--space-10);
 			padding-left: calc(var(--rail-width) + var(--space-10));
+			transition:
+				padding-left var(--duration-collapse) var(--ease-collapse),
+				max-width var(--duration-collapse) var(--ease-collapse);
 		}
 	}
 
@@ -75,6 +100,17 @@
 			padding-right: var(--space-12);
 			padding-top: var(--space-12);
 			padding-bottom: var(--space-16);
+		}
+
+		.shell.sidebar-collapsed .content {
+			max-width: calc(var(--content-max) + var(--rail-width));
+			padding-left: calc(var(--rail-width) + var(--space-10));
+		}
+	}
+
+	@media (prefers-reduced-motion: reduce) {
+		.content {
+			transition: none;
 		}
 	}
 </style>

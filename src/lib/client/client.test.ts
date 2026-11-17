@@ -9,6 +9,11 @@ import {
 	settle,
 	withPending
 } from './optimistic.ts';
+import {
+	isSidebarCollapsedCookie,
+	SIDEBAR_COLLAPSED_COOKIE,
+	sidebarCollapsedCookie
+} from './sidebar.ts';
 import { shortcutFor } from './shortcuts.ts';
 
 const item = (id: number, isDone = false): RouteItem => ({
@@ -112,5 +117,21 @@ describe('keyboard shortcuts', () => {
 		expect(press('n', { targetEditable: true })).toEqual({ kind: 'none' });
 		expect(press('1', { metaKey: true })).toEqual({ kind: 'none' });
 		expect(press('n', { dialogOpen: true })).toEqual({ kind: 'none' });
+	});
+});
+
+describe('sidebar collapse cookie', () => {
+	it('treats only the string true as collapsed', () => {
+		expect(isSidebarCollapsedCookie('true')).toBe(true);
+		expect(isSidebarCollapsedCookie('false')).toBe(false);
+		expect(isSidebarCollapsedCookie(undefined)).toBe(false);
+		expect(isSidebarCollapsedCookie(null)).toBe(false);
+	});
+
+	it('writes a path-scoped Lax cookie for a year', () => {
+		expect(sidebarCollapsedCookie(true)).toBe(
+			`${SIDEBAR_COLLAPSED_COOKIE}=true; Path=/; Max-Age=31536000; SameSite=Lax`
+		);
+		expect(sidebarCollapsedCookie(false)).toContain(`${SIDEBAR_COLLAPSED_COOKIE}=false`);
 	});
 });
