@@ -17,6 +17,8 @@ const child = spawn(process.execPath, ['server.js'], {
 	stdio: 'inherit',
 	env: {
 		...process.env,
+		// Production build + production cookie name (matches Docker / auth e2e).
+		NODE_ENV: 'production',
 		HOST: '127.0.0.1',
 		PORT: port,
 		DB_PATH: join(dir, 'kinsena.db'),
