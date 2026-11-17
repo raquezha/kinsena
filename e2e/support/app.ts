@@ -224,7 +224,8 @@ async function gripDragBoxes(
 		start: { x: fromBox.x + fromBox.width / 2, y: fromBox.y + fromBox.height / 2 },
 		end: {
 			x: toBox.x + Math.min(48, toBox.width / 2),
-			y: place === 'after' ? toBox.y + toBox.height - 6 : toBox.y + 6
+			// Stay clearly past the midpoint — 6px from the edge often lands as "before" on 1-col.
+			y: place === 'after' ? toBox.y + toBox.height * 0.82 : toBox.y + toBox.height * 0.18
 		},
 		listLeft: (await page.getByRole('list', { name: /^(Planned|To route)$/ }).boundingBox())?.x ?? 0
 	};

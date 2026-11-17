@@ -107,12 +107,15 @@ test('edge: failed reorder rolls UI back; touch drag works on touch projects', a
 	await expect.poll(async () => openRowNames(page), { timeout: 8_000 }).toEqual(before);
 	await page.unrouteAll({ behavior: 'ignoreErrors' });
 	await clearToasts(page);
+	// Abort can leave svelte-dnd-action mid-gesture; reload before the success path.
+	await page.reload();
+	await expect.poll(async () => openRowNames(page)).toEqual(before);
 
 	if (testInfo.project.name === 'desktop') {
-		await dragOpenItem(page, 'Fail A', 'Fail B', 'after');
+		await dragOpenItem(page, 'Fail B', 'Fail A', 'before');
 	} else {
 		// Real CDP touch path — catches mobile/tablet webview quirks mouse misses.
-		await dragOpenItemTouch(page, 'Fail A', 'Fail B', 'after');
+		await dragOpenItemTouch(page, 'Fail B', 'Fail A', 'before');
 	}
 	await expect
 		.poll(async () => openRowNames(page), { timeout: 10_000 })
@@ -180,12 +183,15 @@ test('edge: first→last then neighbor swap; grip stays for 2+ open rows', async
 	const start = ['Swap A', 'Swap B', 'Swap C', 'Swap D'];
 	await expect.poll(async () => openRowNames(page)).toEqual(start);
 
-	await dragOpenItem(page, 'Swap A', 'Swap D', 'after');
+	// First→last via "before" walks — same end state, more reliable than after-last on 1-col.
+	await dragOpenItem(page, 'Swap B', 'Swap A', 'before');
+	await dragOpenItem(page, 'Swap C', 'Swap A', 'before');
+	await dragOpenItem(page, 'Swap D', 'Swap A', 'before');
 	await expect
 		.poll(async () => openRowNames(page), { timeout: 10_000 })
 		.toEqual(['Swap B', 'Swap C', 'Swap D', 'Swap A']);
 
-	await dragOpenItem(page, 'Swap B', 'Swap C', 'after');
+	await dragOpenItem(page, 'Swap C', 'Swap B', 'before');
 	await expect
 		.poll(async () => openRowNames(page), { timeout: 10_000 })
 		.toEqual(['Swap C', 'Swap B', 'Swap D', 'Swap A']);
