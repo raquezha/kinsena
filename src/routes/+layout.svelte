@@ -8,10 +8,16 @@
 
 	let { children }: LayoutProps = $props();
 
-	// Cross-fade between tabs with the View Transitions API where supported.
+	// Cross-fade between tabs / paydays with the View Transitions API where supported.
 	onNavigate((navigation) => {
-		const samePage = navigation.from?.url.pathname === navigation.to?.url.pathname;
-		if (samePage || !document.startViewTransition) return;
+		if (!document.startViewTransition) return;
+		const from = navigation.from?.url;
+		const to = navigation.to?.url;
+		if (!from || !to) return;
+		const samePath = from.pathname === to.pathname;
+		const samePayday = from.searchParams.get('p') === to.searchParams.get('p');
+		// Same route + same payday (e.g. sheet open/close) — no page morph.
+		if (samePath && samePayday) return;
 		return new Promise((resolve) => {
 			document.startViewTransition(async () => {
 				resolve();

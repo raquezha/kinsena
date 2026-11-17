@@ -71,26 +71,33 @@ input.money {
 		'lnum' 1;
 }
 
-/* Page transitions between tabs (View Transitions API) */
+/* Page transitions between tabs / paydays (View Transitions API) */
+::view-transition-old(page),
+::view-transition-new(page) {
+	animation-duration: var(--duration-base);
+	animation-timing-function: var(--ease-out);
+	animation-fill-mode: both;
+}
+
 ::view-transition-old(page) {
-	animation: page-out var(--duration-base) var(--ease-out) both;
+	animation-name: page-out;
 }
 
 ::view-transition-new(page) {
-	animation: page-in var(--duration-slow) var(--ease-out) both;
+	animation-name: page-in;
 }
 
 @keyframes page-out {
 	to {
 		opacity: 0;
-		transform: translateY(-6px) scale(0.99);
+		transform: translateY(-8px);
 	}
 }
 
 @keyframes page-in {
 	from {
 		opacity: 0;
-		transform: translateY(10px) scale(0.99);
+		transform: translateY(8px);
 	}
 }
 

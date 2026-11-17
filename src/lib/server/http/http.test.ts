@@ -48,6 +48,13 @@ describe('session cookie', () => {
 		});
 		expect(hostnameOf('Example.COM:443')).toBe('example.com');
 	});
+
+	it('keeps production and non-production cookie names apart', async () => {
+		const { SESSION_COOKIE: name } = await import('./session-cookie.ts');
+		expect(name).toBe(
+			process.env.NODE_ENV === 'production' ? 'kinsena_session' : 'kinsena_session_dev'
+		);
+	});
 });
 
 describe('forms', () => {

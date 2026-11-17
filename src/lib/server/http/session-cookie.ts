@@ -1,6 +1,9 @@
 import { SESSION_TTL_SECONDS } from '../auth/session-store.ts';
 
-export const SESSION_COOKIE = 'kinsena_session';
+// Cookies ignore port. Vite and live Docker on the same Tailscale IP must not share a name.
+export const SESSION_COOKIE =
+	process.env.KINSENA_SESSION_COOKIE?.trim() ||
+	(process.env.NODE_ENV === 'production' ? 'kinsena_session' : 'kinsena_session_dev');
 
 const LOOPBACK_HOSTS = new Set(['localhost', '127.0.0.1', '[::1]']);
 

@@ -1,6 +1,6 @@
 <script lang="ts">
 	import { flip } from 'svelte/animate';
-	import { fade, fly } from 'svelte/transition';
+	import { fade } from 'svelte/transition';
 	import { currentSheet, openSheet, sheetHref } from '#lib/client/sheet-route.ts';
 	import AddTemplateSheet from '#lib/ui/defaults/AddTemplateSheet.svelte';
 	import TemplateRow from '#lib/ui/defaults/TemplateRow.svelte';
@@ -82,12 +82,8 @@
 		</p>
 	{/if}
 	<ul class="saved templates">
-		{#each data.templates as template, index (template.id)}
-			<li
-				animate:flip={{ duration: 260 }}
-				in:fly={{ y: 10, delay: Math.min(index, 8) * 30 }}
-				out:fade={{ duration: 160 }}
-			>
+		{#each data.templates as template (template.id)}
+			<li animate:flip={{ duration: 260 }} out:fade={{ duration: 160 }}>
 				<TemplateRow {template} currency={data.currency} destinations={data.destinations} />
 			</li>
 		{/each}

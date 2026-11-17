@@ -1,6 +1,5 @@
 <script lang="ts">
 	import { flip } from 'svelte/animate';
-	import { fly } from 'svelte/transition';
 	import { yearFromIsoDate } from '#lib/domain/history-archive.ts';
 	import ActivityLogSheet from '#lib/ui/history/ActivityLogSheet.svelte';
 	import HistoryCard from '#lib/ui/history/HistoryCard.svelte';
@@ -65,8 +64,8 @@
 			<section class="year" aria-labelledby={`year-${group.year}`}>
 				<h2 id={`year-${group.year}`} class="year-heading">{group.year}</h2>
 				<ol class="cards">
-					{#each group.paydays as view, index (view.payday.id)}
-						<li animate:flip={{ duration: 260 }} in:fly={{ y: 12, delay: Math.min(index, 8) * 40 }}>
+					{#each group.paydays as view (view.payday.id)}
+						<li animate:flip={{ duration: 260 }}>
 							<HistoryCard
 								{view}
 								currency={data.currency}

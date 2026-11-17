@@ -24,7 +24,7 @@
 	--danger-soft: rgb(240 168 160 / 0.14);
 	--danger-solid: #5c2a26;
 	--scrim: rgb(8 7 5 / 0.66);
-	--nav-bg: rgb(18 17 14 / 0.9);
+	--nav-bg: #12110e;
 
 	/* Type: self-hosted Inter Variable, tabular figures for amounts */
 	--font-ui: 'Inter Variable', Inter, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
@@ -58,9 +58,9 @@
 	--shadow-float: 0 12px 32px rgb(0 0 0 / 0.55);
 
 	/* Layout */
-	--nav-height: 76px;
+	--nav-height: 4rem;
 	--rail-width: 84px;
-	--sidebar-width: 248px;
+	--sidebar-width: 280px;
 	--content-max: 1180px;
 	--safe-top: env(safe-area-inset-top, 0px);
 	--safe-bottom: env(safe-area-inset-bottom, 0px);
